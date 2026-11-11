@@ -125,6 +125,7 @@ h1 span{color:var(--accent);display:block}
 #btn-online{background:var(--ink);color:var(--cloth);border-color:var(--ink)}
 .invite{position:fixed;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;max-width:516px;margin:0 auto;z-index:40;display:none;align-items:center;gap:8px;background:var(--ink);color:var(--cloth);border-radius:14px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-weight:700}
 .invite.open{display:flex}
+.invite.ask{top:calc(max(10px,env(safe-area-inset-top)) + 72px)}
 .invite.update{top:auto;bottom:max(12px,env(safe-area-inset-bottom));background:var(--accent);color:#1a1500}
 .invite.update button{background:#1a1500;color:var(--accent)}
 .invite span{flex:1;min-width:0}
@@ -301,6 +302,7 @@ h1 span{color:var(--accent);display:block}
 </div>
 
 <div class="invite" id="invite-bar" role="status"></div>
+<div class="invite ask" id="ask-bar" role="status"></div>
 <div class="invite update" id="update-bar" role="status"></div>
 <div class="sheet" id="sheet-setup"><div class="panel" id="panel-setup"></div></div>
 <div class="sheet" id="sheet-rules"><div class="panel" id="panel-rules"></div></div>
@@ -414,7 +416,8 @@ function missStep(g,e){
     if(e.a){if(g.mflag!==pi){g.miss[pi]++;g.mflag=pi}}
     else{g.miss[pi]=0;g.mflag=null}
   }else return false;
-  return g.miss[pi]>=KICK_AFTER?kickPlayer(g,pi):false;
+  // switched off for now: games made by this version never remove a player for missed turns
+  return !g.nokick&&g.miss[pi]>=KICK_AFTER?kickPlayer(g,pi):false;
 }
 function threat(g,pi,idx){
   if(isSafe(g,idx))return 0;
@@ -661,6 +664,16 @@ T.en.outTag="removed";T.fr.outTag="exclu";T.it.outTag="escluso";
 T.en.daily=function(n){return "Daily bonus: +"+n+" ★"};T.fr.daily=function(n){return "Bonus du jour : +"+n+" ★"};T.it.daily=function(n){return "Bonus del giorno: +"+n+" ★"};
 T.en.streak=function(k,n){return "🔥 "+k+" wins in a row: +"+n+" ★"};T.fr.streak=function(k,n){return "🔥 "+k+" victoires de suite : +"+n+" ★"};T.it.streak=function(k,n){return "🔥 "+k+" vittorie di fila: +"+n+" ★"};
 T.en.gift=function(f,n){return "🎁 "+f+" sent you +"+n+" ★"};T.fr.gift=function(f,n){return "🎁 "+f+" vous a envoyé +"+n+" ★"};T.it.gift=function(f,n){return "🎁 "+f+" ti ha inviato +"+n+" ★"};
+T.en.askTitle="Joining the game";T.fr.askTitle="Rejoindre la partie";T.it.askTitle="Entrare nella partita";
+T.en.askWait="This game has already started. The host has been asked to let you in; you will take over from a computer player.";T.fr.askWait="Cette partie a déjà commencé. L'hôte a reçu votre demande ; vous remplacerez un joueur ordinateur.";T.it.askWait="Questa partita è già iniziata. L'host ha ricevuto la tua richiesta; prenderai il posto di un giocatore computer.";
+T.en.askStake=function(n){return "Entry: "+n+" ★."};T.fr.askStake=function(n){return "Mise : "+n+" ★."};T.it.askStake=function(n){return "Posta: "+n+" ★."};
+T.en.askNo="The host did not let you in.";T.fr.askNo="L'hôte n'a pas accepté votre demande.";T.it.askNo="L'host non ha accettato la tua richiesta.";
+T.en.askLate="No answer from the host. Try again in a moment.";T.fr.askLate="Pas de réponse de l'hôte. Réessayez dans un instant.";T.it.askLate="Nessuna risposta dall'host. Riprova tra poco.";
+T.en.cancel="Cancel";T.fr.cancel="Annuler";T.it.cancel="Annulla";
+T.en.wantsIn=function(n){return n+" wants to join the game"};T.fr.wantsIn=function(n){return n+" veut rejoindre la partie"};T.it.wantsIn=function(n){return n+" vuole entrare nella partita"};
+T.en.accept="Accept";T.fr.accept="Accepter";T.it.accept="Accetta";
+T.en.decline="Decline";T.fr.decline="Refuser";T.it.decline="Rifiuta";
+T.en.joined=function(n){return n+" joined the game"};T.fr.joined=function(n){return n+" a rejoint la partie"};T.it.joined=function(n){return n+" è entrato nella partita"};
 T.en.privacy="Privacy";T.fr.privacy="Confidentialité";T.it.privacy="Privacy";
 T.en.support="Help";T.fr.support="Aide";T.it.support="Aiuto";
 T.en.terms="By signing in you accept the privacy policy and the rules of conduct.";T.fr.terms="En vous connectant, vous acceptez la politique de confidentialité et les règles de conduite.";T.it.terms="Accedendo accetti l'informativa sulla privacy e le regole di condotta.";
@@ -963,7 +976,7 @@ function timeUp(remote){
   if(live()){
     var kp=g.turn;
     if(missStep(g,{t:"x"})){kickFlow(kp);return}
-    if(!remote&&g.miss&&g.miss[kp]===KICK_AFTER-1)toast(L().missWarn);
+    if(!remote&&!g.nokick&&g.miss&&g.miss[kp]===KICK_AFTER-1)toast(L().missWarn);
   }
   stopClock();
   sfx("timeup");say(L().timeUp(nameOf(g.turn)));
@@ -1347,7 +1360,7 @@ function api(method,path,body,code){
   return fetch(roomUrl(code||net.code,path),{method:method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)})
     .then(function(r){if(!r.ok)throw new Error("net");return r.json()});
 }
-var PROTO=3,rejoining=false;
+var PROTO=4,rejoining=false;
 // The agreed list of inputs, in order. Inputs are only ever added, never overwritten. Each one says which
 // position it was meant for; if two phones send an input for the same position, the first to arrive counts
 // and the other is ignored by everyone.
@@ -1368,10 +1381,12 @@ function evOk(gm,e){
     return e.d.every(function(v){return v===1||v===2||v===3||v===4||v===5||v===6});
   }
   if(e.t==="m")return gm.dice.length>0&&e.di>=0&&e.di<gm.dice.length&&e.ti>=0&&e.ti<4&&canMove(gm,gm.turn,e.ti,gm.dice[e.di])!==null;
+  if(e.t==="j")return !!gm.join&&e.pi>=0&&e.pi<gm.players.length&&gm.players[e.pi].kind==="cpu"&&(gm.out||[]).indexOf(e.pi)<0&&gm.rank.indexOf(e.pi)<0&&
+    typeof e.id==="string"&&/^p[a-z0-9]{6,40}$/.test(e.id)&&!gm.players.some(function(q){return q.id===e.id});
   return e.t==="x";
 }
 function seatAt(r,i){return r&&r.seats?r.seats[i]:undefined}
-function canon(e){return e.t+"|"+(e.d?e.d.join(","):"")+"|"+(e.ti===undefined?"":e.ti)+"|"+(e.di===undefined?"":e.di)+"|"+(e.a?1:"")}
+function canon(e){return e.t+"|"+(e.d?e.d.join(","):"")+"|"+(e.ti===undefined?"":e.ti)+"|"+(e.di===undefined?"":e.di)+"|"+(e.a?1:"")+(e.t==="j"?"|"+e.pi+"|"+e.id:"")}
 function fresh(id){return id===myId||Date.now()-(net.seen[id]||net.since)<25000}
 function actingHost(){
   var r=net.room,ss=(r.game&&r.game.seats)||[];
@@ -1423,8 +1438,16 @@ function sendNext(){
   })();
 }
 // Applies one input to the game without any animation. Used to catch up after joining or reconnecting.
+// A person takes the seat the computer was playing: same pieces, same place in the turn order.
+function applyJoin(gm,e){
+  var pl=gm.players[e.pi];
+  pl.kind="human";pl.id=e.id;pl.key=null;
+  pl.name=cleanText(String(e.name||"").slice(0,12)).slice(0,12)||pl.name;pl.av=cleanAv(e.av,pl.seat);
+  if(gm.miss)gm.miss[e.pi]=0;
+}
 function simEvent(gm,e){
   if(!evOk(gm,e))return;
+  if(e.t==="j"){applyJoin(gm,e);return}
   if(e.t!=="m"&&missStep(gm,e)){gm.dice=[];gm.rolled=null;gm.bonus=false;endRoll(gm);return}
   if(e.t==="r"){gm.dice=e.d.slice();gm.rolled=e.d.slice();gm.bonus=false}
   else if(e.t==="m"){applyMove(gm,gm.turn,e.ti,gm.dice[e.di]);gm.dice.splice(e.di,1)}
@@ -1444,6 +1467,7 @@ function pumpEvents(){
   var e=seq[net.applied];
   net.log[net.applied]=canon(e);net.applied++;net.ok=net.applied;
   if(!evOk(g,e)){pumpEvents();return}
+  if(e.t==="j"){joinFlow(e);return}
   if(e.t==="r"){var kp=g.turn;if(missStep(g,e)){kickFlow(kp);return}showRoll(e.d)}else if(e.t==="m")doMove(e.ti,e.di,true);else timeUp(true);
 }
 function resync(force){
@@ -1475,6 +1499,15 @@ function wakeNet(){
 document.addEventListener("visibilitychange",function(){if(!document.hidden)wakeNet()});
 window.addEventListener("online",wakeNet);
 window.addEventListener("pageshow",function(ev){if(ev.persisted)wakeNet()});
+// Links a seat to this phone's player and takes the entry from their points, once per game.
+function claimSeat(pl){
+  var k=keyOf(pl.name),pr=bank.profiles[k],tag=net.code+":"+net.room.round,paid="";
+  if(!pr)pr=bank.profiles[k]={name:pl.name,pts:WELCOME,av:pl.av,t:0};
+  pl.key=k;
+  try{paid=localStorage.getItem("ludo-paid")||""}catch(e){}
+  if(g.stake&&paid!==tag){pr.pts=Math.max(0,pr.pts-g.stake);pr.t=Date.now();try{localStorage.setItem("ludo-paid",tag)}catch(e){}}
+  saveBank();
+}
 function rebuildRound(){
   var r=net.room,gm=r.game;if(!gm||!gm.seats)return;
   var c=r.cfg||{};
@@ -1482,20 +1515,16 @@ function rebuildRound(){
   net.live=true;net.round=r.round;net.applied=0;net.ok=0;net.log=[];net.out=[];rejoining=false;
   g=newGame({seats:gm.seats.map(function(s){return {seat:s.seat,kind:s.kind==="human"?"human":"cpu"}}),twoDice:c.twoDice,safe:c.safe,blockPass:c.blockPass,bonus:c.bonus,captureHome:c.captureHome,jail:c.jail,homeBonus:c.homeBonus});
   g.stake=c.stake||0;g.pot=g.stake*g.players.length;g.gains={};g.v=3;
+  g.nokick=g.join=(r.v||1)>=4;
   g.players.forEach(function(pl,i){
     var s=gm.seats[i];
     pl.name=String(s.name||"").slice(0,12)||CPU_NAMES[pl.seat];pl.av=cleanAv(s.av,pl.seat);pl.id=s.id||null;pl.key=null;
-    if(pl.kind==="human"&&pl.id===myId){
-      var k=keyOf(pl.name),pr=bank.profiles[k],tag=net.code+":"+r.round,paid="";
-      if(!pr)pr=bank.profiles[k]={name:pl.name,pts:WELCOME,av:pl.av,t:0};
-      pl.key=k;
-      try{paid=localStorage.getItem("ludo-paid")||""}catch(e){}
-      if(g.stake&&paid!==tag){pr.pts=Math.max(0,pr.pts-g.stake);pr.t=Date.now();try{localStorage.setItem("ludo-paid",tag)}catch(e){}}
-      saveBank();
-    }
+    if(pl.kind==="human"&&pl.id===myId)claimSeat(pl);
   });
   var seq=evList();
   for(var q=0;q<seq.length;q++){simEvent(g,seq[q]);net.log[q]=canon(seq[q])}
+  // a seat this player took over after the start
+  g.players.forEach(function(pl){if(pl.kind==="human"&&pl.id===myId&&!pl.key)claimSeat(pl)});
   net.applied=net.ok=seq.length;
   ptsSent=null;sharePts();
   mount();
@@ -1546,9 +1575,115 @@ function onRoom(){
   if(!r.game)return;
   if(!net.live||net.round!==r.round){rebuildRound();return}
   pumpEvents();
+  renderAsk();settleJoins();
   if($("sheet-online").classList.contains("open"))renderOnline();
 }
 function lobbyFull(r){var n=(r.cfg&&r.cfg.count)||4;for(var i=0;i<n;i++)if(!seatAt(r,i))return false;return true}
+// ---------- Joining a game in progress ----------
+// The newcomer asks; the host accepts; the newcomer takes over a seat the computer was playing and pays the entry.
+var asking=null,askT=null,shownAsk="";
+function freeCpuSeat(){
+  if(!g||g.over||!g.join)return -1;
+  for(var i=0;i<g.players.length;i++)if(g.players[i].kind==="cpu"&&(g.out||[]).indexOf(i)<0&&g.rank.indexOf(i)<0)return i;
+  return -1;
+}
+function inGame(id){return !!g&&g.players.some(function(q){return q.id===id})}
+function joinFlow(e){
+  applyJoin(g,e);
+  var pl=g.players[e.pi];
+  if(pl.id===myId)claimSeat(pl);
+  toast(L().joined(pl.name));sfx("home");
+  if(phase==="roll"){stepNo++;beginTurn()}else{renderAll();pumpEvents()}
+}
+function askList(){
+  var a=(net&&net.room&&net.room.ask)||{},out=[];
+  Object.keys(a).forEach(function(k){var v=a[k];if(v&&typeof v==="object"&&v.id===k&&/^p[a-z0-9]{6,40}$/.test(k)&&Date.now()-(v.t||0)<90000)out.push(v)});
+  return out;
+}
+function declineAsk(id,quiet){
+  api("PUT","/ask/"+id,null).catch(function(){});
+  if(net.room.ask)delete net.room.ask[id];
+  delete net.acc[id];if(!quiet)renderAsk();
+}
+function renderAsk(){
+  var bar=$("ask-bar");if(!bar)return;
+  var show=null;
+  if(live()&&g&&actingHost()===myId){
+    askList().forEach(function(v){
+      if(show||net.acc[v.id]||inGame(v.id))return;
+      if(g.over||!g.join||freeCpuSeat()<0||isBlockedFc(v.fc)){declineAsk(v.id,true);return}
+      show=v;
+    });
+  }
+  if(!show){bar.className="invite ask";bar.innerHTML="";shownAsk="";return}
+  // the bar is drawn once per request, so its buttons stay put while the game goes on underneath
+  if(shownAsk===show.id&&bar.classList.contains("open"))return;
+  shownAsk=show.id;sfx("home");
+  bar.className="invite ask open";
+  bar.innerHTML='<span>'+esc(L().wantsIn(cleanText(String(show.name||"").slice(0,12))))+'</span><button type="button" id="ask-yes">'+L().accept+'</button><button type="button" id="ask-no" class="q">'+L().decline+'</button>';
+  $("ask-yes").addEventListener("click",function(){net.acc[show.id]=show;renderAsk();tryJoin(show.id,0)});
+  $("ask-no").addEventListener("click",function(){declineAsk(show.id)});
+}
+// Seats the newcomer as soon as the game is between two actions.
+function tryJoin(id,n){
+  var me=net,v=me&&me.acc[id];
+  if(!v||!live()||!g)return;
+  if(inGame(id))return;
+  var pi=freeCpuSeat();
+  if(pi<0){declineAsk(id);return}
+  if(phase!=="roll"&&phase!=="move"){if(n<80)setTimeout(function(){if(net===me)tryJoin(id,n+1)},250);return}
+  var e={t:"j",pi:pi,id:id,name:String(v.name||"").slice(0,12),av:cleanAv(v.av,g.players[pi].seat)};
+  pushEv(e);joinFlow(e);
+}
+// Once every phone agrees the newcomer is seated, the room records the seat; if the request lost a race
+// with another player's move, it is sent again.
+function settleJoins(){
+  if(!net||!live()||!g)return;
+  var settled=!net.out.length&&!net.sending&&net.ok>=net.applied;
+  Object.keys(net.acc).forEach(function(id){
+    var v=net.acc[id],pi=-1;
+    g.players.forEach(function(q,i){if(q.id===id)pi=i});
+    if(pi>=0){
+      if(!settled||v.busy)return;
+      v.busy=1;var me=net,pl=g.players[pi];
+      api("PUT","/seats/"+pi,{id:id,name:pl.name,av:pl.av,fc:/^[A-Z0-9]{8}$/.test(v.fc||"")?v.fc:""})
+        .then(function(){return api("PUT","/ask/"+id,null)})
+        .then(function(){if(net===me)delete me.acc[id]})
+        .catch(function(){v.busy=0});
+    }else if(settled&&!g.over)tryJoin(id,0);
+  });
+}
+function askJoin(code,r){
+  var n=r.cfg.count,free=false;
+  for(var i=0;i<n;i++)if(!seatAt(r,i))free=true;
+  if(!free){onErr=L().errFull;renderOnline();return}
+  if((r.cfg.stake||0)>balanceOf(meName())){onErr=L().errPoints(fmt(r.cfg.stake));renderOnline();return}
+  for(var j=0;j<n;j++){var os=seatAt(r,j);if(os&&keyOf(os.name)===keyOf(meName())){onErr=L().errNameTaken;renderOnline();return}}
+  api("PUT","/ask/"+myId,{id:myId,name:meName(),av:meAv(),fc:myFc,t:Date.now()},code).then(function(){
+    asking={code:code,since:Date.now(),stake:r.cfg.stake||0};pendingCode="";onErr="";renderOnline();pollAsk();
+  }).catch(function(){onErr=L().errNet;renderOnline()});
+}
+function stopAsk(msg,tell){
+  var a=asking;asking=null;clearTimeout(askT);
+  if(a&&tell)api("PUT","/ask/"+myId,null,a.code).catch(function(){});
+  onErr=msg||"";renderOnline();
+}
+function pollAsk(){
+  clearTimeout(askT);
+  if(!asking||net)return;
+  var a=asking;
+  askT=setTimeout(function(){
+    if(asking!==a||net)return;
+    api("GET","",undefined,a.code).then(function(r){
+      if(asking!==a||net)return;
+      if(!r||!r.cfg){stopAsk(L().errNoRoom);return}
+      if(hasMe(r)){asking=null;enter(a.code,r);onRoom();return}
+      if((!r.ask||!r.ask[myId])&&Date.now()-a.since>2500){stopAsk(L().askNo);return}
+      if(Date.now()-a.since>90000){stopAsk(L().askLate,true);return}
+      pollAsk();
+    }).catch(function(){pollAsk()});
+  },1500);
+}
 // When the owner chose an automatic start, the game begins a moment after the last seat is taken.
 function autoStartCheck(r){
   if(!r.cfg.auto||!lobbyFull(r)){if(net.autoT){clearTimeout(net.autoT);net.autoT=null}return}
@@ -1558,7 +1693,7 @@ function autoStartCheck(r){
   net.autoT=setTimeout(function(){if(net===n&&net.room.status==="lobby"&&net.room.cfg.auto&&lobbyFull(net.room))startOnline()},host?2500:9000);
 }
 function enter(code,room){
-  net={code:code,room:room,es:null,applied:0,ok:0,log:[],out:[],sending:false,sentAt:0,round:0,live:false,seen:{},hbv:{},since:Date.now(),beat:null,evVer:1,seqVer:0,seq:null,lastMsg:Date.now(),chatSeen:{}};
+  net={code:code,room:room,es:null,applied:0,ok:0,log:[],out:[],sending:false,sentAt:0,round:0,live:false,seen:{},hbv:{},acc:{},since:Date.now(),beat:null,evVer:1,seqVer:0,seq:null,lastMsg:Date.now(),chatSeen:{}};
   markChatSeen();
   try{localStorage.setItem("ludo-room",code)}catch(e){}
   openStream();
@@ -1569,6 +1704,7 @@ function enter(code,room){
     var quiet=Date.now()-net.lastMsg;
     if(quiet>45000)openStream();
     if(!live()||!g||g.over)return;
+    renderAsk();settleJoins();
     if(quiet>7000)pollEv();
     if(!net.out.length&&!net.sending&&net.round===net.room.round&&net.applied>evList().length&&Date.now()-net.sentAt>4000){resync(true);return}
     renderChips();
@@ -1612,6 +1748,7 @@ function joinRoom(code,tries){
     for(var i=0;i<n;i++)if(!seatAt(r,i)&&free<0)free=i;
     if(hasMe(r)){rejoining=false;enter(code,r);onRoom();return}
     rejoining=false;
+    if(r.status==="playing"&&r.game&&(r.v||1)>=4){askJoin(code,r);return}
     if(r.status!=="lobby"){try{localStorage.removeItem("ludo-room")}catch(e){}onErr=L().errStarted;renderOnline();return}
     if(free<0){onErr=L().errFull;renderOnline();return}
     if((r.cfg.stake||0)>balanceOf(meName())){onErr=L().errPoints(fmt(r.cfg.stake));renderOnline();return}
@@ -1638,7 +1775,8 @@ function startOnline(){
 // players, including anyone who reconnects late, are carried over.
 function rematch(){
   var r=net.room,code=newCode(),old=net.code;
-  var room={v:PROTO,host:myId,created:Date.now(),status:"playing",round:1,cfg:r.cfg,seats:r.seats||{},game:{seats:r.game.seats}};
+  var gs=r.game.seats.map(function(s,i){var pl=g&&g.players[i];return pl&&pl.kind==="human"&&pl.id&&s.kind!=="human"?{seat:s.seat,kind:"human",id:pl.id,name:pl.name,av:pl.av}:s});
+  var room={v:PROTO,host:myId,created:Date.now(),status:"playing",round:1,cfg:r.cfg,seats:r.seats||{},game:{seats:gs}};
   api("GET","",undefined,code).then(function(x){if(x)throw new Error("taken");return api("PUT","",room,code)})
     .then(function(){return api("PATCH","",{next:code},old)})
     .catch(function(){say(L().errNet)});
@@ -1671,6 +1809,7 @@ function nextOf(r,code){return r&&typeof r.next==="string"&&/^[A-Z0-9]{6}$/.test
 function leaveRoom(quiet){
   if(!net)return;
   var n=net;net=null;
+  var ab=$("ask-bar");if(ab){ab.className="invite ask";ab.innerHTML=""}shownAsk="";
   if(n.es)n.es.close();
   clearInterval(n.beat);clearTimeout(n.autoT);clearInterval(closeTick);
   try{localStorage.removeItem("ludo-room")}catch(e){}
@@ -1705,6 +1844,8 @@ function renderOnline(){
     h='<h2>'+t.onTitle+'</h2><p class="note" style="margin:0">'+t.onNotSet+'</p><button type="button" class="ghost" id="on-close">'+t.close+'</button>';
   }else if(!net&&rejoining){
     h='<h2>'+t.rejoinTitle+'</h2><p class="note" style="margin:0">'+t.rejoinNote+'</p><button type="button" class="ghost" id="rejoin-stop">'+t.rejoinStop+'</button>';
+  }else if(!net&&asking){
+    h='<h2>'+t.askTitle+'</h2><p class="note" style="margin:0">'+t.askWait+(asking.stake?' '+t.askStake(fmt(asking.stake)):'')+'</p><button type="button" class="ghost" id="ask-stop">'+t.cancel+'</button>';
   }else if(!net){
     h='<h2>'+t.onTitle+'</h2><p class="note" style="margin:0">'+t.onNote+'</p>';
     h+='<div><h3>'+t.yourName+'</h3><div class="who"><input type="text" id="me-name" maxlength="12" autocomplete="off" placeholder="'+esc(hasName()?meName():t.namePh)+'" value="'+esc((cfg.me&&cfg.me.name)||"")+'" aria-label="'+t.yourName+'"><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div><div class="avs" id="avs-me" style="margin-top:8px"></div></div>';
@@ -2317,6 +2458,7 @@ function acctHTML(){
 }
 function bindAcct(){
   if($("ph-go"))$("ph-go").addEventListener("click",function(){signIn($("ph-cc").value,$("ph-num").value)});
+  if($("ask-stop"))$("ask-stop").addEventListener("click",function(){stopAsk("",true)});
   if($("ph-out"))$("ph-out").addEventListener("click",function(){delAsk=false;signOut()});
   if($("del-go"))$("del-go").addEventListener("click",function(){delAsk=true;acctNote="";renderOnline()});
   if($("del-no"))$("del-no").addEventListener("click",function(){delAsk=false;renderOnline()});
@@ -2535,7 +2677,7 @@ function boot(data){
 setTimeout(dailyBonus,1500);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)dailyBonus()});
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="30";
+var BUILD="31";
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
