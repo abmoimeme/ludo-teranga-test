@@ -908,7 +908,11 @@ function keepAwake(){
   }catch(e){}
 }
 document.addEventListener("pointerdown",keepAwake,true);
-function buzz(ms){try{if(soundOn&&navigator.vibrate)navigator.vibrate(ms)}catch(e){}}
+// Inside the phone app, a helper gives access to the phone's own vibration and share sheet.
+var NAT=window.LudoNative||null,WEB_URL="https://abmoimeme.github.io/ludo-teranga/";
+function baseUrl(){return NAT?WEB_URL:location.origin+location.pathname}
+var BLANK=NAT?"":' target="_blank" rel="noopener"';
+function buzz(ms){try{if(!soundOn)return;if(NAT)NAT.buzz(ms);else if(navigator.vibrate)navigator.vibrate(ms)}catch(e){}}
 
 // ---------- Turn timer ----------
 var clock={left:0,id:null};
@@ -1676,8 +1680,9 @@ function leaveRoom(quiet){
   if(!quiet&&n.live){cfg.stake=0;startGame()}
 }
 function invite(){
-  var url=location.origin+location.pathname+"?room="+net.code,txt=L().inviteText(net.code),note=$("invite-note");
+  var url=baseUrl()+"?room="+net.code,txt=L().inviteText(net.code),note=$("invite-note");
   function show(m){if(note)note.textContent=(m?m+" ":"")+url}
+  if(NAT){NAT.share({title:"Ludo Teranga",text:txt,url:url}).catch(function(){show("")});return}
   if(navigator.share){navigator.share({title:"Ludo Teranga",text:txt,url:url}).catch(function(){show("")});return}
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt+" "+url).then(function(){show(L().copied)},function(){show("")});return}
   show("");
@@ -1711,7 +1716,7 @@ function renderOnline(){
   }else{
     var r=net.room,c=r.cfg||{},host=r.host===myId,bs=seatsFor(c.count||4);
     h='<h2>'+t.lobby+'</h2><div class="code"><small>'+t.codeIs+'</small><b>'+esc(net.code)+'</b></div>';
-    h+='<button type="button" class="cta" id="invite-go">'+t.invite+'</button><p class="note" id="invite-note" style="margin:0;word-break:break-all">'+esc(location.origin+location.pathname+"?room="+net.code)+'</p>';
+    h+='<button type="button" class="cta" id="invite-go">'+t.invite+'</button><p class="note" id="invite-note" style="margin:0;word-break:break-all">'+esc(baseUrl()+"?room="+net.code)+'</p>';
     h+='<p class="note" style="margin:0">'+t.sumLine(c.count||4,c.twoDice?2:1,c.stake?fmt(c.stake):"",c.timer||30)+'</p><ol class="places">';
     for(var i=0;i<(c.count||4);i++){
       var s=seatAt(r,i),tags=[];
@@ -1819,8 +1824,9 @@ function sendInvite(fc){
   renderOnline();
 }
 function shareMyCode(){
-  var url=location.origin+location.pathname+"?friend="+myFc,txt=L().shareFc(fcShow(myFc)),note=$("fc-note");
+  var url=baseUrl()+"?friend="+myFc,txt=L().shareFc(fcShow(myFc)),note=$("fc-note");
   function show(m){if(note)note.textContent=m}
+  if(NAT){NAT.share({title:"Ludo Teranga",text:txt,url:url}).catch(function(){});return}
   if(navigator.share){navigator.share({title:"Ludo Teranga",text:txt,url:url}).catch(function(){});return}
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt+" "+url).then(function(){show(L().copied)},function(){show(url)});return}
   show(url);
@@ -2064,7 +2070,7 @@ function openChat(){
       return '<li><b>'+esc(pl.name)+'</b><button type="button" class="mini" data-blk="'+i+'">'+(bl?t.unblock:t.block)+'</button><button type="button" class="mini danger" data-rep="'+i+'"'+(rp?" disabled":"")+'>'+(rp?t.reported:t.report)+'</button></li>';
     }).join("")+'</ol>'+(safeNote?'<p class="note" style="color:var(--accent)" role="status">'+esc(safeNote)+'</p>':"")+'</div>';
   }
-  h+='<p class="note" style="margin:0">'+t.conduct+' <a href="privacy.html#conduct" target="_blank" rel="noopener">'+t.privacy+'</a></p>';
+  h+='<p class="note" style="margin:0">'+t.conduct+' <a href="privacy.html#conduct"'+BLANK+'>'+t.privacy+'</a></p>';
   h+='<button type="button" class="ghost" id="chat-close">'+t.close+'</button>';
   p.innerHTML=h;
   var all=function(q){return Array.prototype.slice.call(p.querySelectorAll(q))};
@@ -2306,7 +2312,7 @@ function acctHTML(){
   var cc=guessCc();
   h+='<div class="who"><select id="ph-cc" aria-label="'+t.phCc+'">'+CCS.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===cc?" selected":"")+'>'+c[1]+'</option>'}).join("")+'</select>';
   h+='<input type="tel" id="ph-num" inputmode="tel" autocomplete="tel" maxlength="20" placeholder="'+t.phPh+'" aria-label="'+t.phPh+'"></div>';
-  h+='<button type="button" class="cta" id="ph-go" style="width:100%;margin-top:8px">'+t.signIn+'</button>'+(acctNote?'<p class="note" style="color:var(--accent)" role="status">'+esc(acctNote)+'</p>':"")+'<p class="note">'+t.acctNote+'</p><p class="note"><a href="privacy.html" target="_blank" rel="noopener">'+t.terms+'</a></p></div>';
+  h+='<button type="button" class="cta" id="ph-go" style="width:100%;margin-top:8px">'+t.signIn+'</button>'+(acctNote?'<p class="note" style="color:var(--accent)" role="status">'+esc(acctNote)+'</p>':"")+'<p class="note">'+t.acctNote+'</p><p class="note"><a href="privacy.html"'+BLANK+'>'+t.terms+'</a></p></div>';
   return h;
 }
 function bindAcct(){
@@ -2529,8 +2535,9 @@ function boot(data){
 setTimeout(dailyBonus,1500);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)dailyBonus()});
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="29";
+var BUILD="30";
 function checkUpdate(){
+  if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
   fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(v){
     v=String(v).trim();
@@ -2547,7 +2554,7 @@ function checkUpdate(){
 setTimeout(checkUpdate,4000);setInterval(checkUpdate,180000);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)checkUpdate()});
 boot({});
-if("serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost"))window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
+if(!NAT&&"serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost"))window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
 </script>
 </body>
 </html>
