@@ -306,7 +306,7 @@ h1 span{color:var(--accent);display:block}
       <button id="lang-it" type="button">IT</button>
     </div>
   </div>
-  <p class="foot">&copy; 2026 Nioro Resources LLC</p>
+  <p class="foot">&copy; 2026 Nioro Resources LLC <span id="ver"></span></p>
   <p class="links"><a id="lnk-privacy" href="privacy.html"></a> · <a id="lnk-support" href="support.html"></a></p>
 </div>
 
@@ -3210,7 +3210,8 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="42";
+var BUILD="43";
+if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
