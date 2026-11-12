@@ -1355,16 +1355,40 @@ function adMark(a){return '<div class="mk'+(a.img?' pic':'')+'">'+(a.img?'<img s
 function renderAd(){
   // the slim strip at the top is always on screen; the larger banner lower down shows a different company
   var top=ADS[adIdx%ADS.length],te=$("adtop");
-  if(te){te.style.setProperty("--adc",top.c);te.innerHTML=(top.img?'<img src="'+top.img+'" alt="" width="32" height="32">':'')+'<div><b>'+esc(top.name)+'</b><span>'+esc(adText(top)[0])+'</span></div>';te.setAttribute("aria-label",AD_TAG[lang])}
+  if(te){te.style.setProperty("--adc",top.c);te.innerHTML=(top.img?'<img src="'+top.img+'" alt="" width="32" height="32">':'')+'<div><b>'+esc(top.name)+'</b><span>'+esc(adText(top)[0])+'</span></div>';te.setAttribute("aria-label",AD_TAG[lang]);te.setAttribute("data-mk",top.mk)}
   var a=ADS[(adIdx+2)%ADS.length],el=$("ad");if(!el)return;
-  el.style.setProperty("--adc",a.c);
+  el.style.setProperty("--adc",a.c);el.setAttribute("data-mk",a.mk);
   el.innerHTML=''+adMark(a)+'<div class="tx"><b>'+esc(a.name)+'</b><span>'+esc(adText(a)[0])+'</span></div><em>'+AD_TAG[lang]+'</em>';
 }
 function adCard(){
   var a=ADS[(adIdx+1)%ADS.length],x=adText(a);
-  return '<div class="ad big" style="--adc:'+a.c+'"><div class="row">'+adMark(a)+'<div class="tx"><b>'+esc(a.name)+'</b></div><em>'+AD_TAG[lang]+'</em></div><span>'+esc(x[0])+'</span><small>'+esc(x[1])+'<br>'+esc(x[2])+'</small></div>';
+  adSeen(a.mk,"w");
+  return '<div class="ad big" data-mk="'+a.mk+'" style="--adc:'+a.c+'"><div class="row">'+adMark(a)+'<div class="tx"><b>'+esc(a.name)+'</b></div><em>'+AD_TAG[lang]+'</em></div><span>'+esc(x[0])+'</span><small>'+esc(x[1])+'<br>'+esc(x[2])+'</small></div>';
 }
-setInterval(function(){if(document.hidden)return;adIdx=(adIdx+1)%ADS.length;renderAd()},10000);
+// Sponsor banners: how often each one was on screen and how often it was tapped, sent as small totals.
+var adBox={},adN=0,adTaps=0;
+function adSeen(mk,where){var o=adBox[mk]=adBox[mk]||{t:0,b:0,w:0};o[where]++;adN++}
+function adLook(){
+  if(document.hidden)return;
+  adSeen(ADS[adIdx%ADS.length].mk,"t");
+  var el=$("ad"),open=document.querySelector(".sheet.open");
+  if(el&&!open){var r=el.getBoundingClientRect();if(r.height>0&&r.top<window.innerHeight&&r.bottom>0)adSeen(ADS[(adIdx+2)%ADS.length].mk,"b")}
+  if(adN>=60)adFlush();
+}
+function adFlush(){
+  if(!adN)return;
+  var r=Object.keys(adBox).map(function(k){var o=adBox[k];return k+"=t"+o.t+"b"+o.b+"w"+o.w}).join(";");
+  adBox={};adN=0;if(typeof logEv==="function")logEv("ad_views",r);
+}
+document.addEventListener("click",function(e){
+  var el=e.target&&e.target.closest?e.target.closest("[data-mk]"):null;
+  if(!el||adTaps>=10)return;adTaps++;
+  if(typeof logEv==="function")logEv("ad_tap",el.getAttribute("data-mk")+";"+(el.id==="adtop"?"top":el.id==="ad"?"bottom":"win"));
+});
+document.addEventListener("visibilitychange",function(){if(document.hidden)adFlush()});
+window.addEventListener("pagehide",adFlush);
+setTimeout(adLook,3000);
+setInterval(function(){if(document.hidden)return;adIdx=(adIdx+1)%ADS.length;renderAd();adLook()},10000);
 
 // ---------- Turn flow ----------
 function rollMsg(){return isHuman(g.turn)?L().yourRoll(nameOf(g.turn)):L().roll1(nameOf(g.turn))}
@@ -2617,7 +2641,7 @@ function statOver(){
 var evCount=0,evErr=0,authKind="";
 function logEv(e,r){
   if(!DB||!EMAIL_ON||evCount>=60)return;evCount++;
-  var d={e:String(e).slice(0,24),t:Date.now(),d:statId||"",cc:String((acct&&acct.cc)||guessCc()||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0};
+  var d={e:String(e).slice(0,24),t:Date.now(),d:statId||"",cc:String((acct&&acct.cc)||guessCc()||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0,l:String(typeof lang==="string"?lang:"").slice(0,2)};
   if(r)d.r=String(r).slice(0,60);
   if(pAuth&&acct)d.u=pAuth.uid;
   try{fetch(DB+"/events/"+statDay()+".json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d),keepalive:true}).catch(function(){})}catch(x){}
@@ -2644,7 +2668,20 @@ window.addEventListener("unhandledrejection",function(ev){
   if(/^net$|Failed to fetch|Load failed|NetworkError/i.test(m))return;
   evErr++;logEv("js_error","promise: "+String(m).slice(0,44));
 });
-setTimeout(function(){logEv("app_open",acct&&pAuth?"signed_in":"signed_out");evName();if(evInvite)logEv("invite_open")},2500);
+setTimeout(function(){logEv("app_open",(acct&&pAuth?"signed_in":"signed_out")+";src="+evSource());evName();if(evInvite)logEv("invite_open")},2500);
+// How this visit arrived: an invitation, a friend's link, the icon on the phone, another site, or directly.
+function evSource(){
+  try{
+    var q=new URLSearchParams(location.search);
+    if(NAT)return "store_app";
+    if(/^[A-Za-z0-9]{6}$/.test(q.get("room")||""))return "invitation";
+    if(q.get("friend"))return "friend_link";
+    if((window.matchMedia&&matchMedia("(display-mode: standalone)").matches)||navigator.standalone)return "home_icon";
+    var h=document.referrer?new URL(document.referrer).hostname.replace(/^www\./,"").slice(0,30):"";
+    if(h&&h!==location.hostname)return "site:"+h;
+  }catch(e){}
+  return "direct";
+}
 var evInvite=false,evSync=0;
 try{evInvite=/^[A-Za-z0-9]{6}$/.test(new URLSearchParams(location.search).get("room")||"")}catch(e){}
 // First steps and games: typed a name, started a game, finished it or left it.
@@ -3406,7 +3443,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="48";
+var BUILD="49";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
