@@ -1387,10 +1387,23 @@ function adFlush(){
   parts.forEach(function(q){if(line&&(line+";"+q).length>58){logEv("ad_views",line);line=q}else line=line?line+";"+q:q});
   if(line)logEv("ad_views",line);
 }
+// Where a banner leads, when its sponsor has given a destination. Campaign details ride along so the sponsor can count arrivals.
+var AD_GAME="ludo-teranga",AD_CAMPAIGN="test-phase",adLast={};
+function adDest(a,pl){
+  var u=String(a.url||"");if(!u)return "";
+  if(!/^https?:\/\//i.test(u))return u;
+  return u+(u.indexOf("?")>=0?"&":"?")+"utm_source="+AD_GAME+"&utm_medium=banner&utm_campaign="+encodeURIComponent(a.cp||AD_CAMPAIGN)+"&utm_content="+pl;
+}
 document.addEventListener("click",function(e){
-  var el=e.target&&e.target.closest?e.target.closest("[data-mk]"):null;
-  if(!el||adTaps>=10)return;adTaps++;
-  if(typeof logEv==="function")logEv("ad_tap",el.getAttribute("data-mk")+";"+(el.id==="adtop"?"top":el.id==="ad"?"bottom":"win"));
+  var el=e.target&&e.target.closest?e.target.closest("[data-mk]"):null;if(!el)return;
+  var mk=el.getAttribute("data-mk"),a=ADS.filter(function(x){return x.mk===mk})[0];if(!a)return;
+  var pl=el.id==="adtop"?"top":el.id==="ad"?"bottom":"win",now=Date.now();
+  if(now-(adLast[mk]||0)<1500)return;   // a double tap counts once
+  adLast[mk]=now;
+  var dest=adDest(a,pl);
+  if(dest){try{window.open(dest,"_blank","noopener")}catch(x){}}
+  if(adTaps>=30)return;adTaps++;
+  if(typeof logEv==="function")logEv("ad_tap",mk+";"+pl,{sp:mk,bn:a.bn||mk+"-1",cp:a.cp||AD_CAMPAIGN,pl:pl,gm:AD_GAME,to:String(a.url||""),bot:navigator.webdriver?1:0});
 });
 document.addEventListener("visibilitychange",function(){if(document.hidden)adFlush()});
 window.addEventListener("pagehide",adFlush);
@@ -2646,10 +2659,19 @@ function statOver(){
 // One short line per event. It never holds an email, a password or a phone number. Before a player is signed in,
 // the line carries only this device's random statistics code.
 var evCount=0,evErr=0,authKind="";
-function logEv(e,r){
-  if(!DB||!EMAIL_ON||evCount>=60)return;evCount++;
-  var d={e:String(e).slice(0,24),t:Date.now(),d:statId||"",cc:String((acct&&acct.cc)||guessCc()||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0,l:String(typeof lang==="string"?lang:"").slice(0,2)};
+function evDevice(){
+  try{
+    var ua=navigator.userAgent||"",touch=(navigator.maxTouchPoints||0)>0,small=Math.min(screen.width,screen.height);
+    if(/iPad|Tablet/i.test(ua)||(touch&&/Macintosh/.test(ua))||(touch&&/Android/i.test(ua)&&!/Mobile/i.test(ua)))return "tablet";
+    if(/Mobi|iPhone|iPod|Android/i.test(ua)||(touch&&small<600))return "mobile";
+  }catch(e){}
+  return "desktop";
+}
+function logEv(e,r,more){
+  if(!DB||!EMAIL_ON||evCount>=90)return;evCount++;
+  var d={e:String(e).slice(0,24),t:Date.now(),d:statId||"",cc:String((acct&&acct.cc)||guessCc()||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0,l:String(typeof lang==="string"?lang:"").slice(0,2),dv:evDevice()};
   if(r)d.r=String(r).slice(0,60);
+  if(more)Object.keys(more).forEach(function(k){if(/^(sp|bn|cp|pl|gm|to|bot)$/.test(k)&&more[k]!==""&&more[k]!==0)d[k]=typeof more[k]==="number"?more[k]:String(more[k]).slice(0,120)});
   if(pAuth&&acct)d.u=pAuth.uid;
   try{fetch(DB+"/events/"+statDay()+".json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d),keepalive:true}).catch(function(){})}catch(x){}
 }
@@ -3450,7 +3472,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="50";
+var BUILD="51";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;

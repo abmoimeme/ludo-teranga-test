@@ -140,12 +140,12 @@ function rulesText(){
 
 // ---------- data ----------
 var EV=[],SEEN={},STATS={},denied={},loadedAt=0,loadErr="";
-var F={range:7,cc:"",pf:"",b:""},tab="overview",pick="",find="";
+var F={range:7,cc:"",pf:"",b:""},tab="overview",pick="",find="",SP={who:"",by:"day",names:false};
 function load(){
   loadErr="";denied={};
-  var from=dayAgo(29);
+  var from=dayAgo(89);
   var a=get("/events",'orderBy=%22%24key%22&startAt=%22'+from+'%22').then(function(d){
-    EV=[];Object.keys(d||{}).forEach(function(day){var rows=d[day]||{};Object.keys(rows).forEach(function(k){var r=rows[k];if(r&&typeof r==="object"&&typeof r.e==="string")EV.push({e:r.e,t:num(r.t),day:day,d:String(r.d||""),u:String(r.u||""),cc:CN[r.cc]?String(r.cc):"other",pf:r.pf==="app"?"app":"web",b:Math.floor(num(r.b)),r:String(r.r||""),l:String(r.l||"")})})});
+    EV=[];Object.keys(d||{}).forEach(function(day){var rows=d[day]||{};Object.keys(rows).forEach(function(k){var r=rows[k];if(r&&typeof r==="object"&&typeof r.e==="string")EV.push({e:r.e,t:num(r.t),day:day,d:String(r.d||""),u:String(r.u||""),cc:CN[r.cc]?String(r.cc):"other",pf:r.pf==="app"?"app":"web",b:Math.floor(num(r.b)),r:String(r.r||""),l:String(r.l||""),dv:/^(mobile|tablet|desktop)$/.test(r.dv)?r.dv:"unknown",sp:String(r.sp||""),bn:String(r.bn||""),cp:String(r.cp||""),pl:String(r.pl||""),gm:String(r.gm||""),to:String(r.to||""),bot:r.bot?1:0})})});
     EV.sort(function(x,y){return x.t-y.t});
   }).catch(function(e){if(e.status===401||e.status===403)denied.events=1;else throw e});
   var b=get("/seen").then(function(d){SEEN=d||{}}).catch(function(e){if(e.status===401||e.status===403)denied.seen=1;else throw e});
@@ -377,55 +377,89 @@ function vOnline(){
   return h;
 }
 var SPN={PAH:"Planet Auto Hub",NF:"Nioro Farms",JV:"Jollof Ventures",FASA:"Fasa",SUP:"SUPERIOR"};
+var SPC={PAH:"#3c459f",NF:"#4f8a4c",JV:"#ea4e1b",FASA:"#f5b21a",SUP:"#e8201f"};
+var PLN={top:"Game screen · top strip",bottom:"Game screen · lower banner",win:"Results screen · end-of-game card"};
+var DVN={mobile:"Phone",tablet:"Tablet",desktop:"Computer",unknown:"Not recorded (older build)"};
+// A short, stable code for a player or a guest. It does not reveal the sign-in id or the device code.
+function pid(x){
+  var k=x.u?"u"+x.u:"d"+x.d,h=2166136261,g=5381;
+  for(var i=0;i<k.length;i++){h=Math.imul(h^k.charCodeAt(i),16777619)>>>0;g=(Math.imul(g,33)+k.charCodeAt(i))>>>0}
+  return (x.u?"P-":"V-")+(("000000"+h.toString(36)).slice(-6)+("00"+g.toString(36)).slice(-2)).toUpperCase();
+}
+function pctx(a,b){return b?(a*100/b).toFixed(a*100/b<10?2:1)+" %":"–"}
+// Views and clicks for the period. Repeated clicks and suspected automated ones are set aside, not counted.
 function sponsorData(){
-  var list=evs(),S={},C={},days=dayList(),D={};
-  var get=function(k){return S[k]=S[k]||{k:k,t:0,b:0,w:0,taps:0,tt:0,tb:0,tw:0,dev:{},tdev:{}}};
+  var list=evs(),S={},P={},C={},DV={},DAY={},clicks=[],who=SP.who,all={v:0,c:0,visits:0,viewers:{},clickers:{},rep:0,bot:0};
+  var get=function(k){return S[k]=S[k]||{k:k,v:0,c:0,visits:0,viewers:{},clickers:{},rep:0,bot:0}};
+  var cell=function(M,k){return M[k]=M[k]||{v:0,c:0,viewers:{},clickers:{}}};
   list.forEach(function(x){
-    if(x.e==="ad_views"){
-      x.r.split(";").forEach(function(part){
-        var m=/^([A-Z]{1,4})=t(\d+)b(\d+)w(\d+)$/.exec(part);if(!m)return;
-        var o=get(m[1]),t=+m[2],b=+m[3],w=+m[4];o.t+=t;o.b+=b;o.w+=w;if(x.d)o.dev[x.d]=1;
-        var c=C[x.cc]=C[x.cc]||{};c[m[1]]=(c[m[1]]||0)+t+b+w;
-        D[x.day]=D[x.day]||{};D[x.day][m[1]]=(D[x.day][m[1]]||0)+t+b+w;
-      });
-    }else if(x.e==="ad_tap"){
-      var q=x.r.split(";"),o=get(q[0]);o.taps++;if(q[1]==="top")o.tt++;else if(q[1]==="bottom")o.tb++;else o.tw++;if(x.d)o.tdev[x.d]=1;
-    }
+    if(x.e!=="ad_views")return;var id=x.u||x.d;
+    x.r.split(";").forEach(function(part){
+      var m=/^([A-Z]{1,4})=t(\d+)b(\d+)w(\d+)$/.exec(part);if(!m)return;
+      var t=+m[2],b=+m[3],w=+m[4],n=t+b+w,o=get(m[1]);o.v+=n;if(id)o.viewers[id]=1;
+      if(who&&who!==m[1])return;
+      all.v+=n;if(id)all.viewers[id]=1;
+      [["top",t],["bottom",b],["win",w]].forEach(function(q){if(q[1]){var c=cell(P,q[0]);c.v+=q[1];if(id)c.viewers[id]=1}});
+      var c1=cell(C,x.cc);c1.v+=n;if(id)c1.viewers[id]=1;var c2=cell(DV,x.dv);c2.v+=n;if(id)c2.viewers[id]=1;var c3=cell(DAY,x.day);c3.v+=n;if(id)c3.viewers[id]=1;
+    });
   });
-  return {S:S,C:C,D:D,days:days,keys:Object.keys(S).sort(function(a,b){return (S[b].t+S[b].b+S[b].w)-(S[a].t+S[a].b+S[a].w)})};
+  // a visitor with more than 15 clicks in one day is treated as automated for that whole day
+  var last={},perDay={};
+  list.forEach(function(x){if(x.e==="ad_tap"){var k=(x.u||x.d)+"|"+x.day;perDay[k]=(perDay[k]||0)+1}});
+  list.forEach(function(x){
+    if(x.e!=="ad_tap")return;var q=x.r.split(";"),mk=x.sp||q[0],plc=x.pl||q[1]||"",id=x.u||x.d,key=id+"|"+mk,dk=id+"|"+x.day;
+    var rec={t:x.t,u:x.u,d:x.d,mk:mk,plc:plc,bn:x.bn||mk+"-1",cp:x.cp||"",gm:x.gm||"ludo-teranga",to:x.to,cc:x.cc,dv:x.dv,l:x.l,day:x.day,st:"Counted"};
+    if(x.bot||perDay[dk]>15)rec.st="Suspected automated";
+    else if(last[key]&&x.t-last[key]<10000)rec.st="Repeat";
+    else last[key]=x.t;
+    clicks.push(rec);var o=get(mk);
+    if(rec.st==="Repeat"){o.rep++;if(!who||who===mk)all.rep++;return}
+    if(rec.st!=="Counted"){o.bot++;if(!who||who===mk)all.bot++;return}
+    o.c++;if(id)o.clickers[id]=1;if(rec.to)o.visits++;
+    if(who&&who!==mk)return;
+    all.c++;if(id)all.clickers[id]=1;if(rec.to)all.visits++;
+    [[P,plc],[C,x.cc],[DV,x.dv],[DAY,x.day]].forEach(function(z){var c=cell(z[0],z[1]);c.c++;if(id)c.clickers[id]=1});
+  });
+  clicks.sort(function(a,b){return b.t-a.t});
+  return {S:S,P:P,C:C,DV:DV,DAY:DAY,all:all,clicks:who?clicks.filter(function(x){return x.mk===who}):clicks,keys:Object.keys(S).sort(function(a,b){return S[b].v-S[a].v})};
 }
 function vSponsors(){
-  var X=sponsorData(),S=X.S,ks=X.keys,tv=0,tt=0;ks.forEach(function(k){tv+=S[k].t+S[k].b+S[k].w;tt+=S[k].taps});
-  var col={PAH:"#3c459f",NF:"#4f8a4c",JV:"#ea4e1b",FASA:"#f5b21a",SUP:"#e8201f"},reach={};ks.forEach(function(k){Object.keys(S[k].dev).forEach(function(d){reach[d]=1})});
-  var h='<div class="grid">'+kpi("Banner showings",fmt(tv),"all sponsors, "+rangeWord())+kpi("Devices reached",fmt(Object.keys(reach).length),"saw at least one banner")+kpi("Taps on banners",fmt(tt),tv?(tt*1000/tv).toFixed(1)+" per 1,000 showings":"")+kpi("Sponsors shown",fmt(ks.length),"")+'</div>';
-  h+='<div class="card"><h2>By sponsor · '+rangeWord()+'</h2>'+(ks.length?'<div class="scroll"><table><thead><tr><th>Sponsor</th><th>Showings</th><th>Share</th><th>Top strip</th><th>Lower banner</th><th>End-of-game card</th><th>Devices reached</th><th>Taps</th><th>Devices that tapped</th><th>Taps per 1,000</th></tr></thead><tbody>'+ks.map(function(k){var o=S[k],v=o.t+o.b+o.w;return '<tr><td><b>'+esc(SPN[k]||k)+'</b></td><td>'+fmt(v)+'</td><td>'+pct(v,tv)+'</td><td>'+fmt(o.t)+'</td><td>'+fmt(o.b)+'</td><td>'+fmt(o.w)+'</td><td>'+fmt(Object.keys(o.dev).length)+'</td><td>'+fmt(o.taps)+'</td><td>'+fmt(Object.keys(o.tdev).length)+'</td><td>'+(v?(o.taps*1000/v).toFixed(1):"–")+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No banner showing recorded in this period.</p>')+
-    '<p class="note">A showing is one 10-second turn of a banner while the game is on screen. The top strip is always visible; the lower banner counts only when it is on screen; the end-of-game card counts each time a game ends. Banners do not open a link today, so a tap only shows interest.</p></div>';
-  var tk=ks.filter(function(k){return S[k].taps});
-  h+='<div class="two"><div class="card"><h2>Where people tap</h2>'+(tk.length?'<div class="scroll"><table><thead><tr><th>Sponsor</th><th>Top strip</th><th>Lower banner</th><th>End-of-game card</th></tr></thead><tbody>'+tk.map(function(k){var o=S[k];return '<tr><td>'+esc(SPN[k]||k)+'</td><td>'+fmt(o.tt)+'</td><td>'+fmt(o.tb)+'</td><td>'+fmt(o.tw)+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No tap in this period.</p>')+'</div>';
-  var ck=Object.keys(X.C).sort(function(a,b){var sa=0,sb=0;ks.forEach(function(k){sa+=X.C[a][k]||0;sb+=X.C[b][k]||0});return sb-sa});
-  h+='<div class="card"><h2>Showings by country</h2>'+(ck.length?'<div class="scroll"><table><thead><tr><th>Country</th>'+ks.map(function(k){return '<th>'+esc(SPN[k]||k)+'</th>'}).join("")+'</tr></thead><tbody>'+ck.map(function(c){return '<tr><td>'+CN[c]+'</td>'+ks.map(function(k){return '<td>'+fmt(X.C[c][k]||0)+'</td>'}).join("")+'</tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">Nothing yet.</p>')+'</div></div>';
-  h+='<div class="card"><h2>Showings per day</h2>'+bars(X.days,ks.map(function(k){return {n:SPN[k]||k,c:col[k]||"#121938",v:X.days.map(function(d){return (X.D[d]||{})[k]||0})}}))+'</div>';
-  // ---- who tapped
-  var list=evs(),taps=list.filter(function(x){return x.e==="ad_tap"}),W={};
-  taps.forEach(function(x){
-    var q=x.r.split(";"),id=x.u?"u:"+x.u:"d:"+x.d,k=id+"|"+q[0],o=W[k]=W[k]||{u:x.u,d:x.d,mk:q[0],n:0,top:0,bottom:0,win:0,last:0,cc:x.cc,pf:x.pf,l:x.l};
-    o.n++;o[q[1]==="top"?"top":q[1]==="bottom"?"bottom":"win"]++;if(x.t>o.last){o.last=x.t;o.cc=x.cc}
-  });
-  var wk=Object.keys(W).sort(function(a,b){return W[b].last-W[a].last}),LN={en:"English",fr:"French",it:"Italian"};
-  h+='<div class="card"><h2>Who tapped a banner · '+rangeWord()+'</h2>'+(wk.length?'<div class="scroll"><table><thead><tr><th>Player</th><th>Country</th><th>Sponsor</th><th>Taps</th><th>Where</th><th>Last tap</th><th>Language</th><th>Games played</th><th>Days active</th><th>On</th></tr></thead><tbody>'+wk.slice(0,100).map(function(k){
-      var o=W[k],sp=o.u&&SEEN[o.u]?SEEN[o.u]:null,days=0;if(sp&&sp.d)Object.keys(sp.d).forEach(function(d){if(num(sp.d[d]))days++});
-      return '<tr><td>'+(sp?'<b>'+esc(String(sp.n||""))+'</b>':'<span style="color:var(--ink2)">Guest, not signed in</span>')+'</td><td>'+(CN[o.cc]||CN.other)+'</td><td>'+esc(SPN[o.mk]||o.mk)+'</td><td>'+fmt(o.n)+'</td><td>'+[o.top?"top strip":"",o.bottom?"lower banner":"",o.win?"end-of-game card":""].filter(Boolean).join(", ")+'</td><td>'+ago(o.last)+'</td><td>'+(LN[o.l]||"–")+'</td><td>'+(sp?fmt(Math.floor(num(sp.g))):"–")+'</td><td>'+(sp?days:"–")+'</td><td>'+o.pf+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">Nobody tapped a banner in this period.</p>')+
-    '<p class="note">Signed-in players appear by game name; their email is in Firebase > Authentication > Users. Guests are counted per device. Use the Players tab to open a player\'s timeline. The export button on this tab downloads this list.</p></div>';
-  // ---- audience
-  var dev={};list.forEach(function(x){if(!x.d)return;var o=dev[x.d]=dev[x.d]||{cc:x.cc,l:"",pf:x.pf,in:0,src:""};o.cc=x.cc;if(x.l)o.l=x.l;if(x.u)o.in=1;if(x.e==="app_open"){var m=/src=([^;]+)/.exec(x.r);if(m&&!o.src)o.src=m[1]}});
-  var dk=Object.keys(dev),nd=dk.length,grp=function(f){var g={};dk.forEach(function(d){var k=f(dev[d])||"unknown";g[k]=(g[k]||0)+1});return Object.keys(g).sort(function(a,b){return g[b]-g[a]}).map(function(k){return [k,g[k]]})};
+  var X=sponsorData(),A=X.all,ks=X.keys,n=function(o){return Object.keys(o).length};
+  var noLink=Object.keys(SPN).filter(function(k){return !X.clicks.some(function(c){return c.mk===k&&c.to})});
+  var h='<p style="margin:0 0 12px"><select id="sp-who" aria-label="Sponsor"><option value="">All sponsors</option>'+Object.keys(SPN).map(function(k){return '<option value="'+k+'"'+(SP.who===k?" selected":"")+'>'+esc(SPN[k])+'</option>'}).join("")+'</select></p>';
+  h+='<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(170px,1fr))">'+kpi("Banner views",fmt(A.v),rangeWord())+kpi("Unique viewers",fmt(n(A.viewers)),"players and guests")+kpi("Clicks",fmt(A.c),A.rep+A.bot?fmt(A.rep+A.bot)+" set aside":"repeats and automated set aside")+kpi("Click-through rate",pctx(A.c,A.v),"clicks ÷ views")+kpi("Conversions","–","sponsor tracking not connected")+'</div>';
+  h+='<div class="grid" style="margin-top:12px">'+kpi("Unique clickers",fmt(n(A.clickers)),"different players and guests")+kpi("Sponsor website visits",fmt(A.visits),A.visits?"clicks that opened a destination":"no destination link set yet",A.visits?"good":"")+kpi("Repeated clicks set aside",fmt(A.rep),"same person, same banner, within 10 s")+kpi("Suspected automated",fmt(A.bot),"not counted",A.bot?"warn":"")+'</div>';
+  h+='<div class="card"><h2>By sponsor · '+rangeWord()+'</h2>'+(ks.length?'<div class="scroll"><table><thead><tr><th>Sponsor</th><th>Banner views</th><th>Unique viewers</th><th>Clicks</th><th>Unique clickers</th><th>Click-through rate</th><th>Website visits</th><th>Conversions</th><th>Share of views</th></tr></thead><tbody>'+ks.map(function(k){var o=X.S[k],tv=0;ks.forEach(function(j){tv+=X.S[j].v});return '<tr><td><b>'+esc(SPN[k]||k)+'</b></td><td>'+fmt(o.v)+'</td><td>'+fmt(n(o.viewers))+'</td><td>'+fmt(o.c)+'</td><td>'+fmt(n(o.clickers))+'</td><td>'+pctx(o.c,o.v)+'</td><td>'+fmt(o.visits)+'</td><td>–</td><td>'+pct(o.v,tv)+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No banner view recorded in this period.</p>')+
+    '<p class="note">A view is one 10-second turn of a banner while the game is on screen. Website visits stay at zero until a sponsor has a destination link'+(noLink.length?" (none set for: "+noLink.map(function(k){return esc(SPN[k])}).join(", ")+")":"")+'. Conversions need the sponsor to report sales or sign-ups that arrived with the campaign tag.</p></div>';
+  var pk=["top","bottom","win"];
+  h+='<div class="two"><div class="card"><h2>Performance by placement</h2><div class="scroll"><table><thead><tr><th>Placement</th><th>Views</th><th>Clicks</th><th>Click-through rate</th></tr></thead><tbody>'+pk.map(function(k){var o=X.P[k]||{v:0,c:0};return '<tr><td>'+PLN[k]+'</td><td>'+fmt(o.v)+'</td><td>'+fmt(o.c)+'</td><td>'+pctx(o.c,o.v)+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">The lobby has no banner today. The results screen shows fewer views but each one is seen at a pause in play.</p></div>';
+  var dk=Object.keys(X.DV).sort(function(a,b){return X.DV[b].v-X.DV[a].v});
+  h+='<div class="card"><h2>By device</h2>'+(dk.length?'<div class="scroll"><table><thead><tr><th>Device</th><th>Views</th><th>Unique viewers</th><th>Clicks</th><th>Click-through rate</th></tr></thead><tbody>'+dk.map(function(k){var o=X.DV[k];return '<tr><td>'+(DVN[k]||k)+'</td><td>'+fmt(o.v)+'</td><td>'+fmt(n(o.viewers))+'</td><td>'+fmt(o.c)+'</td><td>'+pctx(o.c,o.v)+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">Nothing yet.</p>')+'</div></div>';
+  var ck=Object.keys(X.C).sort(function(a,b){return X.C[b].v-X.C[a].v});
+  h+='<div class="card"><h2>By country</h2>'+(ck.length?'<div class="scroll"><table><thead><tr><th>Country</th><th>Views</th><th>Unique viewers</th><th>Clicks</th><th>Unique clickers</th><th>Click-through rate</th></tr></thead><tbody>'+ck.map(function(k){var o=X.C[k];return '<tr><td>'+(CN[k]||CN.other)+'</td><td>'+fmt(o.v)+'</td><td>'+fmt(n(o.viewers))+'</td><td>'+fmt(o.c)+'</td><td>'+fmt(n(o.clickers))+'</td><td>'+pctx(o.c,o.v)+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">Nothing yet.</p>')+'<p class="note">Country is the one chosen with the login, or guessed from the phone\'s settings for guests. Region or city is not recorded.</p></div>';
+  // over time
+  var G={},keyOf=function(day){if(SP.by==="month")return day.slice(0,7);if(SP.by==="week"){var t=Date.parse(day+"T00:00:00Z"),wd=(new Date(t).getUTCDay()+6)%7;return "Week of "+new Date(t-wd*86400000).toISOString().slice(0,10)}return day};
+  Object.keys(X.DAY).forEach(function(d){var o=X.DAY[d],g=G[keyOf(d)]=G[keyOf(d)]||{v:0,c:0,viewers:{},clickers:{}};g.v+=o.v;g.c+=o.c;Object.keys(o.viewers).forEach(function(i){g.viewers[i]=1});Object.keys(o.clickers).forEach(function(i){g.clickers[i]=1})});
+  var gk=Object.keys(G).sort().reverse(),days=dayList();
+  h+='<div class="card"><h2>Performance over time</h2><div class="tabs" style="display:inline-flex;margin-bottom:10px">'+[["day","Daily"],["week","Weekly"],["month","Monthly"]].map(function(b){return '<button type="button" data-by="'+b[0]+'" aria-selected="'+(SP.by===b[0])+'">'+b[1]+'</button>'}).join("")+'</div>'+
+    (gk.length?'<div class="scroll"><table><thead><tr><th>Period</th><th>Views</th><th>Unique viewers</th><th>Clicks</th><th>Unique clickers</th><th>Click-through rate</th></tr></thead><tbody>'+gk.slice(0,31).map(function(k){var o=G[k];return '<tr><td>'+k+'</td><td>'+fmt(o.v)+'</td><td>'+fmt(n(o.viewers))+'</td><td>'+fmt(o.c)+'</td><td>'+fmt(n(o.clickers))+'</td><td>'+pctx(o.c,o.v)+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">Nothing yet.</p>')+
+    bars(days,[{n:"Views",c:SP.who?SPC[SP.who]:"#121938",v:days.map(function(d){return (X.DAY[d]||{v:0}).v})}],110)+bars(days,[{n:"Clicks",c:"#1f8a55",v:days.map(function(d){return (X.DAY[d]||{c:0}).c})}],80)+
+    '<p class="note">Choose the period at the top right; "Last 90 days" gives three months for the weekly and monthly views. Weeks start on Monday, universal time.</p></div>';
+  // the click record
+  var show=X.clicks.slice(0,150);
+  h+='<div class="card"><h2>Click record · '+fmt(X.clicks.length)+'</h2><p style="margin:0 0 10px"><button type="button" class="btn" id="sp-names">'+(SP.names?"Hide game names":"Show game names (owner view)")+'</button></p>'+(show.length?'<div class="scroll"><table><thead><tr><th>Date and time (UTC)</th><th style="text-align:left">'+(SP.names?"Player":"Player or visitor ID")+'</th><th style="text-align:left">Sponsor</th><th style="text-align:left">Banner</th><th style="text-align:left">Campaign</th><th style="text-align:left">Placement</th><th style="text-align:left">Game</th><th style="text-align:left">Destination</th><th>Country</th><th>Device</th><th>Status</th></tr></thead><tbody>'+show.map(function(x){
+      var nm=SP.names?(x.u&&SEEN[x.u]?esc(String(SEEN[x.u].n||"")):"Guest")+' <span style="color:var(--ink2)">'+pid(x)+'</span>':pid(x);
+      return '<tr><td>'+new Date(x.t).toISOString().slice(0,19).replace("T"," ")+'</td><td style="text-align:left">'+nm+'</td><td style="text-align:left">'+esc(SPN[x.mk]||x.mk)+'</td><td style="text-align:left">'+esc(x.bn)+'</td><td style="text-align:left">'+esc(x.cp||"–")+'</td><td style="text-align:left">'+(PLN[x.plc]||esc(x.plc))+'</td><td style="text-align:left">'+esc(x.gm)+'</td><td style="text-align:left">'+(x.to?esc(x.to):'<span style="color:var(--ink2)">none set</span>')+'</td><td>'+flag(x.cc)+'</td><td>'+(DVN[x.dv]||x.dv).split(" ")[0]+'</td><td><span class="pill '+(x.st==="Counted"?"good":x.st==="Repeat"?"warn":"bad")+'">'+x.st+'</span></td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No click in this period.</p>')+
+    '<p class="note">IDs starting with P are signed-in players; V are guests, one per device. The same person keeps the same ID. Reports and the export use IDs only. Sharing names or emails with a sponsor needs the player\'s consent and a matching privacy notice first. A click is set aside as a repeat when the same person clicks the same banner again within 10 seconds, and as automated when the browser declares itself automated or one visitor makes more than 15 clicks in a day (every click from that visitor that day is then set aside).</p></div>';
+  // audience
+  var list=evs(),dev={};list.forEach(function(x){if(!x.d)return;var o=dev[x.d]=dev[x.d]||{cc:x.cc,l:"",pf:x.pf,in:0,src:""};o.cc=x.cc;if(x.l)o.l=x.l;if(x.u)o.in=1;if(x.e==="app_open"){var m=/src=([^;]+)/.exec(x.r);if(m&&!o.src)o.src=m[1]}});
+  var dks=Object.keys(dev),nd=dks.length,LN={en:"English",fr:"French",it:"Italian"},grp=function(f){var g={};dks.forEach(function(d){var k=f(dev[d])||"unknown";g[k]=(g[k]||0)+1});return Object.keys(g).sort(function(a,b){return g[b]-g[a]}).map(function(k){return [k,g[k]]})};
   var tbl=function(title,rows,nameOf){return '<div class="card"><h2>'+title+'</h2>'+(rows.length?'<div class="scroll"><table><tbody>'+rows.map(function(r){return '<tr><td>'+nameOf(r[0])+'</td><td>'+fmt(r[1])+'</td><td>'+pct(r[1],nd)+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">Nothing yet.</p>')+'</div>'};
   var SRC={direct:"Typed or saved the address",invitation:"A game invitation link",friend_link:"A friend-code link",home_icon:"The icon on their phone",store_app:"The app from a store",unknown:"Not recorded (older build)"};
   h+='<h2 style="font-size:1.25rem;margin:22px 0 0">Audience · '+fmt(nd)+' devices, '+rangeWord()+'</h2>';
-  h+='<div class="two">'+tbl("By country",grp(function(o){return o.cc}),function(k){return CN[k]||CN.other})+tbl("By language of the game",grp(function(o){return o.l}),function(k){return LN[k]||"Not recorded (older build)"})+'</div>';
-  h+='<div class="two">'+tbl("How they arrive",grp(function(o){return o.src}),function(k){return SRC[k]||(/^site:/.test(k)?"From "+esc(k.slice(5)):esc(k))})+tbl("Signed in or guest",grp(function(o){return o.in?"in":"guest"}),function(k){return k==="in"?"Signed in with a login":"Guest, no login"})+'</div>';
+  h+='<div class="two">'+tbl("By language of the game",grp(function(o){return o.l}),function(k){return LN[k]||"Not recorded (older build)"})+tbl("How they arrive",grp(function(o){return o.src}),function(k){return SRC[k]||(/^site:/.test(k)?"From "+esc(k.slice(5)):esc(k))})+'</div>';
   var hours=[];for(var i=0;i<24;i++)hours.push(0);list.forEach(function(x){if(x.e==="app_open"||x.e==="game_start")hours[new Date(x.t).getUTCHours()]++});
-  h+='<div class="card"><h2>Busiest hours</h2>'+bars(hours.map(function(v,i){return "    -"+("0"+i).slice(-2)+"h"}),[{n:"Game openings and games started",c:"#121938",v:hours}],120)+'<p class="note">Hours are in universal time, which is also Dakar time. Phoenix is 7 hours behind: 20h here is 1 pm in Phoenix. Best moments to announce a game night or a sponsor offer are just before the tallest bars.</p></div>';
+  h+='<div class="card"><h2>Busiest hours</h2>'+bars(hours.map(function(v,i){return "    -"+("0"+i).slice(-2)+"h"}),[{n:"Game openings and games started",c:"#121938",v:hours}],110)+'<p class="note">Universal time, which is also Dakar time. Phoenix is 7 hours behind.</p></div>';
   return h;
 }
 function vErrors(){
@@ -446,7 +480,7 @@ function render(){
   $("signout").hidden=false;$("refresh").hidden=false;$("when").textContent=loadedAt?"Updated "+new Date(loadedAt).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}):"";
   var T=[["overview","Overview"],["steps","First steps"],["login","Login health"],["games","Games"],["online","Online play"],["sponsors","Sponsors"],["players","Players"],["errors","Errors"]];
   var h='<div class="bar"><div class="tabs" role="tablist">'+T.map(function(t){return '<button type="button" role="tab" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div><span class="sp"></span>'+
-    '<select id="f-range" aria-label="Period">'+[[1,"Today"],[7,"Last 7 days"],[30,"Last 30 days"]].map(function(r){return '<option value="'+r[0]+'"'+(F.range===r[0]?" selected":"")+'>'+r[1]+'</option>'}).join("")+'</select>'+
+    '<select id="f-range" aria-label="Period">'+[[1,"Today"],[7,"Last 7 days"],[30,"Last 30 days"],[90,"Last 90 days"]].map(function(r){return '<option value="'+r[0]+'"'+(F.range===r[0]?" selected":"")+'>'+r[1]+'</option>'}).join("")+'</select>'+
     '<select id="f-cc" aria-label="Country"><option value="">All countries</option>'+Object.keys(CN).map(function(c){return '<option value="'+c+'"'+(F.cc===c?" selected":"")+'>'+CN[c]+'</option>'}).join("")+'</select>'+
     '<select id="f-pf" aria-label="Web or app"><option value="">Web and app</option><option value="web"'+(F.pf==="web"?" selected":"")+'>Web</option><option value="app"'+(F.pf==="app"?" selected":"")+'>App</option></select>'+
     '<select id="f-b" aria-label="Build"><option value="">All builds</option>'+builds().map(function(b){return '<option value="'+b+'"'+(F.b===b?" selected":"")+'>v'+b+'</option>'}).join("")+'</select>'+
@@ -462,6 +496,9 @@ function render(){
   $("f-pf").addEventListener("change",function(){F.pf=this.value;render()});
   $("f-b").addEventListener("change",function(){F.b=this.value;render()});
   $("csv").addEventListener("click",csv);
+  if($("sp-who"))$("sp-who").addEventListener("change",function(){SP.who=this.value;render()});
+  Array.prototype.forEach.call(main.querySelectorAll("[data-by]"),function(b){b.addEventListener("click",function(){SP.by=b.getAttribute("data-by");render()})});
+  if($("sp-names"))$("sp-names").addEventListener("click",function(){SP.names=!SP.names;render()});
   if($("copy"))$("copy").addEventListener("click",function(){var t=$("rules");t.select();try{navigator.clipboard.writeText(t.value).then(function(){$("copied").textContent="Copied."},function(){document.execCommand("copy");$("copied").textContent="Copied."})}catch(e){try{document.execCommand("copy");$("copied").textContent="Copied."}catch(x){}}});
   if($("find"))$("find").addEventListener("input",function(){find=this.value;var at=this.selectionStart;render();var f=$("find");if(f){f.focus();try{f.setSelectionRange(at,at)}catch(e){}}});
   Array.prototype.forEach.call(main.querySelectorAll("tr.pick"),function(r){var go=function(){pick=r.getAttribute("data-u");render();var t=$("timeline");if(t&&t.scrollIntoView)t.scrollIntoView({block:"nearest"})};r.addEventListener("click",go);r.addEventListener("keydown",function(e){if(e.key==="Enter")go()})});
@@ -472,10 +509,11 @@ function csv(){
     name="players";rows=[["player","country","platform","build","first_seen_utc","last_seen_utc","sessions","total_seconds","seconds_in_period","days_active_in_period","games","wins"]];
     players().forEach(function(o){rows.push([o.n,o.cc,o.pf,o.b,o.first?new Date(o.first).toISOString():"",o.last?new Date(o.last).toISOString():"",o.ses,Math.round(o.sec),Math.round(o.in),o.days,o.g,o.w])});
   }else if(tab==="sponsors"){
-    name="sponsors";rows=[["sponsor","showings","top_strip","lower_banner","end_of_game_card","devices_reached","taps","devices_that_tapped"]];
-    var X=sponsorData();X.keys.forEach(function(k){var o=X.S[k];rows.push([SPN[k]||k,o.t+o.b+o.w,o.t,o.b,o.w,Object.keys(o.dev).length,o.taps,Object.keys(o.tdev).length])});
-    rows.push([]);rows.push(["tap_time_utc","sponsor","where","player","country","language","platform","device"]);
-    evs().forEach(function(x){if(x.e!=="ad_tap")return;var q=x.r.split(";");rows.push([new Date(x.t).toISOString(),SPN[q[0]]||q[0],q[1]||"",x.u&&SEEN[x.u]?String(SEEN[x.u].n||""):"guest",x.cc,x.l,x.pf,x.d])});
+    name="sponsors";var Z=sponsorData();
+    rows=[["sponsor","banner_views","unique_viewers","clicks","unique_clickers","click_through_rate_percent","sponsor_website_visits","conversions"]];
+    Z.keys.forEach(function(k){var o=Z.S[k];rows.push([SPN[k]||k,o.v,Object.keys(o.viewers).length,o.c,Object.keys(o.clickers).length,o.v?(o.c*100/o.v).toFixed(2):"",o.visits,""])});
+    rows.push([]);rows.push(["click_time_utc","player_or_visitor_id","sponsor","banner","campaign","placement","game","destination","country","device","status"]);
+    Z.clicks.forEach(function(x){rows.push([new Date(x.t).toISOString(),pid(x),SPN[x.mk]||x.mk,x.bn,x.cp,PLN[x.plc]||x.plc,x.gm,x.to,x.cc,x.dv,x.st])});
   }else{
     rows=[["time_utc","event","reason","country","platform","build","player","device"]];
     evs().forEach(function(x){rows.push([new Date(x.t).toISOString(),x.e,x.r,x.cc,x.pf,x.b,x.u&&SEEN[x.u]?String(SEEN[x.u].n||""):"",x.d])});
