@@ -2219,6 +2219,7 @@ function ownerRules(){
   ' "inbox":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "accounts":{"$id":{".read":"$id.matches(/^[a-f0-9]{40}$/) || (auth != null && auth.uid === $id)",".write":"$id.matches(/^[a-f0-9]{40}$/) || (auth != null && auth.uid === $id)"}},\n'+
   ' "reports":{"$id":{".write":"!data.exists()"}},\n'+
+  ' "events":{".read":"auth != null && auth.uid === \''+own+'\'","$d":{".write":"auth != null && auth.uid === \''+own+'\' && !newData.exists()","$k":{".write":"!data.exists()",".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChildren([\'e\',\'t\']) && newData.child(\'e\').isString() && newData.child(\'e\').val().length <= 24 && (!newData.child(\'r\').exists() || (newData.child(\'r\').isString() && newData.child(\'r\').val().length <= 60))"}}},\n'+
   ' "seen":{".read":"auth != null && auth.uid === \''+own+'\'","$u":{".read":"auth != null && auth.uid === $u",".write":"auth != null && auth.uid === $u"}},\n'+
   ' "stats":{"days":{".read":"auth != null && auth.uid === \''+own+'\'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
   return '{"rules":{\n'+
@@ -2605,6 +2606,40 @@ function statOver(){
   var first=null;g.players.forEach(function(pl){if(!first&&pl.kind==="human"&&pl.id)first=pl.id});
   if(first===myId)statAdd({fin:1});
 }
+// ---------- Event log: sign-in attempts, refused saves and errors, for the publisher's dashboard ----------
+// One short line per event. It never holds an email, a password or a phone number. Before a player is signed in,
+// the line carries only this device's random statistics code.
+var evCount=0,evErr=0,authKind="";
+function logEv(e,r){
+  if(!DB||!EMAIL_ON||evCount>=60)return;evCount++;
+  var d={e:String(e).slice(0,24),t:Date.now(),d:statId||"",cc:String((acct&&acct.cc)||guessCc()||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0};
+  if(r)d.r=String(r).slice(0,60);
+  if(pAuth&&acct)d.u=pAuth.uid;
+  try{fetch(DB+"/events/"+statDay()+".json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d),keepalive:true}).catch(function(){})}catch(x){}
+}
+function authCode(e){
+  var m=String((e&&e.message)||"");
+  if(!(e&&e.auth))return "network";
+  if(/EMAIL_EXISTS/.test(m))return "email_exists";
+  if(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND/.test(m))return "wrong_email_or_password";
+  if(/WEAK_PASSWORD/.test(m))return "weak_password";
+  if(/INVALID_EMAIL|MISSING_EMAIL/.test(m))return "bad_email";
+  if(/TOO_MANY_ATTEMPTS/.test(m))return "too_many_attempts";
+  if(/USER_DISABLED/.test(m))return "login_disabled";
+  if(/OPERATION_NOT_ALLOWED|PASSWORD_LOGIN_DISABLED|API key|API_KEY/i.test(m))return "service_not_ready";
+  return "service_other";
+}
+window.addEventListener("error",function(ev){
+  if(evErr>=3)return;evErr++;
+  var f=String(ev.filename||"").split("/").pop().split("?")[0];
+  logEv("js_error",String(ev.message||"error").slice(0,44)+" @"+f+":"+(ev.lineno||0));
+});
+window.addEventListener("unhandledrejection",function(ev){
+  if(evErr>=3)return;var m=ev&&ev.reason&&ev.reason.message?ev.reason.message:String(ev&&ev.reason);
+  if(/^net$|Failed to fetch|Load failed|NetworkError/i.test(m))return;
+  evErr++;logEv("js_error","promise: "+String(m).slice(0,44));
+});
+setTimeout(function(){logEv("app_open",acct&&pAuth?"signed_in":"signed_out")},2500);
 // ---------- Activity of signed-in players: the days they play, how often and for how long ----------
 // Kept under the player's sign-in id with their game name and country. Only the owner account can read the list.
 var seen=null,seenOff=false,seenBusy=false,seenTick=0,seenDirty=0,SEEN_GAP=1800000;
@@ -2679,6 +2714,7 @@ function withAuth(url){
 }
 // The sign-in is no longer valid (password changed elsewhere, account removed): ask the player to sign in again.
 function sessionEnded(){
+  logEv("signed_out","login_no_longer_valid");
   pAuth=null;pTok=null;savePAuth();
   if(acct){acct=null;saveAcct();acctNote=L().sessionOver}
   if(inboxEs){try{inboxEs.close()}catch(e){}inboxEs=null}
@@ -2798,7 +2834,7 @@ function pushAcct(now){
           if(acct&&acct.aid===aid){acct.t=d.t;acct.b=baseOf(d);saveAcct()}
           if(saveOff){saveOff=false;if($("sheet-online").classList.contains("open")&&!net)renderOnline()}
         }).catch(function(e){
-          if(EMAIL_ON&&e&&(e.status===401||e.status===403)&&!saveOff){saveOff=true;if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline()}
+          if(EMAIL_ON&&e&&(e.status===401||e.status===403)&&!saveOff){saveOff=true;logEv("save_refused","write");if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline()}
         });
       };
       if(!EMAIL_ON){send();return}
@@ -2807,6 +2843,7 @@ function pushAcct(now){
         if(!(sv&&sv.id&&sv.fc)||(sv.t||0)<=(acct.t||0)){send();return}
         // the saved game is newer than what this device last saw: take it, and add only what was earned here since
         if(net)return;
+        logEv("save_merged",sv.fc!==myFc?"other_identity":"newer_save");
         var pr=bank.profiles[keyOf(meName())]||{},b=acct.b,dl={};
         ["pts","games","wins","caps"].forEach(function(k){dl[k]=b&&typeof b[k]==="number"&&typeof pr[k]==="number"?pr[k]-b[k]:0});
         if(keyOf(String(sv.name||""))!==keyOf(meName())){delete bank.profiles[keyOf(meName())]}
@@ -2817,7 +2854,7 @@ function pushAcct(now){
         if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline();
         if(ch)send();
       }).catch(function(e){
-        if(e&&(e.status===401||e.status===403)&&!saveOff){saveOff=true;if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline()}
+        if(e&&(e.status===401||e.status===403)&&!saveOff){saveOff=true;logEv("save_refused","read");if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline()}
       });
     };
     if(!acct.t||EMAIL_ON){put();return}
@@ -2910,7 +2947,7 @@ function deleteAcct(){
     if(!(EMAIL_ON&&pAuth))return true;
     return tokenP().then(function(t){return authCall("accounts:delete",{idToken:t})}).then(function(){return true},function(){return false});
   }).then(function(full){
-    delBusy=false;wipeLocalAcct();acctNote=full?L().delDone:L().delPartial;onErr="";renderOnline();if(g)renderAll();
+    logEv("account_deleted",full?"":"login_kept");delBusy=false;wipeLocalAcct();acctNote=full?L().delDone:L().delPartial;onErr="";renderOnline();if(g)renderAll();
   }).catch(function(){delBusy=false;delAsk=false;onErr=L().delFail;renderOnline()});
 }
 // On opening the game, pick up anything saved from another device.
@@ -2944,10 +2981,12 @@ function emailSign(email,pw,create,cc){
   email=String(email||"").trim().toLowerCase();pw=String(pw||"");
   onErr="";acctNote="";
   if(authBusy)return;
-  if(!emailOk(email)){onErr=L().emInvalid;renderOnline();focusBad("em-mail");return}
-  if(!pw){onErr=L().emNoPw;renderOnline();focusBad("em-pw");return}
-  if(create&&pw.length<8){onErr=L().emWeak;renderOnline();focusBad("em-pw");return}
-  if(create&&!hasName()){onErr=L().emName;renderOnline();focusBad("me-name");return}
+  authKind=create?"signup":"signin";
+  if(!emailOk(email)){logEv(authKind+"_fail","bad_email");onErr=L().emInvalid;renderOnline();focusBad("em-mail");return}
+  if(!pw){logEv(authKind+"_fail","no_password");onErr=L().emNoPw;renderOnline();focusBad("em-pw");return}
+  if(create&&pw.length<8){logEv("signup_fail","weak_password");onErr=L().emWeak;renderOnline();focusBad("em-pw");return}
+  if(create&&!hasName()){logEv("signup_fail","no_name");onErr=L().emName;renderOnline();focusBad("me-name");return}
+  logEv(authKind+"_try");
   authBusy=true;renderOnline();
   authCall(create?"accounts:signUp":"accounts:signInWithPassword",{email:email,password:pw,returnSecureToken:true}).then(function(j){
     pAuth={rt:j.refreshToken,uid:j.localId,email:email};savePAuth();
@@ -2955,6 +2994,7 @@ function emailSign(email,pw,create,cc){
     if(create)authCall("accounts:sendOobCode",{requestType:"VERIFY_EMAIL",idToken:j.idToken}).catch(function(){});
     return afterAuth(cc);
   }).catch(function(e){
+    logEv(authKind+"_fail",authCode(e));
     authBusy=false;onErr=e&&e.auth?authMsg(e):L().errNet;renderOnline();
   });
 }
@@ -2967,11 +3007,12 @@ function afterAuth(cc){
   return dbx("GET","/accounts/"+uid).then(function(d){
     if(d&&d.id&&d.fc){
       acct={aid:uid,hint:hint,t:d.t||0,name:d.name,cc:String(d.cc||cc||guessCc()),mig:d.mig?1:0};saveAcct();
-      adoptAcct(d);acctNote=L().welcomeBack(String(d.name||"").slice(0,12));setLegacy("");done();return;
+      adoptAcct(d);acctNote=L().welcomeBack(String(d.name||"").slice(0,12));setLegacy("");logEv(authKind+"_ok","saved_game_loaded");done();return;
     }
     // the database is not ready for logins yet: nothing is moved or removed, and the player stays as before
     function refused(e){
       pAuth=null;pTok=null;savePAuth();acct=null;saveAcct();authBusy=false;
+      logEv(authKind+"_fail",e&&(e.status===401||e.status===403)?"save_refused":"network");
       onErr=e&&(e.status===401||e.status===403)?L().emSetup:L().errNet;renderOnline();
     }
     var old=legacyAid?dbx("GET","/accounts/"+legacyAid).catch(function(){return null}):Promise.resolve(null);
@@ -2981,14 +3022,14 @@ function afterAuth(cc){
         return dbx("PUT","/accounts/"+uid,nd).then(function(){
           acct={aid:uid,hint:hint,t:nd.t,name:o.name,cc:nd.cc,mig:1};saveAcct();
           adoptAcct(nd);acctNote=L().movedOk;
-          dbx("DELETE","/accounts/"+was).catch(function(){});setLegacy("");done();
+          dbx("DELETE","/accounts/"+was).catch(function(){});setLegacy("");logEv(authKind+"_ok","old_game_moved");done();
         },refused);
       }
-      if(!hasName()){authBusy=false;onErr=L().emName;renderOnline();focusBad("me-name");return}
+      if(!hasName()){logEv(authKind+"_fail","no_name");authBusy=false;onErr=L().emName;renderOnline();focusBad("me-name");return}
       acct={aid:uid,hint:hint,t:0,name:meName(),cc:String(cc||guessCc()),mig:0};
       var fd=acctDoc();
       return dbx("PUT","/accounts/"+uid,fd).then(function(){
-        acct.t=fd.t;acct.b=baseOf(fd);saveAcct();acctNote=L().acctMade2;statAdd({"new":1});setLegacy("");done();
+        acct.t=fd.t;acct.b=baseOf(fd);saveAcct();acctNote=L().acctMade2;statAdd({"new":1});setLegacy("");logEv(authKind+"_ok","new_game");done();
       },refused);
     });
   });
@@ -3004,7 +3045,7 @@ function checkVerified(){
   tokenP().then(function(t){return t?authCall("accounts:lookup",{idToken:t}):null}).then(function(j){
     if(pAuth!==me||!j||!j.users||!j.users[0])return;
     var v=!!j.users[0].emailVerified;
-    if(pAuth.ver!==v){pAuth.ver=v;savePAuth();if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline()}
+    if(pAuth.ver!==v){if(v&&pAuth.ver===false)logEv("email_confirmed");pAuth.ver=v;savePAuth();if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline()}
   }).catch(function(){});
 }
 function resendVerify(){
@@ -3014,6 +3055,7 @@ function resendVerify(){
 function resetPassword(email){
   email=String(email||"").trim().toLowerCase();onErr="";acctNote="";
   if(!emailOk(email)){onErr=L().emResetNeed;renderOnline();focusBad("em-mail");return}
+  logEv("reset_request");
   authCall("accounts:sendOobCode",{requestType:"PASSWORD_RESET",email:email})
     .then(function(){acctNote=L().emResetSent;renderOnline()},function(e){
       // the answer is the same whether or not the address has an account
@@ -3029,7 +3071,7 @@ function claimPhone(cc,raw){
   if(!window.crypto||!crypto.subtle){onErr=L().errNet;renderOnline();return}
   scramble(num).then(function(hex){
     return dbx("GET","/accounts/"+hex).then(function(o){
-      if(!(o&&o.id&&o.fc)){onErr=L().moveNone;renderOnline();return}
+      if(!(o&&o.id&&o.fc)){logEv("old_game_not_found");onErr=L().moveNone;renderOnline();return}
       var oldFc=myFc,oldName=acct.name,aid=acct.aid,nd=movedDoc(o,acct.cc||"");
       return dbx("PUT","/accounts/"+aid,nd).then(function(){
         if(!acct||acct.aid!==aid)return;
@@ -3038,6 +3080,7 @@ function claimPhone(cc,raw){
         adoptAcct(nd);acct.name=nd.name;acct.mig=1;acct.t=nd.t;saveAcct();
         dbx("DELETE","/accounts/"+hex).catch(function(){});
         if(oldFc!==myFc)dbx("DELETE","/players/"+oldFc).catch(function(){});
+        logEv("old_game_moved","by_number");
         acctNote=L().movedOk;publishMe();renderOnline();if(g)renderAll();
       });
     });
@@ -3340,7 +3383,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="45";
+var BUILD="46";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
