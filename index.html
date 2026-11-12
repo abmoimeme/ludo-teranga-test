@@ -2308,8 +2308,8 @@ function renderOwner(){
     ownMsg="+"+fmt(n)+" ★";renderOwner();
   })});
   if($("own-set-go"))$("own-set-go").addEventListener("click",function(){
-    var pr=myProfile(true),n=parseInt(String($("own-set").value).replace(/[^0-9]/g,""),10);
-    if(!pr||!(n>=0&&n<=99999999)){ownMsg="Type a number first.";renderOwner();return}
+    var raw=String($("own-set").value).replace(/[\s,.]/g,""),pr=myProfile(true),n=parseInt(raw,10);
+    if(!pr||!/^[0-9]{1,8}$/.test(raw)){ownMsg="Type the points as a number only, for example 175775.";renderOwner();return}
     pr.pts=n;pr.t=Date.now();saveBank();if(g)renderChips();ownMsg="Points set to "+fmt(n)+" ★";renderOwner();
   });
   all("[data-own-to]").forEach(function(b){b.addEventListener("click",function(){ownTo=b.getAttribute("data-own-to");renderOwner()})});
@@ -2679,12 +2679,32 @@ function pushAcct(now){
       if(!acct||acct.aid!==aid)return;
       // a signed-in device that has lost its points does not save an empty game over the saved one
       if(EMAIL_ON&&acct.t&&!bank.profiles[keyOf(meName())]){pullAcct(true);return}
-      var d=acctDoc();
-      dbx("PUT","/accounts/"+aid,d).then(function(){
-        if(acct&&acct.aid===aid){acct.t=d.t;saveAcct()}
-        if(saveOff){saveOff=false;if($("sheet-online").classList.contains("open")&&!net)renderOnline()}
+      var send=function(){
+        var d=acctDoc();
+        dbx("PUT","/accounts/"+aid,d).then(function(){
+          if(acct&&acct.aid===aid){acct.t=d.t;acct.b=baseOf(d);saveAcct()}
+          if(saveOff){saveOff=false;if($("sheet-online").classList.contains("open")&&!net)renderOnline()}
+        }).catch(function(e){
+          if(EMAIL_ON&&e&&(e.status===401||e.status===403)&&!saveOff){saveOff=true;if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline()}
+        });
+      };
+      if(!EMAIL_ON){send();return}
+      dbx("GET","/accounts/"+aid).then(function(sv){
+        if(!acct||acct.aid!==aid)return;
+        if(!(sv&&sv.id&&sv.fc)||(sv.t||0)<=(acct.t||0)){send();return}
+        // the saved game is newer than what this device last saw: take it, and add only what was earned here since
+        if(net)return;
+        var pr=bank.profiles[keyOf(meName())]||{},b=acct.b,dl={};
+        ["pts","games","wins","caps"].forEach(function(k){dl[k]=b&&typeof b[k]==="number"&&typeof pr[k]==="number"?pr[k]-b[k]:0});
+        if(keyOf(String(sv.name||""))!==keyOf(meName())){delete bank.profiles[keyOf(meName())]}
+        adoptAcct(sv);acct.t=sv.t;acct.name=sv.name;
+        var np=bank.profiles[keyOf(meName())],ch=false;
+        if(np)["pts","games","wins","caps"].forEach(function(k){if(dl[k]){np[k]=Math.max(0,(np[k]||0)+dl[k]);ch=true}});
+        saveLocal();saveAcct();publishMe();if(g)renderAll();
+        if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline();
+        if(ch)send();
       }).catch(function(e){
-        if(EMAIL_ON&&e&&(e.status===401||e.status===403)&&!saveOff){saveOff=true;if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline()}
+        if(e&&(e.status===401||e.status===403)&&!saveOff){saveOff=true;if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline()}
       });
     };
     if(!acct.t||EMAIL_ON){put();return}
@@ -2692,8 +2712,10 @@ function pushAcct(now){
     dbx("GET","/accounts/"+aid+"/id").then(function(v){if(v===null)acctGone();else put()}).catch(function(){});
   },now?0:1500);
 }
+function baseOf(d){return {pts:typeof d.pts==="number"?d.pts:WELCOME,games:d.games||0,wins:d.wins||0,caps:d.caps||0}}
 // Brings the saved account onto this device.
 function adoptAcct(d){
+  if(acct){acct.b=baseOf(d);saveAcct()}
   if(typeof d.id==="string"&&/^p[a-z0-9]{6,40}$/.test(d.id)){myId=d.id;try{localStorage.setItem("ludo-id",myId)}catch(e){}}
   if(typeof d.fc==="string"&&/^[A-Z0-9]{8}$/.test(d.fc)&&d.fc!==myFc){
     myFc=d.fc;try{localStorage.setItem("ludo-fc",myFc)}catch(e){}
@@ -2852,7 +2874,7 @@ function afterAuth(cc){
       acct={aid:uid,hint:hint,t:0,name:meName(),cc:String(cc||guessCc()),mig:0};
       var fd=acctDoc();
       return dbx("PUT","/accounts/"+uid,fd).then(function(){
-        acct.t=fd.t;saveAcct();acctNote=L().acctMade2;statAdd({"new":1});setLegacy("");done();
+        acct.t=fd.t;acct.b=baseOf(fd);saveAcct();acctNote=L().acctMade2;statAdd({"new":1});setLegacy("");done();
       },refused);
     });
   });
@@ -3180,9 +3202,15 @@ function boot(data){
   }
 }
 setTimeout(dailyBonus,1500);
-document.addEventListener("visibilitychange",function(){if(!document.hidden)dailyBonus()});
+document.addEventListener("visibilitychange",function(){if(!document.hidden){if(EMAIL_ON&&acct&&pAuth&&!net)pullAcct();dailyBonus()}});
+// Another tab of the game signed out or changed login: this tab follows instead of saving over it.
+window.addEventListener("storage",function(e){
+  if(!EMAIL_ON||e.key!=="ludo-auth"||net)return;
+  var o=null;try{o=JSON.parse(e.newValue||"null")}catch(x){}
+  if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
+});
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="41";
+var BUILD="42";
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
