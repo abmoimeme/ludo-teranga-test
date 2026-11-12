@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <title>Dashboard · Ludo Teranga</title>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <meta name="author" content="Nioro Resources LLC">
 <meta name="theme-color" content="#121938">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
@@ -88,6 +89,7 @@ footer{color:var(--ink2);font-size:.8rem;margin-top:26px}
 "use strict";
 var CFG=window.LUDO_CONFIG||{},DB=String(CFG.databaseURL||"").replace(/\/+$/,""),KEY=String(CFG.apiKey||"");
 var AUTH_URL=(CFG.authUrl||"https://identitytoolkit.googleapis.com/v1").replace(/\/+$/,""),TOKEN_URL=(CFG.tokenUrl||"https://securetoken.googleapis.com/v1").replace(/\/+$/,"");
+var GOOGLE_CLIENT_ID="263422155646-10h439cj74jmeaqngha5in3a79nkedso.apps.googleusercontent.com",OWNER_EMAIL="abdoul.samb@gmail.com";
 var $=function(id){return document.getElementById(id)},main=$("main");
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
 function fmt(n){return Number(n||0).toLocaleString("en-US")}
@@ -106,10 +108,11 @@ var own=null,tok=null;
 try{own=JSON.parse(localStorage.getItem("ludo-own-auth")||"null")}catch(e){}
 if(!own||!own.rt||!own.key)own=null;
 function saveOwn(){try{if(own)localStorage.setItem("ludo-own-auth",JSON.stringify(own));else localStorage.removeItem("ludo-own-auth")}catch(e){}}
-function signIn(email,pw){
-  return fetch(AUTH_URL+"/accounts:signInWithPassword?key="+encodeURIComponent(KEY),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({email:String(email||"").trim(),password:String(pw||""),returnSecureToken:true})})
+function signInGoogle(idToken){
+  return fetch(AUTH_URL+"/accounts:signInWithIdp?key="+encodeURIComponent(KEY),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({postBody:"id_token="+encodeURIComponent(idToken)+"&providerId=google.com",requestUri:String(window.location.href),returnSecureToken:true})})
     .then(function(r){return r.json().then(function(j){
-      if(!r.ok||!j.idToken){var m=String((j&&j.error&&j.error.message)||"");throw new Error(/INVALID|NOT_FOUND|MISSING/.test(m)?"Email or password not recognised.":/TOO_MANY/.test(m)?"Too many attempts. Wait a few minutes.":"Sign-in is not available right now.")}
+      if(!r.ok||!j.idToken){var m=String((j&&j.error&&j.error.message)||"");throw new Error(/OPERATION_NOT_ALLOWED/.test(m)?"Google sign-in is not switched on in Firebase yet.":/UNAUTHORIZED_DOMAIN|idp-response-failed/i.test(m)?"This site is not on Firebase's authorized domains list yet.":"Google sign-in failed. Try again.")}
+      if(String(j.email||"").toLowerCase()!==OWNER_EMAIL){tok=null;own=null;saveOwn();throw new Error("This Google account is not the owner account.")}
       own={key:KEY,rt:j.refreshToken,uid:j.localId};saveOwn();tok={t:j.idToken,exp:Date.now()+(parseInt(j.expiresIn,10)||3600)*1000-60000};
     })});
 }
@@ -524,12 +527,26 @@ function csv(){
 function renderSign(msg){
   $("signout").hidden=true;$("refresh").hidden=true;$("when").textContent="";
   if(!DB||!KEY){main.innerHTML='<div class="sign"><h2>Not set up</h2><p style="margin:0">This copy of the game has no database or sign-in key in config.js.</p></div>';return}
-  main.innerHTML='<form class="sign" id="form"><h2>Owner sign-in</h2><p style="margin:0;color:var(--ink2)">Use the owner account. The database lets only that account read these numbers.</p><input type="email" id="mail" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="Owner email" aria-label="Owner email" required><input type="password" id="pw" autocomplete="current-password" placeholder="Password" aria-label="Password" required><button type="submit" class="btn gold" id="go">Sign in</button>'+(msg?'<p class="err" role="alert">'+esc(msg)+'</p>':"")+'</form>';
-  $("form").addEventListener("submit",function(e){
-    e.preventDefault();$("go").disabled=true;
-    signIn($("mail").value,$("pw").value).then(start,function(er){renderSign(er.message||"Sign-in failed.")});
-  });
+  main.innerHTML='<div class="sign"><h2>Owner sign-in</h2><p style="margin:0 0 14px;color:var(--ink2)">Use the owner\'s Google account. The database lets only that account read these numbers.</p><div id="gbtn"></div>'+(msg?'<p class="err" role="alert">'+esc(msg)+'</p>':"")+'</div>';
+  mountGoogleButton();
 }
+function mountGoogleButton(){
+  var el=$("gbtn");if(!el)return;
+  var tries=0;
+  (function tick(){
+    if(window.google&&window.google.accounts&&window.google.accounts.id){
+      google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:onGoogleCredential});
+      google.accounts.id.renderButton(el,{theme:"outline",size:"large",text:"signin_with",width:280});
+      return;
+    }
+    if(++tries>40){el.innerHTML='<p class="err" role="alert">Could not load Google sign-in. Check your connection and reload.</p>';return}
+    setTimeout(tick,150);
+  })();
+}
+window.onGoogleCredential=function(resp){
+  var el=$("gbtn");if(el)el.innerHTML='<p style="color:var(--ink2);margin:0">Signing in…</p>';
+  signInGoogle(resp&&resp.credential).then(start,function(er){renderSign(er.message||"Sign-in failed.")});
+};
 function start(){
   main.innerHTML='<p style="color:var(--ink2)">Loading…</p>';
   load().then(render,function(e){
