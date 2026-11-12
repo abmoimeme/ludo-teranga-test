@@ -189,6 +189,7 @@ h1 span{color:var(--accent);display:block}
 .stats{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
 .stats th,.stats td{padding:7px 4px;border-bottom:1px solid rgba(255,255,255,.12);text-align:right;font-weight:400}
 .stats th[scope=row]{text-align:left;font-weight:700}
+.stats.seen{font-size:.8rem;white-space:nowrap}.stats.seen th,.stats.seen td{padding:7px 7px}.stats.seen thead th{font-size:.66rem}
 .stats thead th{color:var(--muted);font-size:.78rem;font-weight:700}
 .actions button{flex:1 1 25%;min-width:0;background:none;border:1.5px solid var(--muted);border-radius:12px;padding:10px 4px;font-size:.86rem;font-weight:700;min-height:46px}
 
@@ -258,6 +259,7 @@ h1 span{color:var(--accent);display:block}
 .me-grid div{background:var(--cloth-2);border-radius:12px;padding:9px 11px;display:flex;flex-direction:column;gap:1px;min-width:0}
 .me-grid small{color:var(--muted);font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
 .me-grid b{font-family:var(--display);font-weight:800;font-size:1.3rem;line-height:1.15;font-variant-numeric:tabular-nums}
+#panel-owner .me-grid div{background:var(--cloth)}
 .me-bar{height:8px;border-radius:99px;background:var(--cloth-2);overflow:hidden}
 .me-bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
 .hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:.85rem}
@@ -2171,7 +2173,7 @@ var OWNER="509df743e42091cd8e90480d6a3754c07ae3b30c89b9d8a04c3d9757dc47f6fe",own
 try{ownerOn=localStorage.getItem("ludo-owner")===OWNER}catch(e){}
 function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("")})}
 // ---------- Owner: usage totals ----------
-var ownStats=null,ownStatsMsg="",wantStats=false;
+var ownStats=null,ownStatsMsg="",wantStats=false,ownSeen=null,ownSeenMsg="",ownSeenAll=false;
 try{wantStats=new URLSearchParams(location.search).has("stats")}catch(e){}
 // The statistics are read with the owner's own sign-in, so the database can refuse everyone else.
 var ownAuth=null,ownTok=null,ownOpen=null;
@@ -2210,13 +2212,14 @@ function ownerSignOut(){ownAuth=null;ownTok=null;ownStats=null;ownOpen=null;ownS
 // The database rules that keep the statistics for this owner alone.
 function ownerRules(){
   var own=String(ownAuth&&ownAuth.uid||"").replace(/[^A-Za-z0-9]/g,"");
-  // with email sign-in, only signed-in players reach the game data, and each account belongs to its player
+  // logins save, the older live game keeps working, and only the owner account reads the statistics and the player list
   if(EMAIL_ON)return '{"rules":{\n'+
-  ' "rooms":{"$code":{".read":"auth != null",".write":"auth != null",".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
-  ' "players":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
-  ' "inbox":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
-  ' "accounts":{"$id":{".read":"auth != null && (auth.uid === $id || $id.matches(/^[a-f0-9]{40}$/))",".write":"auth != null && (auth.uid === $id || ($id.matches(/^[a-f0-9]{40}$/) && !newData.exists()))"}},\n'+
-  ' "reports":{"$id":{".write":"auth != null && !data.exists()"}},\n'+
+  ' "rooms":{"$code":{".read":true,".write":true,".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
+  ' "players":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
+  ' "inbox":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
+  ' "accounts":{"$id":{".read":"$id.matches(/^[a-f0-9]{40}$/) || (auth != null && auth.uid === $id)",".write":"$id.matches(/^[a-f0-9]{40}$/) || (auth != null && auth.uid === $id)"}},\n'+
+  ' "reports":{"$id":{".write":"!data.exists()"}},\n'+
+  ' "seen":{".read":"auth != null && auth.uid === \''+own+'\'","$u":{".read":"auth != null && auth.uid === $u",".write":"auth != null && auth.uid === $u"}},\n'+
   ' "stats":{"days":{".read":"auth != null && auth.uid === \''+own+'\'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
   return '{"rules":{\n'+
   ' "rooms":{"$code":{".read":true,".write":true,".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
@@ -2233,8 +2236,10 @@ function loadStats(){
   ownerToken().then(function(tok){
     // also checks whether someone who is not signed in could still read the numbers
     var open=fetch(DB+"/stats/days.json?orderBy=%22%24key%22&limitToLast=1").then(function(r){return r.ok}).catch(function(){return null});
+    // the list of signed-in players and their activity
+    var act=fetch(DB+"/seen.json?auth="+encodeURIComponent(tok)).then(function(r){if(!r.ok){ownSeen=null;ownSeenMsg=r.status===401||r.status===403?"denied":"net";return}return r.json().then(function(d){ownSeen=d||{};ownSeenMsg=""})}).catch(function(){ownSeen=null;ownSeenMsg="net"});
     return fetch(q+"&auth="+encodeURIComponent(tok)).then(function(r){if(!r.ok){var er=new Error("net");er.status=r.status;throw er}return r.json()}).then(function(d){
-      return open.then(function(o){ownOpen=o;ownStats=d||{};ownStatsMsg="";renderOwner()});
+      return Promise.all([open,act]).then(function(o){ownOpen=o[0];ownStats=d||{};ownStatsMsg="";renderOwner()});
     });
   }).catch(function(e){
     ownStats=null;
@@ -2255,12 +2260,54 @@ function ownerStatsHTML(){
   var rules='<textarea id="oa-rules" readonly rows="6" style="width:100%;font:12px/1.4 monospace;background:#0e1430;color:#f3f0e6;border:1px solid rgba(255,255,255,.25);border-radius:10px;padding:8px">'+esc(ownerRules())+'</textarea><button type="button" class="mini" id="oa-copy">Copy the rules</button> <span id="oa-copied" class="note"></span>';
   if(ownStatsMsg==="denied")return '<p class="warn" style="margin:0 0 8px">You are signed in, but the database does not let this account read the statistics yet. In Firebase > Realtime Database > Rules, replace everything with the text below and publish.</p>'+rules+'<p class="note"><button type="button" class="mini" id="own-stats">Try again</button> <button type="button" class="mini q" id="oa-out">Sign out</button></p>';
   if(ownStats){
-    h+=statsHTML();
+    h+=seenHTML(rules)+'<h3 style="margin-top:14px">Games · all devices</h3>'+statsHTML();
     if(ownOpen===true)h+='<p class="warn" style="margin:10px 0 8px">Not locked yet: these numbers can still be read without signing in. In Firebase > Realtime Database > Rules, replace everything with the text below and publish.</p>'+rules;
     else if(ownOpen===false)h+='<p class="note" style="color:var(--accent)">Locked: only your owner account can read these numbers.</p>';
   }
   if(ownStatsMsg)h+='<p class="note" style="margin:0 0 8px" role="status">'+esc(ownStatsMsg)+'</p>';
   h+='<p class="note"><button type="button" class="mini" id="own-stats">'+(ownStats?"Refresh":"Show")+'</button> <button type="button" class="mini q" id="oa-out">Sign out of statistics</button></p>';
+  return h;
+}
+function fmtDur(sec){sec=Math.round(sec||0);if(sec<60)return sec+" s";if(sec<3600)return Math.round(sec/60)+" min";var h=Math.floor(sec/3600),m=Math.round((sec-h*3600)/60);if(m===60){h++;m=0}return h+" h "+("0"+m).slice(-2)}
+function fmtAgo(t){if(!t)return "–";var s=(Date.now()-t)/1000;if(s<120)return "now";if(s<3600)return Math.round(s/60)+" min ago";if(s<86400)return Math.round(s/3600)+" h ago";if(s<86400*45)return Math.round(s/86400)+" d ago";return new Date(t).toISOString().slice(0,10)}
+// Signed-in players: who plays, when and for how long.
+function seenHTML(rules){
+  if(!EMAIL_ON)return "";
+  if(ownSeenMsg==="denied")return '<h3>Players · signed in</h3><p class="warn" style="margin:0 0 8px">Player activity is not switched on in the database yet. In Firebase > Realtime Database > Rules, replace everything with the text below and publish. It keeps the live game working.</p>'+rules;
+  if(!ownSeen)return '<h3>Players · signed in</h3><p class="note" style="margin:0">Could not load the player list. Tap Refresh.</p>';
+  var CF={"221":"🇸🇳","1":"🇺🇸","33":"🇫🇷","39":"🇮🇹"},today=statDay(),rows=[];
+  function ago(n){return new Date(Date.now()-n*86400000).toISOString().slice(0,10)}
+  var d7=ago(6),d30=ago(29),next=function(day){return new Date(Date.parse(day+"T00:00:00Z")+86400000).toISOString().slice(0,10)};
+  Object.keys(ownSeen).forEach(function(k){
+    var r=ownSeen[k];if(!r||typeof r!=="object")return;
+    var d=r.d&&typeof r.d==="object"?r.d:{},o={n:String(r.n||"").slice(0,12)||"(no name)",cc:String(r.cc||""),pf:r.pf==="app"?"app":"web",b:seenNum(r.b),first:seenNum(r.first),last:seenNum(r.last),ses:Math.floor(seenNum(r.ses)),sec:seenNum(r.sec),g:Math.floor(seenNum(r.g)),w:Math.floor(seenNum(r.w)),d:d,t:0,s7:0,s30:0,a7:0,a30:0};
+    Object.keys(d).forEach(function(day){var v=seenNum(d[day]);if(!v)return;if(day===today)o.t=v;if(day>=d7){o.s7+=v;o.a7++}if(day>=d30){o.s30+=v;o.a30++}});
+    rows.push(o);
+  });
+  rows.sort(function(a,b){return b.last-a.last});
+  var T={a:0,b:0,c:0,na:0,nb:0,nc:0,ta:0,tb:0,tc:0,ses:0,sec:0,elig:0,back:0,da7:0,da30:0};
+  rows.forEach(function(o){
+    if(o.t)T.a++;if(o.a7)T.b++;if(o.a30)T.c++;
+    var fd=o.first?new Date(o.first).toISOString().slice(0,10):"";
+    if(fd===today)T.na++;if(fd>=d7)T.nb++;if(fd>=d30)T.nc++;
+    T.ta+=o.t;T.tb+=o.s7;T.tc+=o.s30;T.ses+=o.ses;T.sec+=o.sec;T.da7+=o.a7;T.da30+=o.a30;
+    if(fd&&fd<today&&fd>=d30){T.elig++;if(seenNum(o.d[next(fd)]))T.back++}
+  });
+  var cell=function(l,v){return '<div><small>'+l+'</small><b>'+v+'</b></div>'};
+  var h='<h3>Players · signed in</h3><div class="me-grid" style="grid-template-columns:1fr 1fr 1fr">'+cell("Active today",fmt(T.a))+cell("Active 7 days",fmt(T.b))+cell("Active 30 days",fmt(T.c))+
+    cell("New today",fmt(T.na))+cell("New 7 days",fmt(T.nb))+cell("New 30 days",fmt(T.nc))+
+    cell("Time today",fmtDur(T.ta))+cell("Time 7 days",fmtDur(T.tb))+cell("Time 30 days",fmtDur(T.tc))+'</div>';
+  h+='<div class="me-grid" style="margin-top:8px">'+cell("Average session",T.ses?fmtDur(T.sec/T.ses):"–")+cell("Time per player per day",T.da30?fmtDur(T.tc/T.da30):"–")+
+    cell("Back the next day",T.elig?Math.round(T.back*100/T.elig)+" % ("+T.back+"/"+T.elig+")":"–")+cell("Stickiness (today ÷ 30 days)",T.c?Math.round(T.a*100/T.c)+" %":"–")+cell("Players in total",fmt(rows.length))+cell("Sessions in total",fmt(T.ses))+'</div>';
+  if(!rows.length)return h+'<p class="note">No signed-in player has opened the game since this was switched on.</p>';
+  var show=ownSeenAll?rows:rows.slice(0,25);
+  h+='<div class="lbwrap" style="margin-top:10px"><table class="stats seen"><thead><tr><th scope="col" style="text-align:left">Player</th><th scope="col">Last seen</th><th scope="col">Today</th><th scope="col">7 days</th><th scope="col">Days /30</th><th scope="col">Sessions</th><th scope="col">Total time</th><th scope="col">Avg session</th><th scope="col">Games</th><th scope="col">Wins</th><th scope="col">Since</th><th scope="col">On</th></tr></thead><tbody>';
+  show.forEach(function(o){
+    h+='<tr><th scope="row">'+(CF[o.cc]||"🌍")+" "+esc(o.n)+'</th><td>'+fmtAgo(o.last)+'</td><td>'+(o.t?fmtDur(o.t):"–")+'</td><td>'+(o.s7?fmtDur(o.s7):"–")+'</td><td>'+o.a30+'</td><td>'+fmt(o.ses)+'</td><td>'+fmtDur(o.sec)+'</td><td>'+(o.ses?fmtDur(o.sec/o.ses):"–")+'</td><td>'+fmt(o.g)+'</td><td>'+fmt(o.w)+'</td><td>'+(o.first?new Date(o.first).toISOString().slice(5,10):"–")+'</td><td>'+o.pf+(o.b?" v"+o.b:"")+'</td></tr>';
+  });
+  h+='</tbody></table></div>';
+  if(rows.length>show.length)h+='<p class="note"><button type="button" class="mini" id="seen-all">Show all '+rows.length+' players</button></p>';
+  h+='<p class="note">Signed-in players only, by game name. Time counts while the game is on screen. A session is a visit after 30 minutes or more away. Days follow universal time. Email addresses are not kept here: they are in Firebase > Authentication > Users.</p>';
   return h;
 }
 function statsHTML(){
@@ -2315,6 +2362,7 @@ function renderOwner(){
     });
   });
   if($("own-stats"))$("own-stats").addEventListener("click",loadStats);
+  if($("seen-all"))$("seen-all").addEventListener("click",function(){ownSeenAll=true;renderOwner()});
   if($("oa-out"))$("oa-out").addEventListener("click",ownerSignOut);
   if($("oa-go"))$("oa-go").addEventListener("click",function(){
     var k=$("oa-key").value,m=$("oa-mail").value,w=$("oa-pw").value;
@@ -2557,6 +2605,45 @@ function statOver(){
   var first=null;g.players.forEach(function(pl){if(!first&&pl.kind==="human"&&pl.id)first=pl.id});
   if(first===myId)statAdd({fin:1});
 }
+// ---------- Activity of signed-in players: the days they play, how often and for how long ----------
+// Kept under the player's sign-in id with their game name and country. Only the owner account can read the list.
+var seen=null,seenOff=false,seenBusy=false,seenTick=0,seenDirty=0,SEEN_GAP=1800000;
+function seenNum(x){return typeof x==="number"&&x>0&&x<1e13?x:0}
+function seenStart(){
+  if(!EMAIL_ON||!acct||!pAuth||seenOff||seenBusy||!DB)return;
+  var uid=pAuth.uid;if(seen&&seen.u===uid)return;
+  seenBusy=true;
+  dbx("GET","/seen/"+uid).then(function(d){
+    seenBusy=false;if(!pAuth||pAuth.uid!==uid||!acct)return;
+    var now=Date.now();d=d&&typeof d==="object"?d:{};
+    var doc={first:seenNum(d.first)||now,last:seenNum(d.last),ses:Math.floor(seenNum(d.ses)),sec:seenNum(d.sec),d:{}};
+    if(d.d&&typeof d.d==="object")Object.keys(d.d).forEach(function(k){if(/^\d{4}-\d\d-\d\d$/.test(k)&&seenNum(d.d[k]))doc.d[k]=seenNum(d.d[k])});
+    if(now-doc.last>SEEN_GAP)doc.ses++;
+    doc.last=now;var day=statDay();doc.d[day]=doc.d[day]||1;
+    seen={u:uid,doc:doc};seenTick=now;seenDirty=0;seenFlush();
+  }).catch(function(e){seenBusy=false;if(e&&(e.status===401||e.status===403))seenOff=true});
+}
+function seenBeat(){
+  if(!seen){seenStart();return}
+  if(!pAuth||pAuth.uid!==seen.u||!acct){seen=null;return}
+  var now=Date.now(),dt=Math.min(now-seenTick,10000);seenTick=now;
+  if(document.hidden||dt<=0)return;
+  if(now-seen.doc.last>SEEN_GAP)seen.doc.ses++;
+  var sec=dt/1000,day=statDay();
+  seen.doc.sec+=sec;seen.doc.d[day]=(seen.doc.d[day]||0)+sec;seen.doc.last=now;seenDirty+=sec;
+  if(seenDirty>=60)seenFlush();
+}
+function seenFlush(){
+  if(!seen||seenOff||!pAuth||pAuth.uid!==seen.u)return;
+  var o=seen.doc,pr=bank.profiles[keyOf(meName())]||{},days=Object.keys(o.d).sort().slice(-35),dd={};
+  days.forEach(function(k){dd[k]=Math.round(o.d[k])});
+  seenDirty=0;
+  dbx("PUT","/seen/"+seen.u,{n:meName().slice(0,12),cc:String((acct&&acct.cc)||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0,first:o.first,last:o.last,ses:o.ses,sec:Math.round(o.sec),g:pr.games||0,w:pr.wins||0,d:dd})
+    .catch(function(e){if(e&&(e.status===401||e.status===403)){seenOff=true;seen=null}});
+}
+setInterval(seenBeat,5000);
+document.addEventListener("visibilitychange",function(){if(document.hidden){if(seen&&seenDirty>0)seenFlush()}else{seenTick=Date.now();seenBeat()}});
+window.addEventListener("pagehide",function(){if(seen&&seenDirty>0)seenFlush()});
 // ---------- Player sign-in: an email address and a password ----------
 // Switched on when the project's key is present in config.js. The password is sent to the sign-in service
 // only and is never kept; the device keeps a renewal token so the player stays signed in.
@@ -2817,7 +2904,8 @@ function deleteAcct(){
   var aid=acct.aid,fc=myFc;
   delBusy=true;clearTimeout(acctT);
   dbx("DELETE","/accounts/"+aid).then(function(){
-    return Promise.all([dbx("DELETE","/players/"+fc).catch(function(){}),dbx("DELETE","/inbox/"+fc).catch(function(){})]);
+    seen=null;
+    return Promise.all([dbx("DELETE","/players/"+fc).catch(function(){}),dbx("DELETE","/inbox/"+fc).catch(function(){}),EMAIL_ON?dbx("DELETE","/seen/"+aid).catch(function(){}):null]);
   }).then(function(){
     if(!(EMAIL_ON&&pAuth))return true;
     return tokenP().then(function(t){return authCall("accounts:delete",{idToken:t})}).then(function(){return true},function(){return false});
@@ -2874,7 +2962,7 @@ function emailSign(email,pw,create,cc){
 function afterAuth(cc){
   var uid=pAuth.uid,hint=maskMail(pAuth.email);
   function done(){
-    authBusy=false;autoLang(langOfCc(acct.cc));publishMe();openInbox();checkVerified();renderOnline();if(g)renderAll();
+    authBusy=false;autoLang(langOfCc(acct.cc));publishMe();openInbox();checkVerified();seenStart();renderOnline();if(g)renderAll();
   }
   return dbx("GET","/accounts/"+uid).then(function(d){
     if(d&&d.id&&d.fc){
@@ -3234,7 +3322,7 @@ function boot(data){
     closeSheets();rejoining=true;openOnline();joinRoom(savedRoom);
   }else if(DB&&pendingCode){closeSheets();openOnline()}
   if(DB){
-    openInbox();publishMe();pullAcct();checkVerified();
+    openInbox();publishMe();pullAcct();checkVerified();seenStart();
     if(fcClean(pendingFriend).length===8&&!pendingCode){closeSheets();openOnline();addFriendByCode(pendingFriend)}
     // a link ending in ?stats opens the owner's statistics (the owner code is still needed)
     if(wantStats&&!savedRoom&&!pendingCode){closeSheets();openOwner();if(ownerOn)loadStats()}
@@ -3252,7 +3340,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="44";
+var BUILD="45";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
