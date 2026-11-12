@@ -206,8 +206,8 @@ var WHY={
   network:["No connection, or the service could not be reached.","Normal in small numbers. If high in one country, check hosting from there."],
   service_other:["The sign-in service answered with an unexpected error.","Look at the player timeline, then at the Firebase status page."]
 };
-function label(e){return ({signup_ok:"Login created",signup_fail:"Create login failed",signup_try:"Create login tried",signin_ok:"Signed in",signin_fail:"Sign-in failed",signin_try:"Sign-in tried",reset_request:"Password reset asked",email_confirmed:"Email confirmed",signed_out:"Signed out by the game",save_refused:"Save refused",save_merged:"Newer save taken",old_game_moved:"Phone-number game moved",old_game_not_found:"Phone-number game not found",account_deleted:"Account deleted",app_open:"Opened the game",js_error:"Error"})[e]||e}
-function tone(e){return /fail|refused|signed_out|js_error/.test(e)?"bad":/_ok|confirmed|moved$/.test(e)?"good":/not_found|merged|reset/.test(e)?"warn":"info"}
+function label(e){return ({signup_ok:"Login created",signup_fail:"Create login failed",signup_try:"Create login tried",signin_ok:"Signed in",signin_fail:"Sign-in failed",signin_try:"Sign-in tried",reset_request:"Password reset asked",email_confirmed:"Email confirmed",signed_out:"Signed out by the game",save_refused:"Save refused",save_merged:"Newer save taken",old_game_moved:"Phone-number game moved",old_game_not_found:"Phone-number game not found",account_deleted:"Account deleted",app_open:"Opened the game",js_error:"Error",name_set:"Typed a name",game_start:"Game started",game_end:"Game finished",game_left:"Game left"})[e]||e}
+function tone(e){return /fail|refused|signed_out|js_error/.test(e)?"bad":/_ok|confirmed|moved$|game_end/.test(e)?"good":/not_found|merged|reset|game_left/.test(e)?"warn":"info"}
 
 // ---------- charts ----------
 function bars(days,series,h){
@@ -295,6 +295,46 @@ function vPlayers(){
   }
   return h;
 }
+// New devices: how far each one got. A device is new when its first recorded event falls in the period.
+function vSteps(){
+  var f=fromDay(),first={},st={};
+  EV.forEach(function(x){if(x.d&&!first[x.d])first[x.d]=x});
+  EV.forEach(function(x){
+    var a=first[x.d];if(!x.d||!a||a.day<f)return;
+    if((F.cc&&a.cc!==F.cc)||(F.pf&&a.pf!==F.pf)||(F.b&&String(a.b)!==F.b))return;
+    var o=st[x.d]=st[x.d]||{};
+    o.open=1;
+    if(x.e==="name_set"||/^sign(up|in)_(try|ok)$/.test(x.e)||x.e==="game_start")o.name=1;
+    if(/^sign(up|in)_try$/.test(x.e)||/^sign(up|in)_fail$/.test(x.e))o.tried=1;
+    if(x.e==="signup_ok"||x.e==="signin_ok"||x.u){o.login=1;o.tried=1}
+    if(x.e==="game_start"){o.game=1;if(/^online/.test(x.r))o.online=1}
+    if(x.e==="game_end")o.done=1;
+  });
+  var ks=Object.keys(st),n=ks.length,c=function(k){var m=0;ks.forEach(function(d){if(st[d][k])m++});return m};
+  var rows=[["Opened the game",n,"Everyone who arrived"],["Typed a name",c("name"),"Ready to play"],["Tried to sign in or create a login",c("tried"),"Wanted to play online"],["Got in with a login",c("login"),"Points saved, online play open"],["Started a game",c("game"),"Local or online"],["Started an online game",c("online"),"Played with other people"],["Finished a game",c("done"),"Stayed to the end"]];
+  var h='<div class="grid">'+kpi("New devices",fmt(n),rangeWord())+kpi("Got a login",pct(c("login"),n),fmt(c("login"))+" of "+fmt(n),"")+kpi("Started a game",pct(c("game"),n),fmt(c("game"))+" of "+fmt(n),"")+kpi("Finished a game",pct(c("done"),n),fmt(c("done"))+" of "+fmt(n),"")+'</div>';
+  h+='<div class="card"><h2>How far new devices get · '+rangeWord()+'</h2>'+(n?'<div class="scroll"><table><thead><tr><th>Step</th><th>Devices</th><th>Of all</th><th style="text-align:left;width:38%">&nbsp;</th><th style="text-align:left">Meaning</th></tr></thead><tbody>'+rows.map(function(r){var w=n?Math.round(r[1]*100/n):0;return '<tr><td><b>'+r[0]+'</b></td><td>'+fmt(r[1])+'</td><td>'+pct(r[1],n)+'</td><td><div style="height:14px;border-radius:7px;background:#ece8db;overflow:hidden"><div style="height:100%;width:'+w+'%;background:#121938;border-radius:7px"></div></div></td><td class="wrapc">'+r[2]+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No new device in this period.</p>')+
+    '<p class="note">Counted per device, not per person. Playing against the computer needs no login, so "Started a game" can be higher than "Got in with a login". Devices that already had the game before this was switched on look new the first time they open it.</p></div>';
+  var lost=ks.filter(function(d){return st[d].tried&&!st[d].login}).length,idle=ks.filter(function(d){return !st[d].name}).length,nog=ks.filter(function(d){return st[d].login&&!st[d].game}).length;
+  h+='<div class="card"><h2>Where they stop</h2><div class="scroll"><table><tbody>'+[["Opened the game and did nothing else",idle,"Is the first screen clear about what to do?"],["Tried to get a login and did not get in",lost,"See Login health for the reasons."],["Got a login but never started a game",nog,"Is creating or joining a game obvious after sign-in?"],["Started a game and did not finish one",c("game")-c("done"),"See Games for where games are left."]].map(function(r){return '<tr><td>'+r[0]+'<br><span style="color:var(--ink2);font-size:.8rem">'+r[2]+'</span></td><td>'+fmt(Math.max(0,r[1]))+'</td><td>'+pct(Math.max(0,r[1]),n)+'</td></tr>'}).join("")+'</tbody></table></div></div>';
+  return h;
+}
+function gameInfo(r){var q=String(r||"").split(";"),o={mode:q[0]==="online"?"online":"local",n:0,h:0,min:0};q.slice(1).forEach(function(kv){var a=kv.split("=");if(a[0]==="n"||a[0]==="h"||a[0]==="min")o[a[0]]=parseInt(a[1],10)||0});return o}
+function vGames(){
+  var list=evs(),G={},tot={s:0,e:0,l:0,min:0};
+  list.forEach(function(x){
+    if(x.e!=="game_start"&&x.e!=="game_end"&&x.e!=="game_left")return;
+    var i=gameInfo(x.r),k=i.mode+"|"+i.n+"|"+(i.h>1?"people":"alone"),o=G[k]=G[k]||{mode:i.mode,n:i.n,who:i.h>1?"With other people":"Against the computer",s:0,e:0,l:0,min:0,lmin:0};
+    if(x.e==="game_start"){o.s++;tot.s++}else if(x.e==="game_end"){o.e++;o.min+=i.min;tot.e++;tot.min+=i.min}else{o.l++;o.lmin+=i.min;tot.l++}
+  });
+  var ks=Object.keys(G).sort(function(a,b){return G[b].s-G[a].s}),open=Math.max(0,tot.s-tot.e-tot.l);
+  var h='<div class="grid">'+kpi("Games started",fmt(tot.s),"by signed-in and other players, "+rangeWord())+kpi("Finished",pct(tot.e,tot.s),fmt(tot.e)+" game"+(tot.e===1?"":"s"),tot.s<5?"":tot.e/tot.s<0.5?"warn":"good")+kpi("Left before the end",fmt(tot.l),tot.s?pct(tot.l,tot.s)+" of games":"",tot.l&&tot.s>=5&&tot.l/tot.s>0.3?"warn":"")+kpi("Average finished game",tot.e?Math.round(tot.min/tot.e)+" min":"–","")+'</div>';
+  h+='<div class="card"><h2>By kind of game · '+rangeWord()+'</h2>'+(ks.length?'<div class="scroll"><table><thead><tr><th>Game</th><th>Players</th><th>Started</th><th>Finished</th><th>Left</th><th>Finish rate</th><th>Avg length</th><th>Left after</th></tr></thead><tbody>'+ks.map(function(k){var o=G[k];return '<tr><td><b>'+(o.mode==="online"?"Online":"Local")+'</b> · '+o.who+'</td><td>'+o.n+'</td><td>'+fmt(o.s)+'</td><td>'+fmt(o.e)+'</td><td>'+fmt(o.l)+'</td><td>'+pct(o.e,o.s)+'</td><td>'+(o.e?Math.round(o.min/o.e)+" min":"–")+'</td><td>'+(o.l?Math.round(o.lmin/o.l)+" min":"–")+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No game recorded in this period.</p>')+
+    '<p class="note">Counted once per device in the game, so an online game with three people counts three times. '+fmt(open)+' started game'+(open===1?" has":"s have")+' no ending recorded: still being played, or the game was closed without leaving.</p></div>';
+  var days=dayList();
+  h+='<div class="card"><h2>Games per day</h2>'+bars(days,[{n:"Finished",c:"#1f8a55",v:days.map(function(d){return list.filter(function(x){return x.day===d&&x.e==="game_end"}).length})},{n:"Left",c:"#c8402a",v:days.map(function(d){return list.filter(function(x){return x.day===d&&x.e==="game_left"}).length})},{n:"Started, no ending yet",c:"#c9c4b3",v:days.map(function(d){var a=0;list.forEach(function(x){if(x.day!==d)return;if(x.e==="game_start")a++;else if(x.e==="game_end"||x.e==="game_left")a--});return Math.max(0,a)})}])+'</div>';
+  return h;
+}
 function vErrors(){
   var list=evs().filter(function(x){return x.e==="js_error"}),g={};
   list.forEach(function(x){var k=x.r||"(no message)";g[k]=g[k]||{n:0,dev:{},b:{},last:0,pf:{}};g[k].n++;g[k].dev[x.d]=1;g[k].b[x.b]=1;g[k].pf[x.pf]=1;if(x.t>g[k].last)g[k].last=x.t});
@@ -311,7 +351,7 @@ function builds(){var b={};EV.forEach(function(x){if(x.b)b[x.b]=1});Object.keys(
 function render(){
   if(!own){renderSign("");return}
   $("signout").hidden=false;$("refresh").hidden=false;$("when").textContent=loadedAt?"Updated "+new Date(loadedAt).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}):"";
-  var T=[["overview","Overview"],["login","Login health"],["players","Players"],["errors","Errors"]];
+  var T=[["overview","Overview"],["steps","First steps"],["login","Login health"],["games","Games"],["players","Players"],["errors","Errors"]];
   var h='<div class="bar"><div class="tabs" role="tablist">'+T.map(function(t){return '<button type="button" role="tab" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div><span class="sp"></span>'+
     '<select id="f-range" aria-label="Period">'+[[1,"Today"],[7,"Last 7 days"],[30,"Last 30 days"]].map(function(r){return '<option value="'+r[0]+'"'+(F.range===r[0]?" selected":"")+'>'+r[1]+'</option>'}).join("")+'</select>'+
     '<select id="f-cc" aria-label="Country"><option value="">All countries</option>'+Object.keys(CN).map(function(c){return '<option value="'+c+'"'+(F.cc===c?" selected":"")+'>'+CN[c]+'</option>'}).join("")+'</select>'+
@@ -320,7 +360,7 @@ function render(){
     '<button type="button" class="btn" id="csv">Export CSV</button></div>';
   if(loadErr)h+='<div class="card" style="margin-top:0;border-color:var(--bad)"><p class="err" style="margin:0">'+esc(loadErr)+'</p></div>';
   h+=notice();
-  h+=tab==="login"?vLogin():tab==="players"?vPlayers():tab==="errors"?vErrors():vOverview();
+  h+=tab==="login"?vLogin():tab==="players"?vPlayers():tab==="errors"?vErrors():tab==="steps"?vSteps():tab==="games"?vGames():vOverview();
   h+='<footer>Times and days follow universal time (UTC). Detailed events are kept 90 days. No email address, password or phone number is stored in this data. &copy; 2026 Nioro Resources LLC</footer>';
   main.innerHTML=h;
   Array.prototype.forEach.call(main.querySelectorAll("[data-tab]"),function(b){b.addEventListener("click",function(){tab=b.getAttribute("data-tab");render()})});

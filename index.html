@@ -1128,6 +1128,7 @@ function avFor(s){var p=profileOf(nameFor(s));return cfg.avs[s]||(p&&p.av)||{t:"
 function minBal(){var m=Infinity;humanSeats().forEach(function(s){m=Math.min(m,balanceOf(nameFor(s)))});return m}
 
 function startGame(){
+  if(g&&!g.over&&g.counted&&evGame&&/^local/.test(evGame.on))evGameEnd("game_left");
   if(net)leaveRoom(true);
   epoch++;stopClock();
   var seats=seatsFor(cfg.count).map(function(s){return {seat:s,kind:cfg.kinds[s]}});
@@ -1377,7 +1378,7 @@ function beginTurn(){
 function doRoll(){
   if(phase!=="roll")return;
   if(live()&&control(g.turn)==="remote")return;
-  if(!live()&&!g.counted&&isHuman(g.turn)){g.counted=1;statAdd({loc:1})}
+  if(!live()&&!g.counted&&isHuman(g.turn)){g.counted=1;statAdd({loc:1});evGameStart()}
   var n=g.opts.twoDice?2:1,vals=[];
   for(var i=0;i<n;i++)vals.push(1+Math.floor(Math.random()*6));
   if(live()){
@@ -1648,7 +1649,7 @@ function claimSeat(pl){
   if(g.stake&&paid!==tag){pr.pts=Math.max(0,pr.pts-g.stake);pr.t=Date.now();try{localStorage.setItem("ludo-paid",tag)}catch(e){}}
   saveBank();
   var seen="";try{seen=localStorage.getItem("ludo-stat-tag")||""}catch(e){}
-  if(seen!==tag&&!g.over){try{localStorage.setItem("ludo-stat-tag",tag)}catch(e){}statAdd({pg:1})}
+  if(seen!==tag&&!g.over){try{localStorage.setItem("ludo-stat-tag",tag)}catch(e){}statAdd({pg:1});evGameStart()}
 }
 function rebuildRound(){
   var r=net.room,gm=r.game;if(!gm||!gm.seats)return;
@@ -1958,6 +1959,7 @@ function roomClosed(){
 function nextOf(r,code){return r&&typeof r.next==="string"&&/^[A-Z0-9]{6}$/.test(r.next)&&r.next!==code?r.next:""}
 function leaveRoom(quiet){
   if(!net)return;
+  if(g&&!g.over&&evGame&&/^online/.test(evGame.on)&&net.room&&net.room.status==="playing")evGameEnd("game_left");
   var n=net;net=null;
   var ab=$("ask-bar");if(ab){ab.className="invite ask";ab.innerHTML=""}shownAsk="";
   if(n.es)n.es.close();
@@ -2048,7 +2050,7 @@ function renderOnline(){
   })});
   var nm=$("me-name");
   if(nm){
-    nm.addEventListener("input",function(){cfg.me=cfg.me||{};cfg.me.name=nm.value;$("me-bal").textContent="★ "+fmt(balanceOf(meName()))});
+    nm.addEventListener("input",function(){cfg.me=cfg.me||{};cfg.me.name=nm.value;evName();$("me-bal").textContent="★ "+fmt(balanceOf(meName()))});
     nm.addEventListener("change",function(){var pr=profileOf(meName());if(pr&&pr.av&&cfg.me){cfg.me.av=null;refreshMyAvs()}});
     refreshMyAvs();
   }
@@ -2602,6 +2604,7 @@ function statAdd(o){
 }
 // One phone reports the end of an online game: the first person in seat order.
 function statOver(){
+  evGameEnd("game_end");
   if(!live()){statAdd({lfin:1});return}
   var first=null;g.players.forEach(function(pl){if(!first&&pl.kind==="human"&&pl.id)first=pl.id});
   if(first===myId)statAdd({fin:1});
@@ -2639,7 +2642,22 @@ window.addEventListener("unhandledrejection",function(ev){
   if(/^net$|Failed to fetch|Load failed|NetworkError/i.test(m))return;
   evErr++;logEv("js_error","promise: "+String(m).slice(0,44));
 });
-setTimeout(function(){logEv("app_open",acct&&pAuth?"signed_in":"signed_out")},2500);
+setTimeout(function(){logEv("app_open",acct&&pAuth?"signed_in":"signed_out");evName()},2500);
+// First steps and games: typed a name, started a game, finished it or left it.
+var evGame=null;
+try{evGame=JSON.parse(localStorage.getItem("ludo-ev-game")||"null")}catch(e){}
+if(!evGame||typeof evGame.on!=="string")evGame=null;
+function evSaveGame(){try{if(evGame)localStorage.setItem("ludo-ev-game",JSON.stringify(evGame));else localStorage.removeItem("ludo-ev-game")}catch(e){}}
+function evName(){try{if(hasName()&&!localStorage.getItem("ludo-ev-name")){localStorage.setItem("ludo-ev-name","1");logEv("name_set")}}catch(e){}}
+function evGameStart(){
+  var h=0;g.players.forEach(function(pl){if(pl.kind==="human")h++});
+  evGame={on:(live()?"online":"local")+";n="+g.players.length+";h="+h,t:Date.now()};evSaveGame();logEv("game_start",evGame.on);
+}
+function evGameEnd(kind){
+  if(!evGame)return;
+  var m=Math.max(0,Math.min(999,Math.round((Date.now()-evGame.t)/60000)));
+  logEv(kind,evGame.on+";min="+m);evGame=null;evSaveGame();
+}
 // ---------- Activity of signed-in players: the days they play, how often and for how long ----------
 // Kept under the player's sign-in id with their game name and country. Only the owner account can read the list.
 var seen=null,seenOff=false,seenBusy=false,seenTick=0,seenDirty=0,SEEN_GAP=1800000;
@@ -3383,7 +3401,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="46";
+var BUILD="47";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
