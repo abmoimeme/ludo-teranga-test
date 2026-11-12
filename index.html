@@ -247,6 +247,19 @@ h1 span{color:var(--accent);display:block}
 .lb td:nth-child(2){color:var(--accent);font-weight:700}
 .lb .av{width:26px;height:26px;border-radius:7px;background:var(--cloth);display:inline-flex;align-items:center;justify-content:center;font-size:1rem;flex:none;overflow:hidden}
 .lb .av img{width:100%;height:100%;object-fit:cover}
+.me{background:var(--cloth);border-radius:16px;padding:14px;display:flex;flex-direction:column;gap:12px}
+.me-top{display:flex;align-items:center;gap:12px}
+.me-top .av{width:56px;height:56px;border-radius:14px;background:var(--cloth-2);display:flex;align-items:center;justify-content:center;font-size:2rem;flex:none;overflow:hidden}
+.me-top .av img{width:100%;height:100%;object-fit:cover}
+.me-top b{display:block;font-family:var(--display);font-weight:800;font-size:1.35rem;line-height:1.1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.me-top span{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+.me-top small{display:block;color:var(--muted);font-size:.76rem;margin-top:2px}
+.me-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.me-grid div{background:var(--cloth-2);border-radius:12px;padding:9px 11px;display:flex;flex-direction:column;gap:1px;min-width:0}
+.me-grid small{color:var(--muted);font-size:.66rem;font-weight:700;text-transform:uppercase;letter-spacing:.03em}
+.me-grid b{font-family:var(--display);font-weight:800;font-size:1.3rem;line-height:1.15;font-variant-numeric:tabular-nums}
+.me-bar{height:8px;border-radius:99px;background:var(--cloth-2);overflow:hidden}
+.me-bar i{display:block;height:100%;background:var(--accent);border-radius:99px}
 .hist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px;font-size:.85rem}
 .hist small{display:block;color:var(--muted)}
 .chip small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -775,6 +788,19 @@ T.en.emSent="Link sent. Check your inbox and your spam folder.";T.fr.emSent="Lie
 T.en.emResetNeed="Type your email address above, then tap Forgot your password.";T.fr.emResetNeed="Tapez votre adresse e-mail ci-dessus, puis touchez Mot de passe oublié.";T.it.emResetNeed="Scrivi il tuo indirizzo e-mail qui sopra, poi tocca Password dimenticata.";
 T.en.emResetSent="If this email has a login, a link to choose a new password is on its way. Check your spam folder too.";T.fr.emResetSent="Si cet e-mail a un compte, un lien pour choisir un nouveau mot de passe arrive. Regardez aussi dans vos indésirables.";T.it.emResetSent="Se questa e-mail ha un account, sta arrivando un link per scegliere una nuova password. Controlla anche lo spam.";
 T.en.saveOff="Your points are kept on this phone only for now: saving online is not switched on yet.";T.fr.saveOff="Vos points restent sur ce téléphone pour l'instant : l'enregistrement en ligne n'est pas encore activé.";T.it.saveOff="Per ora i punti restano su questo telefono: il salvataggio online non è ancora attivo.";
+T.en.myStats="My statistics";T.fr.myStats="Mes statistiques";T.it.myStats="Le mie statistiche";
+T.en.stPlayed="Games played";T.fr.stPlayed="Parties jouées";T.it.stPlayed="Partite giocate";
+T.en.stWon="Games won";T.fr.stWon="Parties gagnées";T.it.stWon="Partite vinte";
+T.en.stLost="Games lost";T.fr.stLost="Parties perdues";T.it.stLost="Partite perse";
+T.en.stRate="Win rate";T.fr.stRate="Taux de victoire";T.it.stRate="Percentuale di vittorie";
+T.en.stRun="Win streak";T.fr.stRun="Série en cours";T.it.stRun="Serie in corso";
+T.en.stBest="Best streak";T.fr.stBest="Meilleure série";T.it.stBest="Serie migliore";
+T.en.stCaps="Pieces captured";T.fr.stCaps="Pions capturés";T.it.stCaps="Pedine catturate";
+T.en.stPer="Captures per game";T.fr.stPer="Captures par partie";T.it.stPer="Catture a partita";
+T.en.stCode="Friend code";T.fr.stCode="Code ami";T.it.stCode="Codice amico";
+T.en.stSaved="Saved with your login";T.fr.stSaved="Enregistré avec votre compte";T.it.stSaved="Salvato con il tuo account";
+T.en.stLocal="Kept on this phone only. Sign in under Play online to keep it everywhere.";T.fr.stLocal="Gardé sur ce téléphone seulement. Connectez-vous dans « Jouer en ligne » pour le retrouver partout.";T.it.stLocal="Solo su questo telefono. Accedi in «Gioca online» per ritrovarlo ovunque.";
+T.en.stNone="Play a game to start your statistics.";T.fr.stNone="Jouez une partie pour commencer vos statistiques.";T.it.stNone="Gioca una partita per iniziare le statistiche.";
 T.en.sessionOver="Please sign in again.";T.fr.sessionOver="Merci de vous reconnecter.";T.it.sessionOver="Accedi di nuovo, per favore.";
 T.en.loginMoved="Signing in has changed. Create your login once with an email and a password: your name, points and friends will follow.";T.fr.loginMoved="La connexion a changé. Créez votre compte une fois avec un e-mail et un mot de passe : votre nom, vos points et vos amis suivront.";T.it.loginMoved="L'accesso è cambiato. Crea il tuo account una volta con e-mail e password: nome, punti e amici ti seguiranno.";
 T.en.movedOk="Done. Your name, points and friends came with you.";T.fr.movedOk="C'est fait. Votre nom, vos points et vos amis vous ont suivi.";T.it.movedOk="Fatto. Nome, punti e amici ti hanno seguito.";
@@ -3110,12 +3136,28 @@ function showWin(){
   $("win-setup").addEventListener("click",function(){closeSheets();renderSetup();$("sheet-setup").classList.add("open")});
   $("sheet-win").classList.add("open");say(t.wins(first.name));
 }
+// The player's own numbers, from what the game already keeps.
+function myStatsHTML(){
+  var t=L(),pr=myProfile(false);if(!pr)return "";
+  var av=pr.av||meAv()||{t:"e",v:"🙂"},pic=av.t==="i"&&/^data:image\//.test(av.v)?'<img alt="" src="'+esc(av.v)+'">':esc(av.v);
+  var gm=pr.games||0,w=Math.min(pr.wins||0,gm),lost=gm-w,rate=gm?Math.round(w*100/gm):0,caps=pr.caps||0,per=gm?Math.round(caps*10/gm)/10:0;
+  var nf=function(n){try{return n.toLocaleString(LOCALE[lang])}catch(e){return String(n)}};
+  var h='<div class="me"><div class="me-top"><span class="av">'+pic+'</span><div style="min-width:0"><b>'+esc(pr.name)+'</b><span>★ '+fmt(pr.pts)+'</span>'+
+    (hasName()&&myFc&&keyOf(pr.name)===keyOf(meName())&&DB?'<small>'+t.stCode+' · '+fcShow(myFc)+'</small>':"")+'</div></div>';
+  if(!gm)h+='<p class="note" style="margin:0">'+t.stNone+'</p>';
+  else{
+    h+='<div><div class="me-grid" style="margin-bottom:8px"><div><small>'+t.stRate+'</small><b>'+rate+' %</b></div><div><small>'+t.stPlayed+'</small><b>'+nf(gm)+'</b></div></div><div class="me-bar" role="img" aria-label="'+t.stRate+' '+rate+' %"><i style="width:'+rate+'%"></i></div></div>';
+    h+='<div class="me-grid">'+[[t.stWon,nf(w)],[t.stLost,nf(lost)],[t.stRun,nf(pr.run||0)],[t.stBest,nf(pr.best||0)],[t.stCaps,nf(caps)],[t.stPer,nf(per)]].map(function(x){return '<div><small>'+x[0]+'</small><b>'+x[1]+'</b></div>'}).join("")+'</div>';
+  }
+  if(DB&&EMAIL_ON)h+='<p class="note" style="margin:0">'+(acct&&pAuth?t.stSaved:t.stLocal)+'</p>';
+  return h+'</div>';
+}
 function openScores(){
   var t=L(),inGame={},rows=[];
   g.players.forEach(function(pl){if(pl.key)inGame[pl.key]=1});
   Object.keys(bank.profiles).forEach(function(k){var pr=bank.profiles[k];if(pr.games||inGame[k])rows.push(pr)});
   rows.sort(function(a,b){return b.pts-a.pts||(b.wins||0)-(a.wins||0)});
-  var h='<h2>'+t.lbTitle+'</h2><div class="lbwrap"><table class="lb"><thead><tr>'+t.cols.map(function(c){return "<th>"+c+"</th>"}).join("")+'</tr></thead><tbody>';
+  var mine=myStatsHTML(),h=(mine?'<h2>'+t.myStats+'</h2>'+mine:"")+'<h2>'+t.lbTitle+'</h2><div class="lbwrap"><table class="lb"><thead><tr>'+t.cols.map(function(c){return "<th>"+c+"</th>"}).join("")+'</tr></thead><tbody>';
   rows.forEach(function(pr){
     var av=pr.av||{t:"e",v:"🙂"},pic=av.t==="i"&&/^data:image\//.test(av.v)?'<img alt="" src="'+esc(av.v)+'">':esc(av.v);
     h+='<tr><td><span class="av">'+pic+'</span>'+esc(pr.name)+'</td><td>'+fmt(pr.pts)+'</td><td>'+(pr.wins||0)+'</td><td>'+(pr.games||0)+'</td><td>'+(pr.caps||0)+'</td><td>'+(pr.best||0)+'</td></tr>';
@@ -3210,7 +3252,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="43";
+var BUILD="44";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
