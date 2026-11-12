@@ -1351,7 +1351,9 @@ var ADS=[
  {mk:"FASA",url:"https://www.instagram.com/planetautohub/",img:"icons/ad-fasa.png",c:"#f5b21a",name:"Fasa",
   en:["By Fama","",""],fr:["By Fama","",""],it:["By Fama","",""]},
  {mk:"SUP",url:"https://www.instagram.com/planetautohub/",img:"icons/ad-sup.png",c:"#e8201f",name:"SUPERIOR",
-  en:["Outboard motor dealer!","",""],fr:["Concessionnaire de moteurs hors-bord !","",""],it:["Concessionario di motori fuoribordo!","",""]}
+  en:["Outboard motor dealer!","",""],fr:["Concessionnaire de moteurs hors-bord !","",""],it:["Concessionario di motori fuoribordo!","",""]},
+ {mk:"EGT",url:"https://www.elitegtravel.com/",img:"icons/ad-egt.png",c:"#0aa3e3",name:"EGT",
+  en:["Elite Global Travel LLC","",""],fr:["Elite Global Travel LLC","",""],it:["Elite Global Travel LLC","",""]}
 ];
 var adIdx=Math.floor(Math.random()*ADS.length),AD_TAG={en:"Sponsor",fr:"Partenaire",it:"Sponsor"};
 function adText(a){return a[lang]||a.en}
@@ -3472,7 +3474,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="54";
+var BUILD="55";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
