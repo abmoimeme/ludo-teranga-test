@@ -1,5 +1,5 @@
 // Offline cache. Raise the version number whenever the site files change.
-var VERSION="ludo-teranga-v32";
+var VERSION="ludo-teranga-v33";
 var FILES=["./", "index.html", "privacy.html", "support.html", "config.js", "manifest.webmanifest", "fonts/baloo2-600.woff2", "fonts/baloo2-800.woff2", "fonts/figtree-400.woff2", "fonts/figtree-600.woff2", "fonts/figtree-700.woff2", "icons/icon-192.png", "icons/icon-512.png", "icons/apple-touch-icon.png", "icons/favicon-32.png", "icons/ad-pah.png", "icons/ad-nf.png", "icons/ad-jv.png"];
 self.addEventListener("install",function(e){e.waitUntil(caches.open(VERSION).then(function(c){return c.addAll(FILES)}).then(function(){return self.skipWaiting()}))});
 self.addEventListener("activate",function(e){e.waitUntil(caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k!==VERSION}).map(function(k){return caches.delete(k)}))}).then(function(){return self.clients.claim()}))});

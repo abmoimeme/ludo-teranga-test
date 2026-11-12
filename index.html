@@ -323,16 +323,26 @@ var PATH=[[6,1],[6,2],[6,3],[6,4],[6,5],[5,6],[4,6],[3,6],[2,6],[1,6],[0,6],[0,7
 var STARTS=[0,13,26,39], STARS=[8,21,34,47];
 // Progress per piece: -1 yard, 0..50 main track, 51..55 home column, 56 home.
 function absIdx(seat,p){return (seat*13+p)%52}
-function isSafe(g,idx){return g.opts.safe&&(STARS.indexOf(idx)>=0||STARTS.indexOf(idx)>=0)}
+// Squares that are safe for everyone. With the door rule, only the stars are; doors protect their owner alone.
+function isSafe(g,idx){return g.opts.safe&&(STARS.indexOf(idx)>=0||(!g.opts.door&&STARTS.indexOf(idx)>=0))}
+// Door rule: the square where a player's pieces come out is that player's door. Returns the player who owns
+// the door at this square, or -1. On your own door you cannot be caught; anyone else standing there can be
+// caught by anybody, even two pieces together.
+function doorOf(g,idx){
+  if(!g.opts.door)return -1;
+  for(var i=0;i<g.players.length;i++)if(g.players[i].seat*13===idx)return i;
+  return -1;
+}
 function newGame(cfg){
   return {players:cfg.seats.map(function(s){return {seat:s.seat,kind:s.kind,tokens:[-1,-1,-1,-1]}}),
-    opts:{twoDice:!!cfg.twoDice,safe:!!cfg.safe,blockPass:!!cfg.blockPass,bonus:!!cfg.bonus,captureHome:!!cfg.captureHome,jail:!!cfg.jail,homeBonus:!!cfg.homeBonus,hop:!!cfg.hop},
+    opts:{twoDice:!!cfg.twoDice,safe:!!cfg.safe,blockPass:!!cfg.blockPass,bonus:!!cfg.bonus,captureHome:!!cfg.captureHome,jail:!!cfg.jail,homeBonus:!!cfg.homeBonus,hop:!!cfg.hop,door:!!cfg.door},
     turn:0,dice:[],rolled:null,bonus:false,winner:-1,rank:[],over:false};
 }
 function enemyBlock(g,pi,idx){
   if(isSafe(g,idx))return false;
+  var dr=doorOf(g,idx);
   for(var oi=0;oi<g.players.length;oi++){
-    if(oi===pi)continue;var op=g.players[oi],n=0;
+    if(oi===pi||(dr>=0&&dr!==oi))continue;var op=g.players[oi],n=0;
     for(var k=0;k<4;k++){var q=op.tokens[k];if(q>=0&&q<=50&&absIdx(op.seat,q)===idx)n++}
     if(n>=2)return true;
   }
@@ -341,9 +351,9 @@ function enemyBlock(g,pi,idx){
 // How many pieces one opponent has stacked on a square (0 when it is not a block).
 function blockSize(g,pi,idx){
   if(isSafe(g,idx))return 0;
-  var best=0;
+  var best=0,dr=doorOf(g,idx);
   for(var oi=0;oi<g.players.length;oi++){
-    if(oi===pi)continue;var op=g.players[oi],n=0;
+    if(oi===pi||(dr>=0&&dr!==oi))continue;var op=g.players[oi],n=0;
     for(var k=0;k<4;k++){var q=op.tokens[k];if(q>=0&&q<=50&&absIdx(op.seat,q)===idx)n++}
     if(n>best)best=n;
   }
@@ -403,8 +413,9 @@ function applyMove(g,pi,ti,die){
   if(np>=0&&np<=50){
     var idx=absIdx(pl.seat,np);
     if(!isSafe(g,idx)){
+      var dr=doorOf(g,idx);
       g.players.forEach(function(op,oi){
-        if(oi===pi)return;
+        if(oi===pi||oi===dr)return; // the owner of a door is never caught on it
         op.tokens.forEach(function(q,k){if(q>=0&&q<=50&&absIdx(op.seat,q)===idx){op.tokens[k]=g.opts.jail?-(10+pi):-1;captured.push({pi:oi,ti:k})}});
       });
     }
@@ -468,7 +479,7 @@ function missStep(g,e){
   return !g.nokick&&g.miss[pi]>=KICK_AFTER?kickPlayer(g,pi):false;
 }
 function threat(g,pi,idx){
-  if(isSafe(g,idx))return 0;
+  if(isSafe(g,idx)||doorOf(g,idx)===pi)return 0;
   var reach=g.opts.twoDice?12:6,n=0;
   g.players.forEach(function(op,oi){
     if(oi===pi)return;
@@ -489,8 +500,9 @@ function scoreMove(g,pi,ti,die){
   else if(np>50)s+=12;
   else{
     var idx=absIdx(pl.seat,np),block=pl.tokens.some(function(q,j){return j!==ti&&q===np});
+    var dr=doorOf(g,idx);
     if(isSafe(g,idx))s+=10;
-    else g.players.forEach(function(op,oi){if(oi!==pi)op.tokens.forEach(function(q){if(q>=0&&q<=50&&absIdx(op.seat,q)===idx)s+=55+q})});
+    else{if(dr===pi)s+=10;g.players.forEach(function(op,oi){if(oi!==pi&&oi!==dr)op.tokens.forEach(function(q){if(q>=0&&q<=50&&absIdx(op.seat,q)===idx)s+=55+q})})}
     if(block)s+=14;else s-=threat(g,pi,idx)*(8+np*0.5);
   }
   if(p>=0&&p<=50)s+=threat(g,pi,absIdx(pl.seat,p))*(6+p*0.4);
@@ -556,7 +568,7 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
   errSame:"Two players have the same name. Give each player a different name.",
   errStake:"A player does not have enough points for this game. Choose a smaller amount.",
   p1:"Senegal classic · 1 die",p2:"West African · 2 dice",
-  oSafe:"Star and start squares are safe",oBlock:"A pair blocks the road",oBonus:"Extra roll after a capture",oHome:"A piece that captures goes straight home",
+  oSafe:"Star squares are safe",oBlock:"A pair blocks the road",oBonus:"Extra roll after a capture",oHome:"A piece that captures goes straight home",
   rulesTitle:"How this game is played",
   r:{out:"Roll a 6 to bring a piece out of the yard.",
     one:"A 6 gives you another roll.",
@@ -618,7 +630,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
   errSame:"Deux joueurs ont le même nom. Donnez un nom différent à chacun.",
   errStake:"Un joueur n'a pas assez de points pour cette partie. Choisissez un montant plus petit.",
   p1:"Sénégal classique · 1 dé",p2:"Afrique de l'Ouest · 2 dés",
-  oSafe:"Cases étoile et départ protégées",oBlock:"Deux pions font barrage",oBonus:"Relancer après une capture",oHome:"Le pion qui capture rentre directement",
+  oSafe:"Cases étoile protégées",oBlock:"Deux pions font barrage",oBonus:"Relancer après une capture",oHome:"Le pion qui capture rentre directement",
   rulesTitle:"Comment on joue ici",
   r:{out:"Faites un 6 pour sortir un pion.",
     one:"Un 6 donne droit à un autre lancer.",
@@ -686,7 +698,7 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
   forfeit:"C'è una partita in corso. Iniziarne una nuova fa perdere i punti già nel piatto.",
   errSame:"Due giocatori hanno lo stesso nome. Dai a ciascuno un nome diverso.",errStake:"Un giocatore non ha abbastanza punti per questa partita. Scegli una cifra più bassa.",
   p1:"Senegal classico · 1 dado",p2:"Africa occidentale · 2 dadi",
-  oSafe:"Caselle stella e di partenza sicure",oBlock:"Due pedine bloccano la strada",oBonus:"Tiro extra dopo una cattura",oHome:"La pedina che cattura va subito al centro",
+  oSafe:"Caselle stella sicure",oBlock:"Due pedine bloccano la strada",oBonus:"Tiro extra dopo una cattura",oHome:"La pedina che cattura va subito al centro",
   rulesTitle:"Come si gioca",
   r:{out:"Fai 6 per far uscire una pedina.",
     one:"Un 6 ti dà un altro tiro.",
@@ -726,6 +738,10 @@ T.en.blockHop="Two or more of your pieces on one square form a block. Opponents 
 T.fr.blockHop="Deux pions ou plus sur une case forment un barrage. Les adversaires ne peuvent ni le capturer ni le dépasser, sauf en sautant : un pion placé juste derrière le barrage passe de l'autre côté avec autant de 6 à la suite que le barrage compte de pions (double six pour deux, trois 6 pour trois). Les 6 sont consommés, puis le joueur relance.";
 T.it.blockHop="Due o più tue pedine sulla stessa casella formano un blocco. Gli avversari non possono catturarlo né superarlo, tranne con un salto: una pedina subito dietro il blocco lo scavalca con tanti 6 di fila quante sono le pedine del blocco (doppio sei per due, tre 6 per tre). I 6 vengono consumati, poi il giocatore tira di nuovo.";
 T.en.hopped=function(n){return n+" hops the block!"};T.fr.hopped=function(n){return n+" saute le barrage !"};T.it.hopped=function(n){return n+" salta il blocco!"};
+T.en.doorRule="The square where your pieces come out is your door. On your own door you cannot be caught. Anyone standing on another player's door can be caught by anybody, even two pieces together.";
+T.fr.doorRule="La case où sortent vos pions est votre porte. Sur votre propre porte, on ne peut pas vous capturer. Un pion posé sur la porte d'un autre joueur peut être capturé par n'importe qui, même deux pions ensemble.";
+T.it.doorRule="La casella da cui escono le tue pedine è la tua porta. Sulla tua porta non puoi essere catturato. Chi si ferma sulla porta di un altro giocatore può essere catturato da chiunque, anche due pedine insieme.";
+T.en.safeStars="Pieces on star squares cannot be captured.";T.fr.safeStars="Les pions sur les cases étoile ne peuvent pas être capturés.";T.it.safeStars="Le pedine sulle caselle stella non possono essere catturate.";
 T.en.privacy="Privacy";T.fr.privacy="Confidentialité";T.it.privacy="Privacy";
 T.en.support="Help";T.fr.support="Aide";T.it.support="Aiuto";
 T.en.terms="By signing in you accept the privacy policy and the rules of conduct.";T.fr.terms="En vous connectant, vous acceptez la politique de confidentialité et les règles de conduite.";T.it.terms="Accedendo accetti l'informativa sulla privacy e le regole di condotta.";
@@ -1046,7 +1062,7 @@ function startGame(){
   if(net)leaveRoom(true);
   epoch++;stopClock();
   var seats=seatsFor(cfg.count).map(function(s){return {seat:s,kind:cfg.kinds[s]}});
-  g=newGame({seats:seats,twoDice:cfg.twoDice,safe:cfg.safe,blockPass:cfg.blockPass,bonus:cfg.bonus,captureHome:false,jail:cfg.jail,homeBonus:cfg.homeBonus,hop:true});
+  g=newGame({seats:seats,twoDice:cfg.twoDice,safe:cfg.safe,blockPass:cfg.blockPass,bonus:cfg.bonus,captureHome:false,jail:cfg.jail,homeBonus:cfg.homeBonus,hop:true,door:true});
   g.stake=cfg.stake>minBal()?0:(cfg.stake||0);g.pot=g.stake*g.players.length;g.gains={};g.v=3;
   g.players.forEach(function(pl){
     var s=pl.seat;
@@ -1413,7 +1429,7 @@ function api(method,path,body,code){
   return fetch(roomUrl(code||net.code,path),{method:method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)})
     .then(function(r){if(!r.ok)throw new Error("net");return r.json()});
 }
-var PROTO=5,rejoining=false;
+var PROTO=6,rejoining=false;
 // The agreed list of inputs, in order. Inputs are only ever added, never overwritten. Each one says which
 // position it was meant for; if two phones send an input for the same position, the first to arrive counts
 // and the other is ignored by everyone.
@@ -1566,7 +1582,7 @@ function rebuildRound(){
   var c=r.cfg||{};
   epoch++;stopClock();closeSheets();
   net.live=true;net.round=r.round;net.applied=0;net.ok=0;net.log=[];net.out=[];rejoining=false;
-  g=newGame({seats:gm.seats.map(function(s){return {seat:s.seat,kind:s.kind==="human"?"human":"cpu"}}),twoDice:c.twoDice,safe:c.safe,blockPass:c.blockPass,bonus:c.bonus,captureHome:c.captureHome,jail:c.jail,homeBonus:c.homeBonus,hop:(r.v||1)>=5});
+  g=newGame({seats:gm.seats.map(function(s){return {seat:s.seat,kind:s.kind==="human"?"human":"cpu"}}),twoDice:c.twoDice,safe:c.safe,blockPass:c.blockPass,bonus:c.bonus,captureHome:c.captureHome,jail:c.jail,homeBonus:c.homeBonus,hop:(r.v||1)>=5,door:(r.v||1)>=6});
   g.stake=c.stake||0;g.pot=g.stake*g.players.length;g.gains={};g.v=3;
   g.nokick=g.join=(r.v||1)>=4;
   g.players.forEach(function(pl,i){
@@ -2621,7 +2637,7 @@ function renderSetup(){
 }
 function renderRules(){
   var t=L(),r=t.r,o=g.opts,li=[r.out,o.twoDice?r.two:r.one,o.jail?r.jail:r.cap,o.blockPass?(o.hop?t.blockHop:r.blockPass):r.block];
-  if(o.safe)li.push(r.safe);if(o.bonus)li.push(r.bonus);if(o.captureHome)li.push(r.home);if(o.homeBonus)li.push(r.homeBonus);li.push(r.end,r.pts);if(turnSecs())li.push(r.timer(turnSecs()));
+  if(o.door)li.push(t.doorRule);if(o.safe)li.push(o.door?t.safeStars:r.safe);if(o.bonus)li.push(r.bonus);if(o.captureHome)li.push(r.home);if(o.homeBonus)li.push(r.homeBonus);li.push(r.end,r.pts);if(turnSecs())li.push(r.timer(turnSecs()));
   $("panel-rules").innerHTML='<h2>'+t.rulesTitle+'</h2><ul>'+li.map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul><button type="button" class="ghost" id="rules-close">'+t.close+'</button>';
   $("rules-close").addEventListener("click",closeSheets);
 }
@@ -2730,7 +2746,7 @@ function boot(data){
 setTimeout(dailyBonus,1500);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)dailyBonus()});
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="32";
+var BUILD="33";
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
