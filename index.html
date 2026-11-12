@@ -181,6 +181,9 @@ h1 span{color:var(--accent);display:block}
 .links a,.note a{color:var(--muted);text-decoration:underline;padding:6px 4px;display:inline-block}
 .mini.danger{border-color:#ffb4a8;color:#ffb4a8}
 .safe li{flex-wrap:wrap}
+.mv{margin-top:10px;font-size:.85rem}
+.mv summary{cursor:pointer;color:var(--muted);text-decoration:underline;padding:6px 0}
+#panel-online select#em-cc{min-height:46px}
 .stats{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
 .stats th,.stats td{padding:7px 4px;border-bottom:1px solid rgba(255,255,255,.12);text-align:right;font-weight:400}
 .stats th[scope=row]{text-align:left;font-weight:700}
@@ -746,6 +749,37 @@ T.en.doorRule="The square where your pieces come out is your door. On your own d
 T.fr.doorRule="La case où sortent vos pions est votre porte. Sur votre propre porte, on ne peut pas vous capturer. Un pion posé sur la porte d'un autre joueur peut être capturé par n'importe qui, même deux pions ensemble.";
 T.it.doorRule="La casella da cui escono le tue pedine è la tua porta. Sulla tua porta non puoi essere catturato. Chi si ferma sulla porta di un altro giocatore può essere catturato da chiunque, anche due pedine insieme.";
 T.en.safeStars="Pieces on star squares cannot be captured.";T.fr.safeStars="Les pions sur les cases étoile ne peuvent pas être capturés.";T.it.safeStars="Le pedine sulle caselle stella non possono essere catturate.";
+T.en.emPh="Email address";T.fr.emPh="Adresse e-mail";T.it.emPh="Indirizzo e-mail";
+T.en.pwPh="Password (8 characters or more)";T.fr.pwPh="Mot de passe (8 caractères ou plus)";T.it.pwPh="Password (almeno 8 caratteri)";
+T.en.emIn="Sign in";T.fr.emIn="Me connecter";T.it.emIn="Accedi";
+T.en.emNew="Create my login";T.fr.emNew="Créer mon compte";T.it.emNew="Crea il mio account";
+T.en.emForgot="Forgot your password?";T.fr.emForgot="Mot de passe oublié ?";T.it.emForgot="Password dimenticata?";
+T.en.acctNote2="Your email and password are your login on any phone or computer. They bring back your name, points and friends. Your email is never shown to other players.";T.fr.acctNote2="Votre e-mail et votre mot de passe sont votre identifiant sur n'importe quel téléphone ou ordinateur. Vous retrouvez votre nom, vos points et vos amis. Votre e-mail n'est jamais montré aux autres joueurs.";T.it.acctNote2="La tua e-mail e la tua password sono il tuo accesso su qualsiasi telefono o computer. Ritrovi il tuo nome, i tuoi punti e i tuoi amici. La tua e-mail non viene mai mostrata agli altri giocatori.";
+T.en.signedInAs=function(h){return "Signed in · "+h};T.fr.signedInAs=function(h){return "Connecté · "+h};T.it.signedInAs=function(h){return "Connesso · "+h};
+T.en.acctMade2="Login created. Use the same email and password on any device.";T.fr.acctMade2="Compte créé. Utilisez le même e-mail et le même mot de passe sur tous vos appareils.";T.it.acctMade2="Account creato. Usa la stessa e-mail e la stessa password su tutti i dispositivi.";
+T.en.errLogin2="Sign in, or create your login, first.";T.fr.errLogin2="Connectez-vous d'abord, ou créez votre compte.";T.it.errLogin2="Prima accedi o crea il tuo account.";
+T.en.emInvalid="That email address does not look right.";T.fr.emInvalid="Cette adresse e-mail ne semble pas correcte.";T.it.emInvalid="Questo indirizzo e-mail non sembra corretto.";
+T.en.emNoPw="Type your password.";T.fr.emNoPw="Tapez votre mot de passe.";T.it.emNoPw="Scrivi la tua password.";
+T.en.emWeak="Choose a password of 8 characters or more.";T.fr.emWeak="Choisissez un mot de passe de 8 caractères ou plus.";T.it.emWeak="Scegli una password di almeno 8 caratteri.";
+T.en.emName="Type your name above first.";T.fr.emName="Écrivez d'abord votre nom ci-dessus.";T.it.emName="Scrivi prima il tuo nome qui sopra.";
+T.en.emExists="This email already has a login. Tap Sign in, or use Forgot your password.";T.fr.emExists="Cet e-mail a déjà un compte. Touchez Me connecter, ou Mot de passe oublié.";T.it.emExists="Questa e-mail ha già un account. Tocca Accedi, oppure Password dimenticata.";
+T.en.emBad="Email or password not recognised. New here? Tap Create my login.";T.fr.emBad="E-mail ou mot de passe non reconnu. Nouveau ? Touchez Créer mon compte.";T.it.emBad="E-mail o password non riconosciuta. Nuovo? Tocca Crea il mio account.";
+T.en.emWait="Too many attempts. Wait a few minutes and try again.";T.fr.emWait="Trop d'essais. Attendez quelques minutes et réessayez.";T.it.emWait="Troppi tentativi. Aspetta qualche minuto e riprova.";
+T.en.emOff="This login has been switched off. Contact us through the Help page.";T.fr.emOff="Ce compte a été désactivé. Contactez-nous depuis la page Aide.";T.it.emOff="Questo account è stato disattivato. Contattaci dalla pagina Aiuto.";
+T.en.emSetup="Sign-in is not switched on yet. Please try again later.";T.fr.emSetup="La connexion n'est pas encore activée. Réessayez plus tard.";T.it.emSetup="L'accesso non è ancora attivo. Riprova più tardi.";
+T.en.emConfirm="Please confirm your email: we sent you a link. Check your spam folder too.";T.fr.emConfirm="Merci de confirmer votre e-mail : nous vous avons envoyé un lien. Regardez aussi dans vos indésirables.";T.it.emConfirm="Conferma la tua e-mail: ti abbiamo inviato un link. Controlla anche lo spam.";
+T.en.emAgain="Send again";T.fr.emAgain="Renvoyer";T.it.emAgain="Invia di nuovo";
+T.en.emSent="Link sent. Check your inbox and your spam folder.";T.fr.emSent="Lien envoyé. Regardez votre boîte de réception et vos indésirables.";T.it.emSent="Link inviato. Controlla la posta in arrivo e lo spam.";
+T.en.emResetNeed="Type your email address above, then tap Forgot your password.";T.fr.emResetNeed="Tapez votre adresse e-mail ci-dessus, puis touchez Mot de passe oublié.";T.it.emResetNeed="Scrivi il tuo indirizzo e-mail qui sopra, poi tocca Password dimenticata.";
+T.en.emResetSent="If this email has a login, a link to choose a new password is on its way. Check your spam folder too.";T.fr.emResetSent="Si cet e-mail a un compte, un lien pour choisir un nouveau mot de passe arrive. Regardez aussi dans vos indésirables.";T.it.emResetSent="Se questa e-mail ha un account, sta arrivando un link per scegliere una nuova password. Controlla anche lo spam.";
+T.en.sessionOver="Please sign in again.";T.fr.sessionOver="Merci de vous reconnecter.";T.it.sessionOver="Accedi di nuovo, per favore.";
+T.en.loginMoved="Signing in has changed. Create your login once with an email and a password: your name, points and friends will follow.";T.fr.loginMoved="La connexion a changé. Créez votre compte une fois avec un e-mail et un mot de passe : votre nom, vos points et vos amis suivront.";T.it.loginMoved="L'accesso è cambiato. Crea il tuo account una volta con e-mail e password: nome, punti e amici ti seguiranno.";
+T.en.movedOk="Done. Your name, points and friends came with you.";T.fr.movedOk="C'est fait. Votre nom, vos points et vos amis vous ont suivi.";T.it.movedOk="Fatto. Nome, punti e amici ti hanno seguito.";
+T.en.moveAsk="Played before with your phone number?";T.fr.moveAsk="Vous jouiez avant avec votre numéro ?";T.it.moveAsk="Giocavi prima con il tuo numero?";
+T.en.moveNote="Type the number you used. Your old name, points and friends replace the ones in this new login. This can be done once.";T.fr.moveNote="Tapez le numéro que vous utilisiez. Votre ancien nom, vos points et vos amis remplacent ceux de ce nouveau compte. Possible une seule fois.";T.it.moveNote="Scrivi il numero che usavi. Il vecchio nome, i punti e gli amici sostituiscono quelli di questo nuovo account. Si può fare una sola volta.";
+T.en.moveGo="Bring my points";T.fr.moveGo="Récupérer mes points";T.it.moveGo="Recupera i miei punti";
+T.en.moveNone="No saved game was found for this number.";T.fr.moveNone="Aucune partie enregistrée pour ce numéro.";T.it.moveNone="Nessun gioco salvato per questo numero.";
+T.en.delPartial="Your game data was deleted. To remove your email from the sign-in service as well, sign in once more and delete again.";T.fr.delPartial="Vos données de jeu sont supprimées. Pour retirer aussi votre e-mail du service de connexion, reconnectez-vous une fois et supprimez de nouveau.";T.it.delPartial="I tuoi dati di gioco sono stati eliminati. Per rimuovere anche la tua e-mail dal servizio di accesso, accedi ancora una volta ed elimina di nuovo.";
 T.en.privacy="Privacy";T.fr.privacy="Confidentialité";T.it.privacy="Privacy";
 T.en.support="Help";T.fr.support="Aide";T.it.support="Aiuto";
 T.en.terms="By signing in you accept the privacy policy and the rules of conduct.";T.fr.terms="En vous connectant, vous acceptez la politique de confidentialité et les règles de conduite.";T.it.terms="Accedendo accetti l'informativa sulla privacy e le regole di condotta.";
@@ -1424,6 +1458,7 @@ async function doMove(ti,di,remote){
 // ---------- Online play: private games shared through the site's realtime database ----------
 // Every device runs the same rules. Only the inputs travel: dice values, the piece chosen, a timeout.
 var DB=((window.LUDO_CONFIG&&window.LUDO_CONFIG.databaseURL)||"").replace(/\/+$/,"");
+var CFG=window.LUDO_CONFIG||{},AUTH_URL=(CFG.authUrl||"https://identitytoolkit.googleapis.com/v1").replace(/\/+$/,""),TOKEN_URL=(CFG.tokenUrl||"https://securetoken.googleapis.com/v1").replace(/\/+$/,"");
 var net=null,idleAt=0,myId=null,onErr="",pendingCode="",joinTries=0;
 try{myId=localStorage.getItem("ludo-id")}catch(e){}
 if(!myId){myId="p"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);try{localStorage.setItem("ludo-id",myId)}catch(e){}}
@@ -1431,7 +1466,7 @@ try{pendingCode=(new URLSearchParams(location.search).get("room")||"").toUpperCa
 function live(){return !!(net&&net.live)}
 function roomUrl(code,path){return DB+"/rooms/"+code+(path||"")+".json"}
 function api(method,path,body,code){
-  return fetch(roomUrl(code||net.code,path),{method:method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)})
+  return withAuth(roomUrl(code||net.code,path)).then(function(u){return fetch(u,{method:method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)})})
     .then(function(r){if(!r.ok)throw new Error("net");return r.json()});
 }
 var PROTO=6,rejoining=false;
@@ -1557,7 +1592,7 @@ function pollEv(){
   var n=net,ev=net.room.ev||{},last="";
   Object.keys(ev).forEach(function(k){if(!/^\d+$/.test(k)&&k>last)last=k});
   var q=(net.room.v||1)>=2&&last?"?orderBy="+encodeURIComponent('"$key"')+"&startAt="+encodeURIComponent('"'+last+'"'):"";
-  fetch(roomUrl(net.code,"/ev")+q).then(function(r){return r.ok?r.json():null}).then(function(d){
+  withAuth(roomUrl(net.code,"/ev")+q).then(function(u){return fetch(u)}).then(function(r){return r.ok?r.json():null}).then(function(d){
     if(net!==n||!d)return;
     var ch=false;if(!net.room.ev)net.room.ev={};
     Object.keys(d).forEach(function(k){if(d[k]!==null&&d[k]!==undefined&&!net.room.ev[k]){net.room.ev[k]=d[k];ch=true}});
@@ -1620,8 +1655,11 @@ function setPath(path,val){
 }
 function openStream(){
   if(net.es){try{net.es.close()}catch(e){}}
-  var es=net.es=new EventSource(roomUrl(net.code));
-  net.lastMsg=Date.now();
+  var me=net;net.es=null;net.lastMsg=Date.now();
+  withAuth(roomUrl(net.code)).then(function(u){
+  if(net!==me)return;
+  if(me.es){try{me.es.close()}catch(e){}}
+  var es=net.es=new EventSource(u);
   es.addEventListener("put",function(m){if(!net||net.es!==es)return;net.lastMsg=Date.now();var d=JSON.parse(m.data);setPath(d.path,d.data);noteChat(d.path,d.data);onRoom();if(String(d.path).indexOf("/pts")===0&&live()&&g)renderChips()});
   es.addEventListener("patch",function(m){
     if(!net||net.es!==es)return;
@@ -1630,6 +1668,9 @@ function openStream(){
     Object.keys(d.data||{}).forEach(function(k){setPath(base+"/"+k,d.data[k])});onRoom();
   });
   es.addEventListener("keep-alive",function(){if(net&&net.es===es)net.lastMsg=Date.now()});
+  // the hourly pass ran out: open the stream again with a fresh one
+  es.addEventListener("auth_revoked",function(){if(net&&net.es===es){pTok=null;openStream()}});
+  });
 }
 function hasMe(r){
   for(var i=0;i<4;i++){var s=seatAt(r,i);if(s&&s.id===myId)return true}
@@ -1867,7 +1908,7 @@ function armClose(){
     net.closeAt=Date.now()+CLOSE_MS;
     var code=net.code;
     // the finished room is removed from the database even if this phone has already moved to the next game
-    setTimeout(function(){fetch(roomUrl(code,""),{method:"DELETE"}).catch(function(){})},CLOSE_MS);
+    setTimeout(function(){withAuth(roomUrl(code,"")).then(function(u){return fetch(u,{method:"DELETE"})}).catch(function(){})},CLOSE_MS);
   }
   clearInterval(closeTick);
   closeTick=setInterval(function(){
@@ -1892,7 +1933,7 @@ function leaveRoom(quiet){
   clearInterval(n.beat);clearTimeout(n.autoT);clearInterval(closeTick);
   try{localStorage.removeItem("ludo-room")}catch(e){}
   if(n.room&&n.room.status==="lobby"){
-    for(var i=0;i<4;i++){var s=seatAt(n.room,i);if(s&&s.id===myId)fetch(roomUrl(n.code,"/seats/"+i),{method:"PUT",headers:{"Content-Type":"application/json"},body:"null"}).catch(function(){})}
+    for(var i=0;i<4;i++){var s=seatAt(n.room,i);if(s&&s.id===myId)(function(i){withAuth(roomUrl(n.code,"/seats/"+i)).then(function(u){return fetch(u,{method:"PUT",headers:{"Content-Type":"application/json"},body:"null"})}).catch(function(){})})(i)}
   }
   if(!quiet&&n.live){cfg.stake=0;startGame()}
 }
@@ -1994,18 +2035,18 @@ function fcShow(c){return c.slice(0,4)+"-"+c.slice(4)}
 function fcClean(c){return String(c||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,8)}
 function saveFriends(){try{localStorage.setItem("ludo-friends",JSON.stringify(friends))}catch(e){}pushAcct()}
 function dbx(method,path,body){
-  return fetch(DB+path+".json",{method:method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)})
+  return withAuth(DB+path+".json").then(function(u){return fetch(u,{method:method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)})})
     .then(function(r){if(!r.ok){var er=new Error("net");er.status=r.status;throw er}return r.json()});
 }
 var friendsOff=false,friendsAt=0;
 function netMsg(e){if(e&&(e.status===401||e.status===403)){friendsOff=true;return L().errRules}return L().errNet}
 function publishMe(){
-  if(!DB||!hasName())return;
+  if(!DB||!hasName()||(EMAIL_ON&&!pAuth))return;
   dbx("PUT","/players/"+myFc,{name:meName(),av:meAv(),t:Date.now()}).then(function(){friendsOff=false}).catch(function(e){netMsg(e)});
 }
 // Keeps friends' names and pictures current, and fills in a friend who was added before they had set a name.
 function refreshFriends(){
-  if(!DB||!friends.length||Date.now()-friendsAt<30000)return;
+  if(!DB||!friends.length||Date.now()-friendsAt<30000||(EMAIL_ON&&!pAuth))return;
   friendsAt=Date.now();
   friends.forEach(function(f){
     dbx("GET","/players/"+f.fc).then(function(p){
@@ -2050,10 +2091,18 @@ function shareMyCode(){
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt+" "+url).then(function(){show(L().copied)},function(){show(url)});return}
   show(url);
 }
+var inboxBusy=false;
 function openInbox(){
-  if(!DB||inboxEs||!window.EventSource)return;
+  if(!DB||inboxEs||inboxBusy||!window.EventSource)return;
+  if(EMAIL_ON&&!pAuth)return;
+  inboxBusy=true;var fc=myFc;
+  withAuth(DB+"/inbox/"+myFc+".json").then(function(u){inboxBusy=false;if(fc===myFc)openInboxWith(u);else openInbox()});
+}
+function openInboxWith(u){
+  if(inboxEs)return;
   var box={};
-  try{inboxEs=new EventSource(DB+"/inbox/"+myFc+".json")}catch(e){return}
+  try{inboxEs=new EventSource(u)}catch(e){return}
+  inboxEs.addEventListener("auth_revoked",function(){try{inboxEs.close()}catch(e){}inboxEs=null;pTok=null;openInbox()});
   function upd(){
     invites={};
     Object.keys(box||{}).forEach(function(k){
@@ -2096,7 +2145,6 @@ function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s
 var ownStats=null,ownStatsMsg="",wantStats=false;
 try{wantStats=new URLSearchParams(location.search).has("stats")}catch(e){}
 // The statistics are read with the owner's own sign-in, so the database can refuse everyone else.
-var CFG=window.LUDO_CONFIG||{},AUTH_URL=(CFG.authUrl||"https://identitytoolkit.googleapis.com/v1").replace(/\/+$/,""),TOKEN_URL=(CFG.tokenUrl||"https://securetoken.googleapis.com/v1").replace(/\/+$/,"");
 var ownAuth=null,ownTok=null,ownOpen=null;
 try{ownAuth=JSON.parse(localStorage.getItem("ludo-own-auth")||"null")}catch(e){}
 if(!ownAuth||typeof ownAuth!=="object"||!ownAuth.key||!ownAuth.rt)ownAuth=null;
@@ -2132,6 +2180,15 @@ function ownerToken(){
 function ownerSignOut(){ownAuth=null;ownTok=null;ownStats=null;ownOpen=null;ownStatsMsg="";saveOwnAuth();renderOwner()}
 // The database rules that keep the statistics for this owner alone.
 function ownerRules(){
+  var own=String(ownAuth&&ownAuth.uid||"").replace(/[^A-Za-z0-9]/g,"");
+  // with email sign-in, only signed-in players reach the game data, and each account belongs to its player
+  if(EMAIL_ON)return '{"rules":{\n'+
+  ' "rooms":{"$code":{".read":"auth != null",".write":"auth != null",".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
+  ' "players":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
+  ' "inbox":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
+  ' "accounts":{"$id":{".read":"auth != null && (auth.uid === $id || $id.matches(/^[a-f0-9]{40}$/))",".write":"auth != null && (auth.uid === $id || ($id.matches(/^[a-f0-9]{40}$/) && !newData.exists()))"}},\n'+
+  ' "reports":{"$id":{".write":"auth != null && !data.exists()"}},\n'+
+  ' "stats":{"days":{".read":"auth != null && auth.uid === \''+own+'\'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
   return '{"rules":{\n'+
   ' "rooms":{"$code":{".read":true,".write":true,".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
   ' "players":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
@@ -2466,6 +2523,46 @@ function statOver(){
   var first=null;g.players.forEach(function(pl){if(!first&&pl.kind==="human"&&pl.id)first=pl.id});
   if(first===myId)statAdd({fin:1});
 }
+// ---------- Player sign-in: an email address and a password ----------
+// Switched on when the project's key is present in config.js. The password is sent to the sign-in service
+// only and is never kept; the device keeps a renewal token so the player stays signed in.
+var API_KEY=String(CFG.apiKey||""),EMAIL_ON=!!API_KEY;
+var pAuth=null,pTok=null,pTokP=null,legacyAid="",authBusy=false;
+try{pAuth=JSON.parse(localStorage.getItem("ludo-auth")||"null")}catch(e){}
+if(!pAuth||typeof pAuth!=="object"||!pAuth.rt||!pAuth.uid)pAuth=null;
+try{legacyAid=localStorage.getItem("ludo-legacy")||""}catch(e){}
+if(!/^[a-f0-9]{40}$/.test(legacyAid))legacyAid="";
+function savePAuth(){try{if(pAuth)localStorage.setItem("ludo-auth",JSON.stringify(pAuth));else localStorage.removeItem("ludo-auth")}catch(e){}}
+function setLegacy(a){legacyAid=a||"";try{if(legacyAid)localStorage.setItem("ludo-legacy",legacyAid);else localStorage.removeItem("ludo-legacy")}catch(e){}}
+function authCall(path,body){
+  return fetch(AUTH_URL+"/"+path+"?key="+encodeURIComponent(API_KEY),{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})
+    .then(function(r){return r.json().then(function(j){if(!r.ok){var e=new Error(String((j&&j.error&&j.error.message)||"net"));e.auth=1;throw e}return j})});
+}
+// The pass that goes with each database request. It lasts an hour and is renewed quietly.
+function tokenP(){
+  if(!EMAIL_ON||!pAuth)return Promise.resolve("");
+  if(pTok&&pTok.exp>Date.now())return Promise.resolve(pTok.t);
+  if(pTokP)return pTokP;
+  var me=pAuth;
+  pTokP=fetch(TOKEN_URL+"/token?key="+encodeURIComponent(API_KEY),{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded"},body:"grant_type=refresh_token&refresh_token="+encodeURIComponent(me.rt)})
+    .then(function(r){return r.json().then(function(j){
+      pTokP=null;
+      if(!r.ok||!j.id_token){if(r.status===400||r.status===401||r.status===403){sessionEnded();return ""}throw new Error("net")}
+      if(pAuth===me){pAuth.rt=j.refresh_token||pAuth.rt;savePAuth()}
+      pTok={t:j.id_token,exp:Date.now()+(parseInt(j.expires_in,10)||3600)*1000-300000};return pTok.t;
+    })},function(e){pTokP=null;throw e});
+  return pTokP;
+}
+function withAuth(url){
+  return tokenP().then(function(t){return t?url+(url.indexOf("?")>=0?"&":"?")+"auth="+encodeURIComponent(t):url},function(){return url});
+}
+// The sign-in is no longer valid (password changed elsewhere, account removed): ask the player to sign in again.
+function sessionEnded(){
+  pAuth=null;pTok=null;savePAuth();
+  if(acct){acct=null;saveAcct();acctNote=L().sessionOver}
+  if(inboxEs){try{inboxEs.close()}catch(e){}inboxEs=null}
+  if($("sheet-online")&&$("sheet-online").classList.contains("open")&&!net)renderOnline();
+}
 // ---------- Chat safety: word filter, blocked players, reports ----------
 // Typed comments pass through a word filter when sent and again when shown.
 var BADW=("fuck fucker fucking fucked motherfucker shit shitty bullshit bitch bitches asshole bastard cunt pussy whore slut nigger nigga faggot fag retard wanker twat "+
@@ -2519,7 +2616,12 @@ function reportPlayer(pi){
 // code is the key to the player's saved name, picture, points and friends. Other players never receive it.
 var acct=null,acctT=null,acctOff=false,acctNote="";
 try{acct=JSON.parse(localStorage.getItem("ludo-acct")||"null")}catch(e){}
-if(!acct||!/^[a-f0-9]{40}$/.test(acct.aid||""))acct=null;
+if(!acct||!/^([a-f0-9]{40}|[A-Za-z0-9]{20,40})$/.test(acct.aid||""))acct=null;
+// With email sign-in, a device that was signed in the old way (phone number) keeps its name and points on
+// the device and is asked to create its login once; the saved account then follows automatically.
+if(EMAIL_ON&&acct&&/^[a-f0-9]{40}$/.test(acct.aid)&&!pAuth){setLegacy(acct.aid);acct=null;try{localStorage.removeItem("ludo-acct")}catch(e){}}
+if(EMAIL_ON&&acct&&!pAuth){acct=null;try{localStorage.removeItem("ludo-acct")}catch(e){}}
+if(EMAIL_ON&&pAuth&&acct&&acct.aid!==pAuth.uid){acct=null;try{localStorage.removeItem("ludo-acct")}catch(e){}}
 var CCS=[["221","🇸🇳 +221"],["1","🇺🇸 +1"],["33","🇫🇷 +33"],["39","🇮🇹 +39"],["other","+ …"]];
 function guessCc(){
   var tz="";try{tz=Intl.DateTimeFormat().resolvedOptions().timeZone||""}catch(e){}
@@ -2552,7 +2654,7 @@ function scramble(s){
 function saveAcct(){try{if(acct)localStorage.setItem("ludo-acct",JSON.stringify(acct));else localStorage.removeItem("ludo-acct")}catch(e){}}
 function acctDoc(){
   var nm=meName(),pr=bank.profiles[keyOf(nm)]||{};
-  return {id:myId,fc:myFc,name:nm,av:meAv(),pts:typeof pr.pts==="number"?pr.pts:WELCOME,games:pr.games||0,wins:pr.wins||0,caps:pr.caps||0,best:pr.best||0,run:pr.run||0,day:pr.day||"",friends:friends.slice(0,40),t:Date.now()};
+  return {id:myId,fc:myFc,name:nm,av:meAv(),pts:typeof pr.pts==="number"?pr.pts:WELCOME,games:pr.games||0,wins:pr.wins||0,caps:pr.caps||0,best:pr.best||0,run:pr.run||0,day:pr.day||"",friends:friends.slice(0,40),cc:(acct&&acct.cc)||"",mig:acct&&acct.mig?1:0,t:Date.now()};
 }
 // Saves the signed-in player's data a moment after it changes.
 function pushAcct(now){
@@ -2621,6 +2723,7 @@ function signIn(cc,raw){
 }
 // Signing out gives this device a fresh identity, so the next person does not inherit the account.
 function signOut(){
+  if(EMAIL_ON){pAuth=null;pTok=null;savePAuth()}
   acct=null;saveAcct();acctNote="";
   myId="p"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);
   myFc=newCode()+newCode().slice(0,2);
@@ -2653,7 +2756,10 @@ function deleteAcct(){
   dbx("DELETE","/accounts/"+aid).then(function(){
     return Promise.all([dbx("DELETE","/players/"+fc).catch(function(){}),dbx("DELETE","/inbox/"+fc).catch(function(){})]);
   }).then(function(){
-    delBusy=false;wipeLocalAcct();acctNote=L().delDone;onErr="";renderOnline();if(g)renderAll();
+    if(!(EMAIL_ON&&pAuth))return true;
+    return tokenP().then(function(t){return authCall("accounts:delete",{idToken:t})}).then(function(){return true},function(){return false});
+  }).then(function(full){
+    delBusy=false;wipeLocalAcct();acctNote=full?L().delDone:L().delPartial;onErr="";renderOnline();if(g)renderAll();
   }).catch(function(){delBusy=false;delAsk=false;onErr=L().delFail;renderOnline()});
 }
 // On opening the game, pick up anything saved from another device.
@@ -2665,13 +2771,137 @@ function pullAcct(){
     else pushAcct(true);
   }).catch(function(e){if(e&&(e.status===401||e.status===403))acctOff=true});
 }
+// ---------- Email sign-in: create a login, sign in, bring an older account along ----------
+var CCN=[["221","🇸🇳 Sénégal"],["1","🇺🇸 USA / Canada"],["33","🇫🇷 France"],["39","🇮🇹 Italia"],["other","🌍 …"]];
+function emailOk(e){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)&&e.length<=120}
+function maskMail(e){var q=String(e||"").split("@");return q.length===2?q[0].slice(0,2)+"•••@"+q[1]:""}
+function langOfCc(cc){return cc==="221"||cc==="33"?"fr":cc==="39"?"it":cc==="1"?"en":""}
+function authMsg(e){
+  var m=String((e&&e.message)||""),t=L();
+  if(/EMAIL_EXISTS/.test(m))return t.emExists;
+  if(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND/.test(m))return t.emBad;
+  if(/WEAK_PASSWORD/.test(m))return t.emWeak;
+  if(/INVALID_EMAIL|MISSING_EMAIL/.test(m))return t.emInvalid;
+  if(/TOO_MANY_ATTEMPTS/.test(m))return t.emWait;
+  if(/USER_DISABLED/.test(m))return t.emOff;
+  if(/OPERATION_NOT_ALLOWED|PASSWORD_LOGIN_DISABLED|API key|API_KEY/i.test(m))return t.emSetup;
+  return t.errNet;
+}
+function focusBad(id){var el=$(id);if(el){el.focus();el.classList.add("bad")}}
+function emailSign(email,pw,create,cc){
+  email=String(email||"").trim().toLowerCase();pw=String(pw||"");
+  onErr="";acctNote="";
+  if(authBusy)return;
+  if(!emailOk(email)){onErr=L().emInvalid;renderOnline();focusBad("em-mail");return}
+  if(!pw){onErr=L().emNoPw;renderOnline();focusBad("em-pw");return}
+  if(create&&pw.length<8){onErr=L().emWeak;renderOnline();focusBad("em-pw");return}
+  if(create&&!hasName()){onErr=L().emName;renderOnline();focusBad("me-name");return}
+  authBusy=true;renderOnline();
+  authCall(create?"accounts:signUp":"accounts:signInWithPassword",{email:email,password:pw,returnSecureToken:true}).then(function(j){
+    pAuth={rt:j.refreshToken,uid:j.localId,email:email};savePAuth();
+    pTok={t:j.idToken,exp:Date.now()+(parseInt(j.expiresIn,10)||3600)*1000-300000};
+    if(create)authCall("accounts:sendOobCode",{requestType:"VERIFY_EMAIL",idToken:j.idToken}).catch(function(){});
+    return afterAuth(cc);
+  }).catch(function(e){
+    authBusy=false;onErr=e&&e.auth?authMsg(e):L().errNet;renderOnline();
+  });
+}
+// After the sign-in service says yes: load this player's saved game, or bring an older one along, or start one.
+function afterAuth(cc){
+  var uid=pAuth.uid,hint=maskMail(pAuth.email);
+  function done(){
+    authBusy=false;autoLang(langOfCc(acct.cc));publishMe();openInbox();checkVerified();renderOnline();if(g)renderAll();
+  }
+  return dbx("GET","/accounts/"+uid).then(function(d){
+    if(d&&d.id&&d.fc){
+      acct={aid:uid,hint:hint,t:d.t||0,name:d.name,cc:String(d.cc||cc||guessCc()),mig:d.mig?1:0};saveAcct();
+      adoptAcct(d);acctNote=L().welcomeBack(String(d.name||"").slice(0,12));setLegacy("");done();return;
+    }
+    var old=legacyAid?dbx("GET","/accounts/"+legacyAid).catch(function(){return null}):Promise.resolve(null);
+    return old.then(function(o){
+      if(o&&o.id&&o.fc){
+        var was=legacyAid;
+        acct={aid:uid,hint:hint,t:0,name:o.name,cc:String(cc||guessCc()),mig:1};saveAcct();
+        adoptAcct(o);acctNote=L().movedOk;pushAcct(true);
+        dbx("DELETE","/accounts/"+was).catch(function(){});setLegacy("");done();return;
+      }
+      if(!hasName()){authBusy=false;onErr=L().emName;renderOnline();focusBad("me-name");return}
+      acct={aid:uid,hint:hint,t:0,name:meName(),cc:String(cc||guessCc()),mig:0};saveAcct();
+      pushAcct(true);acctNote=L().acctMade2;statAdd({"new":1});setLegacy("");done();
+    });
+  });
+}
+function checkVerified(){
+  if(!EMAIL_ON||!pAuth)return;
+  var me=pAuth;
+  tokenP().then(function(t){return t?authCall("accounts:lookup",{idToken:t}):null}).then(function(j){
+    if(pAuth!==me||!j||!j.users||!j.users[0])return;
+    var v=!!j.users[0].emailVerified;
+    if(pAuth.ver!==v){pAuth.ver=v;savePAuth();if($("sheet-online").classList.contains("open")&&!net&&document.activeElement.tagName!=="INPUT")renderOnline()}
+  }).catch(function(){});
+}
+function resendVerify(){
+  tokenP().then(function(t){return authCall("accounts:sendOobCode",{requestType:"VERIFY_EMAIL",idToken:t})})
+    .then(function(){acctNote=L().emSent;renderOnline()},function(e){onErr=e&&e.auth?authMsg(e):L().errNet;renderOnline()});
+}
+function resetPassword(email){
+  email=String(email||"").trim().toLowerCase();onErr="";acctNote="";
+  if(!emailOk(email)){onErr=L().emResetNeed;renderOnline();focusBad("em-mail");return}
+  authCall("accounts:sendOobCode",{requestType:"PASSWORD_RESET",email:email})
+    .then(function(){acctNote=L().emResetSent;renderOnline()},function(e){
+      // the answer is the same whether or not the address has an account
+      if(e&&e.auth&&/EMAIL_NOT_FOUND/.test(e.message)){acctNote=L().emResetSent}else onErr=e&&e.auth?authMsg(e):L().errNet;
+      renderOnline();
+    });
+}
+// A player who used a phone number before brings that saved game into the new login, once.
+function claimPhone(cc,raw){
+  var num=normPhone(cc,raw);onErr="";acctNote="";
+  if(!acct||!pAuth||net||acct.mig)return;
+  if(!num){onErr=L().errPhone;renderOnline();focusBad("mv-num");return}
+  if(!window.crypto||!crypto.subtle){onErr=L().errNet;renderOnline();return}
+  scramble(num).then(function(hex){
+    return dbx("GET","/accounts/"+hex).then(function(o){
+      if(!(o&&o.id&&o.fc)){onErr=L().moveNone;renderOnline();return}
+      var oldFc=myFc,oldName=acct.name;
+      if(oldName&&keyOf(oldName)!==keyOf(String(o.name||""))){delete bank.profiles[keyOf(oldName)];saveLocal()}
+      adoptAcct(o);acct.name=o.name;acct.mig=1;acct.t=0;saveAcct();pushAcct(true);
+      dbx("DELETE","/accounts/"+hex).catch(function(){});
+      if(oldFc!==myFc)dbx("DELETE","/players/"+oldFc).catch(function(){});
+      acctNote=L().movedOk;publishMe();renderOnline();if(g)renderAll();
+    });
+  }).catch(function(){onErr=L().errNet;renderOnline()});
+}
+function emailAcctHTML(){
+  var t=L(),h='<div><h3>'+t.acctTitle+'</h3>';
+  if(acct){
+    h+='<p class="note" style="margin:0">'+t.signedInAs(esc(acct.hint||""))+' <button type="button" class="mini" id="ph-out">'+t.signOut+'</button></p>'+(acctNote?'<p class="note" style="margin:6px 0 0;color:var(--accent)" role="status">'+esc(acctNote)+'</p>':"");
+    if(pAuth&&pAuth.ver===false)h+='<p class="note">'+t.emConfirm+' <button type="button" class="mini" id="em-resend">'+t.emAgain+'</button></p>';
+    if(!acct.mig&&!net)h+='<details class="mv"><summary>'+t.moveAsk+'</summary><p class="note" style="margin:8px 0">'+t.moveNote+'</p><div class="who"><select id="mv-cc" aria-label="'+t.phCc+'">'+CCS.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===(acct.cc||guessCc())?" selected":"")+'>'+c[1]+'</option>'}).join("")+'</select><input type="tel" id="mv-num" inputmode="tel" maxlength="20" placeholder="'+t.phPh+'" aria-label="'+t.phPh+'"></div><button type="button" class="mini" id="mv-go" style="margin-top:8px">'+t.moveGo+'</button></details>';
+    if(delAsk)h+='<p class="warn" style="margin:10px 0 8px">'+t.delAsk+'</p><div class="who"><button type="button" class="mini danger" id="del-yes">'+t.delYes+'</button><button type="button" class="mini" id="del-no">'+t.delNo+'</button></div>';
+    else h+='<p class="note"><button type="button" class="mini q" id="del-go" style="padding-left:0;text-decoration:underline">'+t.delAcct+'</button></p>';
+    return h+'</div>';
+  }
+  var cc=guessCc();
+  if(legacyAid)h+='<p class="warn" style="margin:0 0 10px">'+t.loginMoved+'</p>';
+  h+='<div style="display:grid;gap:8px"><input type="email" id="em-mail" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="'+t.emPh+'" aria-label="'+t.emPh+'">';
+  h+='<input type="password" id="em-pw" autocomplete="current-password" maxlength="100" placeholder="'+t.pwPh+'" aria-label="'+t.pwPh+'">';
+  h+='<select id="em-cc" aria-label="'+t.phCc+'">'+CCN.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===cc?" selected":"")+'>'+c[1]+'</option>'}).join("")+'</select>';
+  h+='<button type="button" class="cta" id="em-in"'+(authBusy?" disabled":"")+'>'+t.emIn+'</button><button type="button" class="ghost" id="em-new" style="margin:0"'+(authBusy?" disabled":"")+'>'+t.emNew+'</button></div>';
+  h+=(acctNote?'<p class="note" style="color:var(--accent)" role="status">'+esc(acctNote)+'</p>':"");
+  h+='<p class="note"><button type="button" class="mini q" id="em-reset" style="padding-left:0;text-decoration:underline">'+t.emForgot+'</button></p>';
+  h+='<p class="note">'+t.acctNote2+'</p><p class="note"><a href="privacy.html"'+BLANK+'>'+t.terms+'</a></p></div>';
+  return h;
+}
 function needLogin(){
   if(acct||acctOff)return false;
+  if(EMAIL_ON){onErr=L().errLogin2;renderOnline();focusBad("em-mail");return true}
   onErr=L().errLogin;renderOnline();
   var el=$("ph-num");if(el){el.focus();el.classList.add("bad")}
   return true;
 }
 function acctHTML(){
+  if(EMAIL_ON)return emailAcctHTML();
   var t=L(),h='<div><h3>'+t.acctTitle+'</h3>';
   if(acct){
     h+='<p class="note" style="margin:0">'+t.signedIn(esc(acct.hint||""))+' <button type="button" class="mini" id="ph-out">'+t.signOut+'</button></p>'+(acctNote?'<p class="note" style="margin:6px 0 0;color:var(--accent)">'+esc(acctNote)+'</p>':"");
@@ -2687,6 +2917,11 @@ function acctHTML(){
 }
 function bindAcct(){
   if($("ph-go"))$("ph-go").addEventListener("click",function(){signIn($("ph-cc").value,$("ph-num").value)});
+  if($("em-in"))$("em-in").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,false,$("em-cc").value)});
+  if($("em-new"))$("em-new").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,true,$("em-cc").value)});
+  if($("em-reset"))$("em-reset").addEventListener("click",function(){resetPassword($("em-mail").value)});
+  if($("em-resend"))$("em-resend").addEventListener("click",resendVerify);
+  if($("mv-go"))$("mv-go").addEventListener("click",function(){claimPhone($("mv-cc").value,$("mv-num").value)});
   if($("ask-stop"))$("ask-stop").addEventListener("click",function(){stopAsk("",true)});
   if($("ph-out"))$("ph-out").addEventListener("click",function(){delAsk=false;signOut()});
   if($("del-go"))$("del-go").addEventListener("click",function(){delAsk=true;acctNote="";renderOnline()});
@@ -2899,7 +3134,7 @@ function boot(data){
     closeSheets();rejoining=true;openOnline();joinRoom(savedRoom);
   }else if(DB&&pendingCode){closeSheets();openOnline()}
   if(DB){
-    openInbox();publishMe();pullAcct();
+    openInbox();publishMe();pullAcct();checkVerified();
     if(fcClean(pendingFriend).length===8&&!pendingCode){closeSheets();openOnline();addFriendByCode(pendingFriend)}
     // a link ending in ?stats opens the owner's statistics (the owner code is still needed)
     if(wantStats&&!savedRoom&&!pendingCode){closeSheets();openOwner();if(ownerOn)loadStats()}
@@ -2908,7 +3143,7 @@ function boot(data){
 setTimeout(dailyBonus,1500);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)dailyBonus()});
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="37";
+var BUILD="38";
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
