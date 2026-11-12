@@ -2096,15 +2096,15 @@ function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s
 var ownStats=null,ownStatsMsg="",wantStats=false;
 try{wantStats=new URLSearchParams(location.search).has("stats")}catch(e){}
 function loadStats(){
-  ownStatsMsg=lang==="fr"?"Chargement…":"Loading…";ownStats=null;renderOwner();
+  ownStatsMsg="Loading…";ownStats=null;renderOwner();
   fetch(DB+"/stats/days.json?orderBy=%22%24key%22&limitToLast=30").then(function(r){if(!r.ok){var er=new Error("net");er.status=r.status;throw er}return r.json()}).then(function(d){
     ownStats=d||{};ownStatsMsg="";renderOwner();
   }).catch(function(e){
-    ownStats=null;ownStatsMsg=(e&&(e.status===401||e.status===403))?(lang==="fr"?"Les statistiques ne sont pas encore activées dans la base de données.":"Statistics are not switched on in the database yet."):L().errNet;renderOwner();
+    ownStats=null;ownStatsMsg=(e&&(e.status===401||e.status===403))?"Statistics are not switched on in the database yet.":"Could not reach the game server. Check your connection and try again.";renderOwner();
   });
 }
 function statsHTML(){
-  var fr=lang==="fr",days=Object.keys(ownStats||{}).sort(),today=statDay();
+  var fr=false,days=Object.keys(ownStats||{}).sort(),today=statDay();
   var CN={"221":"🇸🇳 "+(fr?"Sénégal":"Senegal"),"1":"🇺🇸 "+(fr?"États-Unis / Canada":"USA / Canada"),"33":"🇫🇷 France","39":"🇮🇹 "+(fr?"Italie":"Italy"),"other":fr?"Autres pays":"Other countries"};
   function sum(from){
     var t={on:0,loc:0,fin:0,lfin:0,dev:0,nw:0,cc:{}};
@@ -2132,7 +2132,7 @@ function statsHTML(){
 }
 function openOwner(){renderOwner();$("sheet-owner").classList.add("open")}
 function renderOwner(){
-  var p=$("panel-owner"),fr=lang==="fr",h='<h2>'+(fr?"Outils du propriétaire":"Owner tools")+'</h2>';
+  var p=$("panel-owner"),fr=false,h='<h2>'+(fr?"Outils du propriétaire":"Owner tools")+'</h2>';
   if(!ownerOn){
     h+='<div class="who"><input type="password" id="own-code" autocomplete="off" placeholder="Code" aria-label="Code"><button type="button" class="cta" id="own-go" style="padding:0 20px">OK</button></div>';
   }else{
@@ -2143,7 +2143,7 @@ function renderOwner(){
     h+='<div><h3>'+(fr?"Statistiques":"Statistics")+'</h3>'+(ownStats?statsHTML():"")+(ownStatsMsg?'<p class="note" style="margin:0 0 8px" role="status">'+esc(ownStatsMsg)+'</p>':"")+'<button type="button" class="mini" id="own-stats">'+(ownStats?(fr?"Actualiser":"Refresh"):(fr?"Afficher":"Show"))+'</button></div>';
     h+='<button type="button" class="ghost" id="own-lock">'+(fr?"Verrouiller":"Lock owner tools")+'</button>';
   }
-  h+='<p class="note" id="own-msg" style="margin:0">'+esc(ownMsg)+'</p><button type="button" class="ghost" id="own-close">'+L().close+'</button>';
+  h+='<p class="note" id="own-msg" style="margin:0">'+esc(ownMsg)+'</p><button type="button" class="ghost" id="own-close">Close</button>';
   p.innerHTML=h;ownMsg="";
   var all=function(q){return Array.prototype.slice.call(p.querySelectorAll(q))};
   $("own-close").addEventListener("click",closeSheets);
@@ -2822,7 +2822,7 @@ function boot(data){
 setTimeout(dailyBonus,1500);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)dailyBonus()});
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="35";
+var BUILD="36";
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
