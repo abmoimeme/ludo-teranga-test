@@ -181,9 +181,11 @@ h1 span{color:var(--accent);display:block}
 .links a,.note a{color:var(--muted);text-decoration:underline;padding:6px 4px;display:inline-block}
 .mini.danger{border-color:#ffb4a8;color:#ffb4a8}
 .safe li{flex-wrap:wrap}
+.fld{width:100%;font:inherit;font-weight:600;padding:9px 12px;border-radius:10px;border:1.5px solid var(--muted);background:var(--cloth);color:var(--ink);min-height:46px}
+.fld.bad{border-color:#ffb4a8}
+.fld:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
 .mv{margin-top:10px;font-size:.85rem}
 .mv summary{cursor:pointer;color:var(--muted);text-decoration:underline;padding:6px 0}
-#panel-online select#em-cc{min-height:46px}
 .stats{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
 .stats th,.stats td{padding:7px 4px;border-bottom:1px solid rgba(255,255,255,.12);text-align:right;font-weight:400}
 .stats th[scope=row]{text-align:left;font-weight:700}
@@ -2219,7 +2221,7 @@ function ownerStatsHTML(){
   var h="";
   if(!ownAuth){
     h+='<p class="note" style="margin:0 0 8px">Sign in with the owner account you created in Firebase. Only that account can read these numbers.</p>';
-    h+='<div style="display:grid;gap:8px"><input type="text" id="oa-key" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Web API key" aria-label="Web API key" value="'+esc(CFG.apiKey||"")+'"><input type="email" id="oa-mail" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="Owner email" aria-label="Owner email"><input type="password" id="oa-pw" autocomplete="current-password" placeholder="Password" aria-label="Password"><button type="button" class="cta" id="oa-go">Sign in</button></div>';
+    h+='<div style="display:grid;gap:8px"><input type="text" class="fld" id="oa-key" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Web API key" aria-label="Web API key" value="'+esc(CFG.apiKey||"")+'"><input type="email" class="fld" id="oa-mail" autocomplete="username" autocapitalize="off" spellcheck="false" placeholder="Owner email" aria-label="Owner email"><input type="password" class="fld" id="oa-pw" autocomplete="current-password" placeholder="Password" aria-label="Password"><button type="button" class="cta" id="oa-go">Sign in</button></div>';
     if(ownStatsMsg)h+='<p class="err" role="alert" style="margin:8px 0 0">'+esc(ownStatsMsg)+'</p>';
     return h;
   }
@@ -2884,9 +2886,9 @@ function emailAcctHTML(){
   }
   var cc=guessCc();
   if(legacyAid)h+='<p class="warn" style="margin:0 0 10px">'+t.loginMoved+'</p>';
-  h+='<div style="display:grid;gap:8px"><input type="email" id="em-mail" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="'+t.emPh+'" aria-label="'+t.emPh+'">';
-  h+='<input type="password" id="em-pw" autocomplete="current-password" maxlength="100" placeholder="'+t.pwPh+'" aria-label="'+t.pwPh+'">';
-  h+='<select id="em-cc" aria-label="'+t.phCc+'">'+CCN.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===cc?" selected":"")+'>'+c[1]+'</option>'}).join("")+'</select>';
+  h+='<div style="display:grid;gap:8px"><input type="email" class="fld" id="em-mail" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="'+t.emPh+'" aria-label="'+t.emPh+'">';
+  h+='<input type="password" class="fld" id="em-pw" autocomplete="current-password" maxlength="100" placeholder="'+t.pwPh+'" aria-label="'+t.pwPh+'">';
+  h+='<select class="fld" id="em-cc" aria-label="'+t.phCc+'">'+CCN.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===cc?" selected":"")+'>'+c[1]+'</option>'}).join("")+'</select>';
   h+='<button type="button" class="cta" id="em-in"'+(authBusy?" disabled":"")+'>'+t.emIn+'</button><button type="button" class="ghost" id="em-new" style="margin:0"'+(authBusy?" disabled":"")+'>'+t.emNew+'</button></div>';
   h+=(acctNote?'<p class="note" style="color:var(--accent)" role="status">'+esc(acctNote)+'</p>':"");
   h+='<p class="note"><button type="button" class="mini q" id="em-reset" style="padding-left:0;text-decoration:underline">'+t.emForgot+'</button></p>';
