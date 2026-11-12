@@ -1347,7 +1347,11 @@ var ADS=[
  {mk:"JV",img:"icons/ad-jv.png",c:"#ea4e1b",name:"Jollof Ventures",
   en:["African potential. A brighter tomorrow.","AI & Tech · Fintech · Energy · Agribusiness · Healthcare · Logistics","invest@jollofventures.com"],
   fr:["Le potentiel africain. Un avenir plus radieux.","IA & Tech · Fintech · Énergie · Agrobusiness · Santé · Logistique","invest@jollofventures.com"],
-  it:["Potenziale africano. Un domani più luminoso.","IA & Tech · Fintech · Energia · Agribusiness · Sanità · Logistica","invest@jollofventures.com"]}
+  it:["Potenziale africano. Un domani più luminoso.","IA & Tech · Fintech · Energia · Agribusiness · Sanità · Logistica","invest@jollofventures.com"]},
+ {mk:"FASA",img:"icons/ad-fasa.png",c:"#f5b21a",name:"Fasa",
+  en:["By Fama","",""],fr:["By Fama","",""],it:["By Fama","",""]},
+ {mk:"SUP",img:"icons/ad-sup.png",c:"#e8201f",name:"SUPERIOR",
+  en:["Outboard motor dealer!","",""],fr:["Concessionnaire de moteurs hors-bord !","",""],it:["Concessionario di motori fuoribordo!","",""]}
 ];
 var adIdx=Math.floor(Math.random()*ADS.length),AD_TAG={en:"Sponsor",fr:"Partenaire",it:"Sponsor"};
 function adText(a){return a[lang]||a.en}
@@ -1363,7 +1367,7 @@ function renderAd(){
 function adCard(){
   var a=ADS[(adIdx+1)%ADS.length],x=adText(a);
   adSeen(a.mk,"w");
-  return '<div class="ad big" data-mk="'+a.mk+'" style="--adc:'+a.c+'"><div class="row">'+adMark(a)+'<div class="tx"><b>'+esc(a.name)+'</b></div><em>'+AD_TAG[lang]+'</em></div><span>'+esc(x[0])+'</span><small>'+esc(x[1])+'<br>'+esc(x[2])+'</small></div>';
+  return '<div class="ad big" data-mk="'+a.mk+'" style="--adc:'+a.c+'"><div class="row">'+adMark(a)+'<div class="tx"><b>'+esc(a.name)+'</b></div><em>'+AD_TAG[lang]+'</em></div><span>'+esc(x[0])+'</span>'+(x[1]||x[2]?'<small>'+esc(x[1])+(x[1]&&x[2]?'<br>':'')+esc(x[2])+'</small>':'')+'</div>';
 }
 // Sponsor banners: how often each one was on screen and how often it was tapped, sent as small totals.
 var adBox={},adN=0,adTaps=0;
@@ -1377,8 +1381,11 @@ function adLook(){
 }
 function adFlush(){
   if(!adN)return;
-  var r=Object.keys(adBox).map(function(k){var o=adBox[k];return k+"=t"+o.t+"b"+o.b+"w"+o.w}).join(";");
-  adBox={};adN=0;if(typeof logEv==="function")logEv("ad_views",r);
+  // a line holds 60 characters at most, so the totals go out in as many lines as they need
+  var parts=Object.keys(adBox).map(function(k){var o=adBox[k];return k+"=t"+o.t+"b"+o.b+"w"+o.w}),line="";
+  adBox={};adN=0;if(typeof logEv!=="function")return;
+  parts.forEach(function(q){if(line&&(line+";"+q).length>58){logEv("ad_views",line);line=q}else line=line?line+";"+q:q});
+  if(line)logEv("ad_views",line);
 }
 document.addEventListener("click",function(e){
   var el=e.target&&e.target.closest?e.target.closest("[data-mk]"):null;
@@ -3443,7 +3450,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="49";
+var BUILD="50";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;

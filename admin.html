@@ -376,7 +376,7 @@ function vOnline(){
     '<p class="note">A drop is a moment when the phone stopped hearing from the game and had to reconnect. Counted per device, for games that were finished or left. Out of step means the phone had to reload the whole game to match the others.</p></div>';
   return h;
 }
-var SPN={PAH:"Planet Auto Hub",NF:"Nioro Farms",JV:"Jollof Ventures"};
+var SPN={PAH:"Planet Auto Hub",NF:"Nioro Farms",JV:"Jollof Ventures",FASA:"Fasa",SUP:"SUPERIOR"};
 function sponsorData(){
   var list=evs(),S={},C={},days=dayList(),D={};
   var get=function(k){return S[k]=S[k]||{k:k,t:0,b:0,w:0,taps:0,tt:0,tb:0,tw:0,dev:{},tdev:{}}};
@@ -396,7 +396,7 @@ function sponsorData(){
 }
 function vSponsors(){
   var X=sponsorData(),S=X.S,ks=X.keys,tv=0,tt=0;ks.forEach(function(k){tv+=S[k].t+S[k].b+S[k].w;tt+=S[k].taps});
-  var col={PAH:"#3c459f",NF:"#4f8a4c",JV:"#ea4e1b"},reach={};ks.forEach(function(k){Object.keys(S[k].dev).forEach(function(d){reach[d]=1})});
+  var col={PAH:"#3c459f",NF:"#4f8a4c",JV:"#ea4e1b",FASA:"#f5b21a",SUP:"#e8201f"},reach={};ks.forEach(function(k){Object.keys(S[k].dev).forEach(function(d){reach[d]=1})});
   var h='<div class="grid">'+kpi("Banner showings",fmt(tv),"all sponsors, "+rangeWord())+kpi("Devices reached",fmt(Object.keys(reach).length),"saw at least one banner")+kpi("Taps on banners",fmt(tt),tv?(tt*1000/tv).toFixed(1)+" per 1,000 showings":"")+kpi("Sponsors shown",fmt(ks.length),"")+'</div>';
   h+='<div class="card"><h2>By sponsor · '+rangeWord()+'</h2>'+(ks.length?'<div class="scroll"><table><thead><tr><th>Sponsor</th><th>Showings</th><th>Share</th><th>Top strip</th><th>Lower banner</th><th>End-of-game card</th><th>Devices reached</th><th>Taps</th><th>Devices that tapped</th><th>Taps per 1,000</th></tr></thead><tbody>'+ks.map(function(k){var o=S[k],v=o.t+o.b+o.w;return '<tr><td><b>'+esc(SPN[k]||k)+'</b></td><td>'+fmt(v)+'</td><td>'+pct(v,tv)+'</td><td>'+fmt(o.t)+'</td><td>'+fmt(o.b)+'</td><td>'+fmt(o.w)+'</td><td>'+fmt(Object.keys(o.dev).length)+'</td><td>'+fmt(o.taps)+'</td><td>'+fmt(Object.keys(o.tdev).length)+'</td><td>'+(v?(o.taps*1000/v).toFixed(1):"–")+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No banner showing recorded in this period.</p>')+
     '<p class="note">A showing is one 10-second turn of a banner while the game is on screen. The top strip is always visible; the lower banner counts only when it is on screen; the end-of-game card counts each time a game ends. Banners do not open a link today, so a tap only shows interest.</p></div>';
