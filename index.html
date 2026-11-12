@@ -1336,15 +1336,15 @@ function renderAll(){
 
 // ---------- Messages from our own companies (display only) ----------
 var ADS=[
- {mk:"PAH",img:"icons/ad-pah.png",c:"#3c459f",name:"Planet Auto Hub",
+ {mk:"PAH",url:"https://www.instagram.com/planetautohub/",img:"icons/ad-pah.png",c:"#3c459f",name:"Planet Auto Hub",
   en:["Car parts in Dakar","Toyota · Great Wall · Bosch · Bardahl","@planetautohub"],
   fr:["Pièces auto à Dakar","Toyota · Great Wall · Bosch · Bardahl","@planetautohub"],
   it:["Ricambi auto a Dakar","Toyota · Great Wall · Bosch · Bardahl","@planetautohub"]},
- {mk:"NF",img:"icons/ad-nf.png",c:"#4f8a4c",name:"Nioro Farms",
+ {mk:"NF",url:"https://niorofarms.com/",img:"icons/ad-nf.png",c:"#4f8a4c",name:"Nioro Farms",
   en:["From the motherland to your shelves","Hibiscus · Baobab · Tamarind · Mango · Cashews · Moringa","niorofarms.com"],
   fr:["De la terre mère à vos rayons","Bissap · Baobab · Tamarin · Mangue · Cajou · Moringa","niorofarms.com"],
   it:["Dalla terra madre ai vostri scaffali","Ibisco · Baobab · Tamarindo · Mango · Anacardi · Moringa","niorofarms.com"]},
- {mk:"JV",img:"icons/ad-jv.png",c:"#ea4e1b",name:"Jollof Ventures",
+ {mk:"JV",url:"https://www.instagram.com/jollofventures/",img:"icons/ad-jv.png",c:"#ea4e1b",name:"Jollof Ventures",
   en:["African potential. A brighter tomorrow.","AI & Tech · Fintech · Energy · Agribusiness · Healthcare · Logistics","invest@jollofventures.com"],
   fr:["Le potentiel africain. Un avenir plus radieux.","IA & Tech · Fintech · Énergie · Agrobusiness · Santé · Logistique","invest@jollofventures.com"],
   it:["Potenziale africano. Un domani più luminoso.","IA & Tech · Fintech · Energia · Agribusiness · Sanità · Logistica","invest@jollofventures.com"]},
@@ -1359,15 +1359,15 @@ function adMark(a){return '<div class="mk'+(a.img?' pic':'')+'">'+(a.img?'<img s
 function renderAd(){
   // the slim strip at the top is always on screen; the larger banner lower down shows a different company
   var top=ADS[adIdx%ADS.length],te=$("adtop");
-  if(te){te.style.setProperty("--adc",top.c);te.innerHTML=(top.img?'<img src="'+top.img+'" alt="" width="32" height="32">':'')+'<div><b>'+esc(top.name)+'</b><span>'+esc(adText(top)[0])+'</span></div>';te.setAttribute("aria-label",AD_TAG[lang]);te.setAttribute("data-mk",top.mk)}
+  if(te){te.style.setProperty("--adc",top.c);te.innerHTML=(top.img?'<img src="'+top.img+'" alt="" width="32" height="32">':'')+'<div><b>'+esc(top.name)+'</b><span>'+esc(adText(top)[0])+'</span></div>';te.setAttribute("aria-label",AD_TAG[lang]+" · "+top.name);te.setAttribute("data-mk",top.mk);te.style.cursor=top.url?"pointer":""}
   var a=ADS[(adIdx+2)%ADS.length],el=$("ad");if(!el)return;
-  el.style.setProperty("--adc",a.c);el.setAttribute("data-mk",a.mk);
+  el.style.setProperty("--adc",a.c);el.setAttribute("data-mk",a.mk);el.style.cursor=a.url?"pointer":"";
   el.innerHTML=''+adMark(a)+'<div class="tx"><b>'+esc(a.name)+'</b><span>'+esc(adText(a)[0])+'</span></div><em>'+AD_TAG[lang]+'</em>';
 }
 function adCard(){
   var a=ADS[(adIdx+1)%ADS.length],x=adText(a);
   adSeen(a.mk,"w");
-  return '<div class="ad big" data-mk="'+a.mk+'" style="--adc:'+a.c+'"><div class="row">'+adMark(a)+'<div class="tx"><b>'+esc(a.name)+'</b></div><em>'+AD_TAG[lang]+'</em></div><span>'+esc(x[0])+'</span>'+(x[1]||x[2]?'<small>'+esc(x[1])+(x[1]&&x[2]?'<br>':'')+esc(x[2])+'</small>':'')+'</div>';
+  return '<div class="ad big" data-mk="'+a.mk+'" style="--adc:'+a.c+(a.url?";cursor:pointer":"")+'"><div class="row">'+adMark(a)+'<div class="tx"><b>'+esc(a.name)+'</b></div><em>'+AD_TAG[lang]+'</em></div><span>'+esc(x[0])+'</span>'+(x[1]||x[2]?'<small>'+esc(x[1])+(x[1]&&x[2]?'<br>':'')+esc(x[2])+'</small>':'')+'</div>';
 }
 // Sponsor banners: how often each one was on screen and how often it was tapped, sent as small totals.
 var adBox={},adN=0,adTaps=0;
@@ -1391,7 +1391,7 @@ function adFlush(){
 var AD_GAME="ludo-teranga",AD_CAMPAIGN="test-phase",adLast={};
 function adDest(a,pl){
   var u=String(a.url||"");if(!u)return "";
-  if(!/^https?:\/\//i.test(u))return u;
+  if(!/^https?:\/\//i.test(u)||/^https?:\/\/([a-z0-9-]+\.)*(instagram|tiktok|facebook|wa)\.(com|me)\//i.test(u))return u;
   return u+(u.indexOf("?")>=0?"&":"?")+"utm_source="+AD_GAME+"&utm_medium=banner&utm_campaign="+encodeURIComponent(a.cp||AD_CAMPAIGN)+"&utm_content="+pl;
 }
 document.addEventListener("click",function(e){
@@ -3472,7 +3472,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="52";
+var BUILD="53";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
