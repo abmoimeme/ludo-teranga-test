@@ -140,7 +140,7 @@ function rulesText(){
 
 // ---------- data ----------
 var EV=[],SEEN={},STATS={},denied={},loadedAt=0,loadErr="";
-var F={range:7,cc:"",pf:"",b:""},tab="overview",pick="";
+var F={range:7,cc:"",pf:"",b:""},tab="overview",pick="",find="";
 function load(){
   loadErr="";denied={};
   var from=dayAgo(29);
@@ -206,8 +206,8 @@ var WHY={
   network:["No connection, or the service could not be reached.","Normal in small numbers. If high in one country, check hosting from there."],
   service_other:["The sign-in service answered with an unexpected error.","Look at the player timeline, then at the Firebase status page."]
 };
-function label(e){return ({signup_ok:"Login created",signup_fail:"Create login failed",signup_try:"Create login tried",signin_ok:"Signed in",signin_fail:"Sign-in failed",signin_try:"Sign-in tried",reset_request:"Password reset asked",email_confirmed:"Email confirmed",signed_out:"Signed out by the game",save_refused:"Save refused",save_merged:"Newer save taken",old_game_moved:"Phone-number game moved",old_game_not_found:"Phone-number game not found",account_deleted:"Account deleted",app_open:"Opened the game",js_error:"Error",name_set:"Typed a name",game_start:"Game started",game_end:"Game finished",game_left:"Game left"})[e]||e}
-function tone(e){return /fail|refused|signed_out|js_error/.test(e)?"bad":/_ok|confirmed|moved$|game_end/.test(e)?"good":/not_found|merged|reset|game_left/.test(e)?"warn":"info"}
+function label(e){return ({signup_ok:"Login created",signup_fail:"Create login failed",signup_try:"Create login tried",signin_ok:"Signed in",signin_fail:"Sign-in failed",signin_try:"Sign-in tried",reset_request:"Password reset asked",email_confirmed:"Email confirmed",signed_out:"Signed out by the game",save_refused:"Save refused",save_merged:"Newer save taken",old_game_moved:"Phone-number game moved",old_game_not_found:"Phone-number game not found",account_deleted:"Account deleted",app_open:"Opened the game",js_error:"Error",name_set:"Typed a name",game_start:"Game started",game_end:"Game finished",game_left:"Game left",invite_open:"Opened an invitation link",room_create:"Created an online game",room_create_fail:"Could not create a game",room_join:"Joined a game",room_join_fail:"Could not join",room_rejoin:"Came back into a game",room_rejoin_fail:"Could not come back",join_ask:"Asked to join a game under way",join_ask_ok:"Let into a game under way",join_ask_no:"Not let in",out_of_sync:"Game out of step, reloaded",report_sent:"Reported a player",player_blocked:"Blocked a player",rules_check:"Rules check"})[e]||e}
+function tone(e){return /fail|refused|signed_out|js_error/.test(e)?"bad":/_ok|confirmed|moved$|game_end|room_join$|room_rejoin$/.test(e)?"good":/not_found|merged|reset|game_left|out_of_sync|_no$|report|blocked/.test(e)?"warn":"info"}
 
 // ---------- charts ----------
 function bars(days,series,h){
@@ -285,13 +285,15 @@ function vLogin(){
   return h;
 }
 function vPlayers(){
-  var P=players(),h='<div class="card" style="margin-top:0"><h2>Signed-in players · '+fmt(P.length)+'</h2>';
-  if(!P.length)h+='<p class="note" style="margin:0">No signed-in player has opened the game since activity recording was switched on.</p>';
+  var all=players(),q=find.trim().toLowerCase(),P=q?all.filter(function(o){return o.n.toLowerCase().indexOf(q)>=0}):all;
+  var h='<div class="card" style="margin-top:0"><h2>Signed-in players · '+fmt(P.length)+(q?" of "+fmt(all.length):"")+'</h2><p style="margin:0 0 10px"><input type="search" id="find" value="'+esc(find)+'" placeholder="Find a player by game name" aria-label="Find a player by game name" style="width:100%;max-width:340px;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff"></p>';
+  if(!P.length)h+='<p class="note" style="margin:0">'+(q?"No player with that name.":"No signed-in player has opened the game since activity recording was switched on.")+'</p>';
   else h+='<div class="scroll"><table><thead><tr><th>Player</th><th>Last seen</th><th>Time, '+rangeWord()+'</th><th>Days active</th><th>Sessions</th><th>Total time</th><th>Avg session</th><th>Games</th><th>Wins</th><th>Since</th><th>On</th></tr></thead><tbody>'+P.map(function(o){return '<tr class="pick" data-u="'+esc(o.id)+'" tabindex="0"><td>'+flag(o.cc)+" <b>"+esc(o.n)+'</b></td><td>'+ago(o.last)+'</td><td>'+(o.in?dur(o.in):"–")+'</td><td>'+o.days+'</td><td>'+fmt(o.ses)+'</td><td>'+dur(o.sec)+'</td><td>'+(o.ses?dur(o.sec/o.ses):"–")+'</td><td>'+fmt(o.g)+'</td><td>'+fmt(o.w)+'</td><td>'+(o.first?dayOf(o.first):"–")+'</td><td>'+o.pf+(o.b?" v"+o.b:"")+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">Tap a player to see their recent sign-ins and problems. Players appear by game name. Emails are in Firebase > Authentication > Users.</p>';
   h+='</div>';
   if(pick&&SEEN[pick]){
-    var tl=EV.filter(function(x){return x.u===pick}).slice(-50).reverse(),nm=esc(String(SEEN[pick].n||""));
-    h+='<div class="card" id="timeline"><h2>Timeline · '+nm+'</h2>'+(tl.length?'<div class="scroll"><table><thead><tr><th>When (UTC)</th><th style="text-align:left">Event</th><th style="text-align:left">Detail</th><th>On</th></tr></thead><tbody>'+tl.map(function(x){return '<tr><td>'+stamp(x.t)+'</td><td style="text-align:left"><span class="pill '+tone(x.e)+'">'+label(x.e)+'</span></td><td style="text-align:left">'+esc(x.r.replace(/_/g," "))+'</td><td>'+x.pf+" v"+x.b+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No event recorded for this player in the last 30 days.</p>')+'<p class="note">Failed tries made before signing in are not tied to a player, so they do not appear here.</p></div>';
+    var devs={};EV.forEach(function(x){if(x.u===pick&&x.d)devs[x.d]=1});
+    var tl=EV.filter(function(x){return x.u===pick||(!x.u&&x.d&&devs[x.d]&&x.e!=="app_open")}).slice(-80).reverse(),nm=esc(String(SEEN[pick].n||""));
+    h+='<div class="card" id="timeline"><h2>Timeline · '+nm+'</h2>'+(tl.length?'<div class="scroll"><table><thead><tr><th>When (UTC)</th><th style="text-align:left">Event</th><th style="text-align:left">Detail</th><th>On</th></tr></thead><tbody>'+tl.map(function(x){return '<tr><td>'+stamp(x.t)+'</td><td style="text-align:left"><span class="pill '+tone(x.e)+'">'+label(x.e)+'</span></td><td style="text-align:left">'+esc(detail(x))+(x.u?"":' <span class="pill info">before sign-in</span>')+'</td><td>'+x.pf+" v"+x.b+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No event recorded for this player in the last 30 days.</p>')+'<p class="note">Lines marked "before sign-in" come from a device this player has used, while nobody was signed in on it. On a shared phone they may belong to someone else.</p></div>';
   }
   return h;
 }
@@ -319,7 +321,14 @@ function vSteps(){
   h+='<div class="card"><h2>Where they stop</h2><div class="scroll"><table><tbody>'+[["Opened the game and did nothing else",idle,"Is the first screen clear about what to do?"],["Tried to get a login and did not get in",lost,"See Login health for the reasons."],["Got a login but never started a game",nog,"Is creating or joining a game obvious after sign-in?"],["Started a game and did not finish one",c("game")-c("done"),"See Games for where games are left."]].map(function(r){return '<tr><td>'+r[0]+'<br><span style="color:var(--ink2);font-size:.8rem">'+r[2]+'</span></td><td>'+fmt(Math.max(0,r[1]))+'</td><td>'+pct(Math.max(0,r[1]),n)+'</td></tr>'}).join("")+'</tbody></table></div></div>';
   return h;
 }
-function gameInfo(r){var q=String(r||"").split(";"),o={mode:q[0]==="online"?"online":"local",n:0,h:0,min:0};q.slice(1).forEach(function(kv){var a=kv.split("=");if(a[0]==="n"||a[0]==="h"||a[0]==="min")o[a[0]]=parseInt(a[1],10)||0});return o}
+function detail(x){
+  var r=x.r||"",m;
+  if(/^game_/.test(x.e)){var i=gameInfo(r);return (i.mode==="online"?"Online":"Local")+", "+i.n+" seats, "+(i.h>1?i.h+" people":"against the computer")+(x.e!=="game_start"?", "+i.min+" min":"")+(i.re?", "+i.re+" reconnection"+(i.re>1?"s":""):"")+(i.rs?", reloaded "+i.rs+(i.rs>1?" times":" time"):"")}
+  if(x.e==="room_create"&&(m=/n=(\d+);stake=(\d+)/.exec(r)))return m[1]+" seats, entry "+fmt(+m[2])+" ★"+(/auto/.test(r)?", starts by itself":"");
+  if(x.e==="room_join"&&(m=/n=(\d+)/.exec(r)))return m[1]+" seats";
+  return r.replace(/_/g," ");
+}
+function gameInfo(r){var q=String(r||"").split(";"),o={mode:q[0]==="online"?"online":"local",n:0,h:0,min:0};q.slice(1).forEach(function(kv){var a=kv.split("=");if(a[0]==="n"||a[0]==="h"||a[0]==="min"||a[0]==="re"||a[0]==="rs")o[a[0]]=parseInt(a[1],10)||0});return o}
 function vGames(){
   var list=evs(),G={},tot={s:0,e:0,l:0,min:0};
   list.forEach(function(x){
@@ -333,6 +342,38 @@ function vGames(){
     '<p class="note">Counted once per device in the game, so an online game with three people counts three times. '+fmt(open)+' started game'+(open===1?" has":"s have")+' no ending recorded: still being played, or the game was closed without leaving.</p></div>';
   var days=dayList();
   h+='<div class="card"><h2>Games per day</h2>'+bars(days,[{n:"Finished",c:"#1f8a55",v:days.map(function(d){return list.filter(function(x){return x.day===d&&x.e==="game_end"}).length})},{n:"Left",c:"#c8402a",v:days.map(function(d){return list.filter(function(x){return x.day===d&&x.e==="game_left"}).length})},{n:"Started, no ending yet",c:"#c9c4b3",v:days.map(function(d){var a=0;list.forEach(function(x){if(x.day!==d)return;if(x.e==="game_start")a++;else if(x.e==="game_end"||x.e==="game_left")a--});return Math.max(0,a)})}])+'</div>';
+  return h;
+}
+var JWHY={
+  no_room:["No game exists with that code.","The game was closed, or the code was mistyped. If frequent, keep finished games open longer."],
+  bad_code:["The code typed was not six characters.","Normal in small numbers."],
+  already_started:["The game had started and could not take a new player.","The host can still let people in during a game. If frequent, make that clearer to guests."],
+  full:["Every seat was taken.","Normal. If frequent, suggest four-seat games to hosts."],
+  not_enough_points:["The entry cost more points than the player had.","If frequent, lower the default entry or offer a free game."],
+  name_taken:["Someone in that game already used the same name.","The player should change their name. If frequent, add the hint on the error."],
+  old_version:["The game was created on a newer version than this phone has.","The phone needs to reload. If frequent, push the update bar harder."],
+  network:["No connection, or the game server could not be reached.","Normal in small numbers. If high in one country, check hosting from there."]
+};
+function vOnline(){
+  var list=evs(),c=function(e,r){return count(list,e,r)};
+  var jo=c("room_join")+c("join_ask_ok"),jf=c("room_join_fail"),ended=list.filter(function(x){return (x.e==="game_end"||x.e==="game_left")&&/^online/.test(x.r)});
+  var drop=0,sync=0,res=0;ended.forEach(function(x){var i=gameInfo(x.r);if(i.re>0)drop++;if(i.rs>0)sync++;res+=i.re});
+  var inv={},got={};list.forEach(function(x){if(!x.d)return;if(x.e==="invite_open")inv[x.d]=1;if(x.e==="room_join"||x.e==="join_ask_ok"||x.e==="room_rejoin")got[x.d]=1});
+  var io=Object.keys(inv).length,ij=Object.keys(inv).filter(function(d){return got[d]}).length;
+  var h='<div class="grid">'+kpi("Online games created",fmt(c("room_create")),rangeWord())+kpi("Joins that worked",pct(jo,jo+jf),fmt(jo)+" of "+fmt(jo+jf)+" tries",jo+jf<5?"":jf/(jo+jf)>0.3?"warn":"good")+
+    kpi("Invitations that led to a game",pct(ij,io),fmt(ij)+" of "+fmt(io)+" devices that opened a link",io<5?"":ij/io<0.5?"warn":"good")+kpi("Games with a connection drop",pct(drop,ended.length),fmt(drop)+" of "+fmt(ended.length)+" ended online games",ended.length<5?"":drop/ended.length>0.3?"warn":"good")+
+    kpi("Games out of step",fmt(c("out_of_sync")),"reloaded by themselves",c("out_of_sync")?"warn":"")+kpi("Came back into a game",fmt(c("room_rejoin")),fmt(c("room_rejoin_fail"))+" could not",c("room_rejoin_fail")?"warn":"")+
+    kpi("Reports sent",fmt(c("report_sent")),"players reported in chat",c("report_sent")?"warn":"")+kpi("Players blocked",fmt(c("player_blocked")),"")+'</div>';
+  var R={};list.forEach(function(x){if(x.e==="room_join_fail"||x.e==="room_rejoin_fail"){var k=x.r||"unknown";R[k]=(R[k]||0)+1}});
+  var rk=Object.keys(R).sort(function(a,b){return R[b]-R[a]}),rt=rk.reduce(function(a,k){return a+R[k]},0);
+  h+='<div class="card"><h2>Why joining fails · '+rangeWord()+'</h2>'+(rk.length?'<div class="scroll"><table><thead><tr><th>Reason</th><th>Times</th><th>Share</th><th style="text-align:left">What it means</th><th style="text-align:left">What to do</th></tr></thead><tbody>'+rk.map(function(k){var w=JWHY[k]||["",""];return '<tr><td><span class="pill '+(k==="network"||k==="old_version"?"bad":"warn")+'">'+esc(k.replace(/_/g," "))+'</span></td><td>'+fmt(R[k])+'</td><td>'+pct(R[k],rt)+'</td><td class="wrapc">'+w[0]+'</td><td class="wrapc">'+w[1]+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No failed join in this period.</p>')+'</div>';
+  var ask=c("join_ask"),aok=c("join_ask_ok"),ano=c("join_ask_no","host_said_no"),alate=c("join_ask_no","no_answer"),agone=c("join_ask_no","game_closed");
+  h+='<div class="two"><div class="card"><h2>From invitation to game</h2><div class="scroll"><table><tbody>'+[["Devices that opened an invitation link",io],["… and got into a game",ij],["Online games created",c("room_create")],["Could not create a game",c("room_create_fail")],["Joined before the start",c("room_join")]].map(function(r){return '<tr><td>'+r[0]+'</td><td>'+fmt(r[1])+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">An invitation counts once per device per visit.</p></div>'+
+    '<div class="card"><h2>Joining a game under way</h2><div class="scroll"><table><tbody>'+[["Asked the host",ask],["Let in",aok],["Host said no",ano],["Host did not answer in time",alate],["Game closed meanwhile",agone]].map(function(r){return '<tr><td>'+r[0]+'</td><td>'+fmt(r[1])+'</td><td>'+pct(r[1],ask)+'</td></tr>'}).join("")+'</tbody></table></div></div></div>';
+  var byc={};ended.forEach(function(x){var i=gameInfo(x.r),o=byc[x.cc]=byc[x.cc]||{g:0,d:0,re:0,s:0};o.g++;if(i.re>0)o.d++;o.re+=i.re;if(i.rs>0)o.s++});
+  var ck=Object.keys(byc).sort(function(a,b){return byc[b].g-byc[a].g});
+  h+='<div class="card"><h2>Connection quality by country</h2>'+(ck.length?'<div class="scroll"><table><thead><tr><th>Country</th><th>Ended online games</th><th>With a drop</th><th>Share</th><th>Reconnections per game</th><th>Out of step</th></tr></thead><tbody>'+ck.map(function(k){var o=byc[k];return '<tr><td>'+CN[k]+'</td><td>'+fmt(o.g)+'</td><td>'+fmt(o.d)+'</td><td>'+pct(o.d,o.g)+'</td><td>'+(o.re/o.g).toFixed(1)+'</td><td>'+fmt(o.s)+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No online game has ended in this period.</p>')+
+    '<p class="note">A drop is a moment when the phone stopped hearing from the game and had to reconnect. Counted per device, for games that were finished or left. Out of step means the phone had to reload the whole game to match the others.</p></div>';
   return h;
 }
 function vErrors(){
@@ -351,7 +392,7 @@ function builds(){var b={};EV.forEach(function(x){if(x.b)b[x.b]=1});Object.keys(
 function render(){
   if(!own){renderSign("");return}
   $("signout").hidden=false;$("refresh").hidden=false;$("when").textContent=loadedAt?"Updated "+new Date(loadedAt).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}):"";
-  var T=[["overview","Overview"],["steps","First steps"],["login","Login health"],["games","Games"],["players","Players"],["errors","Errors"]];
+  var T=[["overview","Overview"],["steps","First steps"],["login","Login health"],["games","Games"],["online","Online play"],["players","Players"],["errors","Errors"]];
   var h='<div class="bar"><div class="tabs" role="tablist">'+T.map(function(t){return '<button type="button" role="tab" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div><span class="sp"></span>'+
     '<select id="f-range" aria-label="Period">'+[[1,"Today"],[7,"Last 7 days"],[30,"Last 30 days"]].map(function(r){return '<option value="'+r[0]+'"'+(F.range===r[0]?" selected":"")+'>'+r[1]+'</option>'}).join("")+'</select>'+
     '<select id="f-cc" aria-label="Country"><option value="">All countries</option>'+Object.keys(CN).map(function(c){return '<option value="'+c+'"'+(F.cc===c?" selected":"")+'>'+CN[c]+'</option>'}).join("")+'</select>'+
@@ -360,7 +401,7 @@ function render(){
     '<button type="button" class="btn" id="csv">Export CSV</button></div>';
   if(loadErr)h+='<div class="card" style="margin-top:0;border-color:var(--bad)"><p class="err" style="margin:0">'+esc(loadErr)+'</p></div>';
   h+=notice();
-  h+=tab==="login"?vLogin():tab==="players"?vPlayers():tab==="errors"?vErrors():tab==="steps"?vSteps():tab==="games"?vGames():vOverview();
+  h+=tab==="login"?vLogin():tab==="players"?vPlayers():tab==="errors"?vErrors():tab==="steps"?vSteps():tab==="games"?vGames():tab==="online"?vOnline():vOverview();
   h+='<footer>Times and days follow universal time (UTC). Detailed events are kept 90 days. No email address, password or phone number is stored in this data. &copy; 2026 Nioro Resources LLC</footer>';
   main.innerHTML=h;
   Array.prototype.forEach.call(main.querySelectorAll("[data-tab]"),function(b){b.addEventListener("click",function(){tab=b.getAttribute("data-tab");render()})});
@@ -370,6 +411,7 @@ function render(){
   $("f-b").addEventListener("change",function(){F.b=this.value;render()});
   $("csv").addEventListener("click",csv);
   if($("copy"))$("copy").addEventListener("click",function(){var t=$("rules");t.select();try{navigator.clipboard.writeText(t.value).then(function(){$("copied").textContent="Copied."},function(){document.execCommand("copy");$("copied").textContent="Copied."})}catch(e){try{document.execCommand("copy");$("copied").textContent="Copied."}catch(x){}}});
+  if($("find"))$("find").addEventListener("input",function(){find=this.value;var at=this.selectionStart;render();var f=$("find");if(f){f.focus();try{f.setSelectionRange(at,at)}catch(e){}}});
   Array.prototype.forEach.call(main.querySelectorAll("tr.pick"),function(r){var go=function(){pick=r.getAttribute("data-u");render();var t=$("timeline");if(t&&t.scrollIntoView)t.scrollIntoView({block:"nearest"})};r.addEventListener("click",go);r.addEventListener("keydown",function(e){if(e.key==="Enter")go()})});
 }
 function csv(){

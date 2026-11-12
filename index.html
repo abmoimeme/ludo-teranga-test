@@ -1634,7 +1634,7 @@ function pollEv(){
 function wakeNet(){
   if(!net)return;
   api("PUT","/hb/"+myId,Date.now()).catch(function(){});
-  if(Date.now()-net.lastMsg>10000)openStream();
+  if(Date.now()-net.lastMsg>10000){net.rc=(net.rc||0)+1;openStream()}
   resync();
 }
 document.addEventListener("visibilitychange",function(){if(!document.hidden)wakeNet()});
@@ -1805,9 +1805,10 @@ function settleJoins(){
 function askJoin(code,r){
   var n=r.cfg.count,free=false;
   for(var i=0;i<n;i++)if(!seatAt(r,i))free=true;
-  if(!free){onErr=L().errFull;renderOnline();return}
-  if((r.cfg.stake||0)>balanceOf(meName())){onErr=L().errPoints(fmt(r.cfg.stake));renderOnline();return}
-  for(var j=0;j<n;j++){var os=seatAt(r,j);if(os&&keyOf(os.name)===keyOf(meName())){onErr=L().errNameTaken;renderOnline();return}}
+  if(!free){logEv("room_join_fail","full");onErr=L().errFull;renderOnline();return}
+  if((r.cfg.stake||0)>balanceOf(meName())){logEv("room_join_fail","not_enough_points");onErr=L().errPoints(fmt(r.cfg.stake));renderOnline();return}
+  for(var j=0;j<n;j++){var os=seatAt(r,j);if(os&&keyOf(os.name)===keyOf(meName())){logEv("room_join_fail","name_taken");onErr=L().errNameTaken;renderOnline();return}}
+  logEv("join_ask");
   api("PUT","/ask/"+myId,{id:myId,name:meName(),av:meAv(),fc:myFc,t:Date.now()},code).then(function(){
     asking={code:code,since:Date.now(),stake:r.cfg.stake||0};pendingCode="";onErr="";renderOnline();pollAsk();
   }).catch(function(){onErr=L().errNet;renderOnline()});
@@ -1825,10 +1826,10 @@ function pollAsk(){
     if(asking!==a||net)return;
     api("GET","",undefined,a.code).then(function(r){
       if(asking!==a||net)return;
-      if(!r||!r.cfg){stopAsk(L().errNoRoom);return}
-      if(hasMe(r)){asking=null;enter(a.code,r);onRoom();return}
-      if((!r.ask||!r.ask[myId])&&Date.now()-a.since>2500){stopAsk(L().askNo);return}
-      if(Date.now()-a.since>90000){stopAsk(L().askLate,true);return}
+      if(!r||!r.cfg){logEv("join_ask_no","game_closed");stopAsk(L().errNoRoom);return}
+      if(hasMe(r)){logEv("join_ask_ok");asking=null;enter(a.code,r);onRoom();return}
+      if((!r.ask||!r.ask[myId])&&Date.now()-a.since>2500){logEv("join_ask_no","host_said_no");stopAsk(L().askNo);return}
+      if(Date.now()-a.since>90000){logEv("join_ask_no","no_answer");stopAsk(L().askLate,true);return}
       pollAsk();
     }).catch(function(){pollAsk()});
   },1500);
@@ -1851,11 +1852,11 @@ function enter(code,room){
     if(!net)return;
     api("PUT","/hb/"+myId,Date.now()).catch(function(){});
     var quiet=Date.now()-net.lastMsg;
-    if(quiet>45000)openStream();
+    if(quiet>45000){net.rc=(net.rc||0)+1;openStream()}
     if(!live()||!g||g.over)return;
     renderAsk();settleJoins();
     if(quiet>7000)pollEv();
-    if(!net.out.length&&!net.sending&&net.round===net.room.round&&net.applied>evList().length&&Date.now()-net.sentAt>4000){resync(true);return}
+    if(!net.out.length&&!net.sending&&net.round===net.room.round&&net.applied>evList().length&&Date.now()-net.sentAt>4000){net.rs=(net.rs||0)+1;if(evSync<3){evSync++;logEv("out_of_sync")}resync(true);return}
     renderChips();
     // A seat whose player has gone quiet is played by the host's device so the game keeps moving.
     if((phase==="roll"||phase==="move")&&Date.now()-idleAt>6000&&control(g.turn)==="cpu"){
@@ -1882,34 +1883,35 @@ function createRoom(){
     seats:{0:{id:myId,name:meName(),av:meAv(),fc:myFc}}};
   onErr="";saveCfg();publishMe();
   api("GET","",undefined,code).then(function(x){if(x)throw new Error("taken");return api("PUT","",room,code)})
-    .then(function(){joinTries=0;enter(code,room);renderOnline()})
-    .catch(function(){onErr=L().errNet;renderOnline()});
+    .then(function(){joinTries=0;logEv("room_create","n="+room.cfg.count+";stake="+stake+(room.cfg.auto?";auto":""));enter(code,room);renderOnline()})
+    .catch(function(){logEv("room_create_fail","network");onErr=L().errNet;renderOnline()});
 }
 function joinRoom(code,tries){
   code=String(code||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
   onErr="";saveCfg();publishMe();
-  if(code.length!==6){onErr=L().errNoRoom;renderOnline();return}
+  var rj=rejoining,jf=function(why){logEv(rj?"room_rejoin_fail":"room_join_fail",why)};
+  if(code.length!==6){jf("bad_code");onErr=L().errNoRoom;renderOnline();return}
   api("GET","",undefined,code).then(function(r){
-    if(!r||!r.cfg){try{localStorage.removeItem("ludo-room")}catch(e){}rejoining=false;onErr=L().errNoRoom;renderOnline();return}
-    if((r.v||1)>PROTO){rejoining=false;onErr=L().errOld;renderOnline();return}
+    if(!r||!r.cfg){jf("no_room");try{localStorage.removeItem("ludo-room")}catch(e){}rejoining=false;onErr=L().errNoRoom;renderOnline();return}
+    if((r.v||1)>PROTO){jf("old_version");rejoining=false;onErr=L().errOld;renderOnline();return}
     if(nextOf(r,code)){joinRoom(r.next,tries);return}
     var n=r.cfg.count,free=-1;
     for(var i=0;i<n;i++)if(!seatAt(r,i)&&free<0)free=i;
-    if(hasMe(r)){rejoining=false;enter(code,r);onRoom();return}
+    if(hasMe(r)){if(rj)logEv("room_rejoin");rejoining=false;enter(code,r);onRoom();return}
     rejoining=false;
     if(r.status==="playing"&&r.game&&(r.v||1)>=4){askJoin(code,r);return}
-    if(r.status!=="lobby"){try{localStorage.removeItem("ludo-room")}catch(e){}onErr=L().errStarted;renderOnline();return}
-    if(free<0){onErr=L().errFull;renderOnline();return}
-    if((r.cfg.stake||0)>balanceOf(meName())){onErr=L().errPoints(fmt(r.cfg.stake));renderOnline();return}
-    for(var j=0;j<n;j++){var os=seatAt(r,j);if(os&&keyOf(os.name)===keyOf(meName())){onErr=L().errNameTaken;renderOnline();return}}
+    if(r.status!=="lobby"){jf("already_started");try{localStorage.removeItem("ludo-room")}catch(e){}onErr=L().errStarted;renderOnline();return}
+    if(free<0){jf("full");onErr=L().errFull;renderOnline();return}
+    if((r.cfg.stake||0)>balanceOf(meName())){jf("not_enough_points");onErr=L().errPoints(fmt(r.cfg.stake));renderOnline();return}
+    for(var j=0;j<n;j++){var os=seatAt(r,j);if(os&&keyOf(os.name)===keyOf(meName())){jf("name_taken");onErr=L().errNameTaken;renderOnline();return}}
     var seat={id:myId,name:meName(),av:meAv(),fc:myFc};
     return api("PUT","/seats/"+free,seat,code).then(function(){
-      if(!r.seats)r.seats={};r.seats[free]=seat;pendingCode="";enter(code,r);onRoom();
+      if(!r.seats)r.seats={};r.seats[free]=seat;pendingCode="";logEv("room_join","n="+n);enter(code,r);onRoom();
     });
   }).catch(function(){
     tries=tries||0;
     if(rejoining&&tries<10){setTimeout(function(){if(rejoining&&!net)joinRoom(code,tries+1)},1200+tries*400);return}
-    rejoining=false;onErr=L().errNet;renderOnline();
+    rejoining=false;jf("network");onErr=L().errNet;renderOnline();
   });
 }
 function startOnline(){
@@ -2642,7 +2644,9 @@ window.addEventListener("unhandledrejection",function(ev){
   if(/^net$|Failed to fetch|Load failed|NetworkError/i.test(m))return;
   evErr++;logEv("js_error","promise: "+String(m).slice(0,44));
 });
-setTimeout(function(){logEv("app_open",acct&&pAuth?"signed_in":"signed_out");evName()},2500);
+setTimeout(function(){logEv("app_open",acct&&pAuth?"signed_in":"signed_out");evName();if(evInvite)logEv("invite_open")},2500);
+var evInvite=false,evSync=0;
+try{evInvite=/^[A-Za-z0-9]{6}$/.test(new URLSearchParams(location.search).get("room")||"")}catch(e){}
 // First steps and games: typed a name, started a game, finished it or left it.
 var evGame=null;
 try{evGame=JSON.parse(localStorage.getItem("ludo-ev-game")||"null")}catch(e){}
@@ -2652,11 +2656,12 @@ function evName(){try{if(hasName()&&!localStorage.getItem("ludo-ev-name")){local
 function evGameStart(){
   var h=0;g.players.forEach(function(pl){if(pl.kind==="human")h++});
   evGame={on:(live()?"online":"local")+";n="+g.players.length+";h="+h,t:Date.now()};evSaveGame();logEv("game_start",evGame.on);
+  if(net){net.rc=0;net.rs=0}
 }
 function evGameEnd(kind){
   if(!evGame)return;
   var m=Math.max(0,Math.min(999,Math.round((Date.now()-evGame.t)/60000)));
-  logEv(kind,evGame.on+";min="+m);evGame=null;evSaveGame();
+  logEv(kind,evGame.on+";min="+m+(net&&/^online/.test(evGame.on)?";re="+(net.rc||0)+";rs="+(net.rs||0):""));evGame=null;evSaveGame();
 }
 // ---------- Activity of signed-in players: the days they play, how often and for how long ----------
 // Kept under the player's sign-in id with their game name and country. Only the owner account can read the list.
@@ -2773,7 +2778,7 @@ function fcOfId(id){
 function isBlockedFc(fc){for(var k in blocked)if(blocked[k]&&blocked[k].fc===fc)return true;return false}
 function blockPlayer(pi){
   var pl=g&&g.players[pi];if(!pl||!pl.id||pl.id===myId)return;
-  blocked[pl.id]={n:String(pl.name||"").slice(0,12),fc:fcOfId(pl.id)};saveBlocked();
+  blocked[pl.id]={n:String(pl.name||"").slice(0,12),fc:fcOfId(pl.id)};saveBlocked();logEv("player_blocked");
   var b=$("bub-"+pi);if(b)b.remove();
 }
 function unblockPlayer(pi){var pl=g&&g.players[pi];if(!pl)return;delete blocked[pl.id];saveBlocked()}
@@ -2781,7 +2786,7 @@ function unblockPlayer(pi){var pl=g&&g.players[pi];if(!pl)return;delete blocked[
 // and the room. No phone number is involved.
 function reportPlayer(pi){
   var pl=g&&g.players[pi];if(!pl||!pl.id||pl.id===myId||reported[pl.id])return Promise.resolve(false);
-  reported[pl.id]=1;blockPlayer(pi);
+  reported[pl.id]=1;blockPlayer(pi);logEv("report_sent");
   var d={by:myId,who:pl.id,name:String(pl.name||"").slice(0,12),msg:String(lastSaid[pl.id]||"").slice(0,40),room:net?net.code:"",b:BUILD,t:Date.now()};
   return dbx("POST","/reports",d).then(function(){return true}).catch(function(){return false});
 }
@@ -3401,7 +3406,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="47";
+var BUILD="48";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
