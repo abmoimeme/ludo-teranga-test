@@ -2093,7 +2093,8 @@ var OWNER="509df743e42091cd8e90480d6a3754c07ae3b30c89b9d8a04c3d9757dc47f6fe",own
 try{ownerOn=localStorage.getItem("ludo-owner")===OWNER}catch(e){}
 function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("")})}
 // ---------- Owner: usage totals ----------
-var ownStats=null,ownStatsMsg="";
+var ownStats=null,ownStatsMsg="",wantStats=false;
+try{wantStats=new URLSearchParams(location.search).has("stats")}catch(e){}
 function loadStats(){
   ownStatsMsg=lang==="fr"?"Chargement…":"Loading…";ownStats=null;renderOwner();
   fetch(DB+"/stats/days.json?orderBy=%22%24key%22&limitToLast=30").then(function(r){if(!r.ok){var er=new Error("net");er.status=r.status;throw er}return r.json()}).then(function(d){
@@ -2150,7 +2151,7 @@ function renderOwner(){
     var c=String($("own-code").value||"").toUpperCase().replace(/[^A-Z0-9]/g,"");
     sha("ludo-owner:"+c).then(function(x){
       if(x===OWNER){ownerOn=true;try{localStorage.setItem("ludo-owner",OWNER)}catch(e){}}else ownMsg=fr?"Code incorrect.":"Wrong code.";
-      renderOwner();
+      if(ownerOn&&wantStats)loadStats();else renderOwner();
     });
   });
   if($("own-stats"))$("own-stats").addEventListener("click",loadStats);
@@ -2814,12 +2815,14 @@ function boot(data){
   if(DB){
     openInbox();publishMe();pullAcct();
     if(fcClean(pendingFriend).length===8&&!pendingCode){closeSheets();openOnline();addFriendByCode(pendingFriend)}
+    // a link ending in ?stats opens the owner's statistics (the owner code is still needed)
+    if(wantStats&&!savedRoom&&!pendingCode){closeSheets();openOwner();if(ownerOn)loadStats()}
   }
 }
 setTimeout(dailyBonus,1500);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)dailyBonus()});
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="34";
+var BUILD="35";
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
