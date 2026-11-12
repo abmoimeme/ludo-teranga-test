@@ -2504,8 +2504,8 @@ function bindFriends(p){
 // ---------- Reactions and short comments during an online game ----------
 // A message goes to everyone, or to one player only. A message for one player is shown on that
 // player's phone and the sender's, and nowhere else.
-var aim=-1,aimT=null,lastSentAt=0,REACT=["😂","👏","😮","🔥","👋","🏃🏿‍♂️","🏃🏾‍♀️","🤷🏾‍♂️","🤷🏾‍♀️","⏳","🇸🇳","😜","💀","🙏🏾","🤲🏾"];
-var REACT_SFX={"😂":"e-laugh","👏":"e-clap","😮":"e-wow","🔥":"e-fire","👋":"e-wave","🏃🏿‍♂️":"e-run","🏃🏾‍♀️":"e-run","🤷🏾‍♂️":"e-shrug","🤷🏾‍♀️":"e-shrug","⏳":"e-tick","🇸🇳":"e-drum","😜":"e-boing","💀":"e-skull","🙏🏾":"e-chime","🤲🏾":"e-chime"};
+var aim=-1,aimT=null,lastSentAt=0,REACT=["😂","👏","😮","🔥","👋","🏃🏿‍♂️","🏃🏾‍♀️","🤷🏾‍♂️","🤷🏾‍♀️","⏳","🇸🇳","😜","💀","🙏🏾","🤲🏾","😭","🎲","👀","🤦🏾‍♂️","👨🏿‍🦯‍➡️","🩴","👑","⚽️","🥇","🥈","🥉","🏥","💵"];
+var REACT_SFX={"😂":"e-laugh","👏":"e-clap","😮":"e-wow","🔥":"e-fire","👋":"e-wave","🏃🏿‍♂️":"e-run","🏃🏾‍♀️":"e-run","🤷🏾‍♂️":"e-shrug","🤷🏾‍♀️":"e-shrug","⏳":"e-tick","🇸🇳":"e-drum","😜":"e-boing","💀":"e-skull","🙏🏾":"e-chime","🤲🏾":"e-chime","😭":"e-wow","🎲":"e-boing","👀":"e-wow","🤦🏾‍♂️":"e-shrug","👨🏿‍🦯‍➡️":"e-run","🩴":"e-clap","👑":"e-chime","⚽️":"e-boing","🥇":"e-chime","🥈":"e-chime","🥉":"e-chime","🏥":"e-tick","💵":"e-chime"};
 function chatSfx(m){sfx(REACT_SFX[m]||"pop")}
 // Where a player's kër sits on the board, as a percentage of the board's width and height.
 function kerSpot(pi){var s=g.players[pi].seat;return {x:(s===0||s===3)?20:80,y:s<2?20:80}}
@@ -3472,7 +3472,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="51";
+var BUILD="52";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
