@@ -181,6 +181,10 @@ h1 span{color:var(--accent);display:block}
 .links a,.note a{color:var(--muted);text-decoration:underline;padding:6px 4px;display:inline-block}
 .mini.danger{border-color:#ffb4a8;color:#ffb4a8}
 .safe li{flex-wrap:wrap}
+.stats{width:100%;border-collapse:collapse;font-size:.9rem;font-variant-numeric:tabular-nums}
+.stats th,.stats td{padding:7px 4px;border-bottom:1px solid rgba(255,255,255,.12);text-align:right;font-weight:400}
+.stats th[scope=row]{text-align:left;font-weight:700}
+.stats thead th{color:var(--muted);font-size:.78rem;font-weight:700}
 .actions button{flex:1 1 25%;min-width:0;background:none;border:1.5px solid var(--muted);border-radius:12px;padding:10px 4px;font-size:.86rem;font-weight:700;min-height:46px}
 
 .sheet{position:fixed;inset:0;background:rgba(6,9,26,.78);display:none;align-items:flex-end;justify-content:center;z-index:20}
@@ -1308,6 +1312,7 @@ function beginTurn(){
 function doRoll(){
   if(phase!=="roll")return;
   if(live()&&control(g.turn)==="remote")return;
+  if(!live()&&!g.counted&&isHuman(g.turn)){g.counted=1;statAdd({loc:1})}
   var n=g.opts.twoDice?2:1,vals=[];
   for(var i=0;i<n;i++)vals.push(1+Math.floor(Math.random()*6));
   if(live()){
@@ -1362,7 +1367,7 @@ function kickFlow(pi){
   say(L().kicked(nameOf(pi)));toast(mine?L().youOut:L().kicked(nameOf(pi)));
   phase="anim";g.dice=[];g.rolled=null;g.bonus=false;renderAll();
   later(function(){
-    if(g.over){settle();recordGame();phase="over";renderAll();showWin();return}
+    if(g.over){settle();recordGame();statOver();phase="over";renderAll();showWin();return}
     finish();
   },1600);
 }
@@ -1396,7 +1401,7 @@ async function doMove(ti,di,remote){
     if(g.players[hit].kind==="human"&&g.players[hit].id!==myId){aim=hit;clearTimeout(aimT);aimT=setTimeout(function(){aim=-1;renderReact()},15000);renderReact()}
   }
   if(placed){g.paid=g.paid||{};g.paid[pi]=1;g.gains[pi]=award(pi,potShare(rankNo,g.players.length,g.pot)+BONUS[rankNo-1]);gain+=g.gains[pi]}
-  if(g.over){settle();recordGame();try{localStorage.removeItem("ludo-game3")}catch(x){}}
+  if(g.over){settle();recordGame();statOver();try{localStorage.removeItem("ludo-game3")}catch(x){}}
   renderTokens();renderDice();
   var freed=res.to===-1;
   if(!reduced&&!freed){
@@ -1576,6 +1581,8 @@ function claimSeat(pl){
   try{paid=localStorage.getItem("ludo-paid")||""}catch(e){}
   if(g.stake&&paid!==tag){pr.pts=Math.max(0,pr.pts-g.stake);pr.t=Date.now();try{localStorage.setItem("ludo-paid",tag)}catch(e){}}
   saveBank();
+  var seen="";try{seen=localStorage.getItem("ludo-stat-tag")||""}catch(e){}
+  if(seen!==tag&&!g.over){try{localStorage.setItem("ludo-stat-tag",tag)}catch(e){}statAdd({pg:1})}
 }
 function rebuildRound(){
   var r=net.room,gm=r.game;if(!gm||!gm.seats)return;
@@ -1838,7 +1845,8 @@ function startOnline(){
     var s=seatAt(r,i);
     seats.push(s?{seat:bs[i],kind:"human",id:s.id,name:s.name,av:s.av}:{seat:bs[i],kind:"cpu",name:CPU_NAMES[bs[i]],av:{t:"e",v:DEF_AV[bs[i]]}});
   }
-  api("PATCH","",{status:"playing",round:(r.round||0)+1,game:{seats:seats},ev:null}).catch(function(){onErr=L().errNet;renderOnline()});
+  var hum=seats.filter(function(x){return x.kind==="human"}).length,so={on:1,hum:hum};so["n"+n]=1;
+  api("PATCH","",{status:"playing",round:(r.round||0)+1,game:{seats:seats},ev:null}).then(function(){statAdd(so)}).catch(function(){onErr=L().errNet;renderOnline()});
 }
 // Play again: every new game gets its own new code. The old game points to the new one so that all
 // players, including anyone who reconnects late, are carried over.
@@ -1848,6 +1856,7 @@ function rematch(){
   var room={v:PROTO,host:myId,created:Date.now(),status:"playing",round:1,cfg:r.cfg,seats:r.seats||{},game:{seats:gs}};
   api("GET","",undefined,code).then(function(x){if(x)throw new Error("taken");return api("PUT","",room,code)})
     .then(function(){return api("PATCH","",{next:code},old)})
+    .then(function(){var so={on:1,hum:gs.filter(function(x){return x.kind==="human"}).length};so["n"+gs.length]=1;statAdd(so)})
     .catch(function(){say(L().errNet)});
 }
 // When a game is over its room stays open for 30 seconds (time to tap "Play again"), then closes for everyone.
@@ -2083,6 +2092,43 @@ function takeGift(k,v){
 var OWNER="509df743e42091cd8e90480d6a3754c07ae3b30c89b9d8a04c3d9757dc47f6fe",ownerOn=false,footTaps=[],ownTo="",ownMsg="";
 try{ownerOn=localStorage.getItem("ludo-owner")===OWNER}catch(e){}
 function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("")})}
+// ---------- Owner: usage totals ----------
+var ownStats=null,ownStatsMsg="";
+function loadStats(){
+  ownStatsMsg=lang==="fr"?"Chargement…":"Loading…";ownStats=null;renderOwner();
+  fetch(DB+"/stats/days.json?orderBy=%22%24key%22&limitToLast=30").then(function(r){if(!r.ok){var er=new Error("net");er.status=r.status;throw er}return r.json()}).then(function(d){
+    ownStats=d||{};ownStatsMsg="";renderOwner();
+  }).catch(function(e){
+    ownStats=null;ownStatsMsg=(e&&(e.status===401||e.status===403))?(lang==="fr"?"Les statistiques ne sont pas encore activées dans la base de données.":"Statistics are not switched on in the database yet."):L().errNet;renderOwner();
+  });
+}
+function statsHTML(){
+  var fr=lang==="fr",days=Object.keys(ownStats||{}).sort(),today=statDay();
+  var CN={"221":"🇸🇳 "+(fr?"Sénégal":"Senegal"),"1":"🇺🇸 "+(fr?"États-Unis / Canada":"USA / Canada"),"33":"🇫🇷 France","39":"🇮🇹 "+(fr?"Italie":"Italy"),"other":fr?"Autres pays":"Other countries"};
+  function sum(from){
+    var t={on:0,loc:0,fin:0,lfin:0,dev:0,nw:0,cc:{}};
+    days.forEach(function(d){
+      if(d<from)return;var rows=ownStats[d]||{};
+      Object.keys(rows).forEach(function(k){
+        var r=rows[k];if(!r||typeof r!=="object")return;
+        var n=function(x){return typeof r[x]==="number"&&r[x]>0&&r[x]<100000?Math.floor(r[x]):0};
+        t.on+=n("on");t.loc+=n("loc");t.fin+=n("fin");t.lfin+=n("lfin");t.nw+=n("new");t.dev++;
+        var c=CN[r.cc]?r.cc:"other";t.cc[c]=t.cc[c]||{dev:0,g:0};t.cc[c].dev++;t.cc[c].g+=n("pg")+n("loc");
+      });
+    });
+    return t;
+  }
+  function ago(n){var x=new Date(Date.now()-n*86400000);return x.toISOString().slice(0,10)}
+  var a=sum(today),b=sum(ago(6)),c=sum(ago(29));
+  var row=function(l,k){return '<tr><th scope="row">'+l+'</th><td>'+fmt(a[k])+'</td><td>'+fmt(b[k])+'</td><td>'+fmt(c[k])+'</td></tr>'};
+  var h='<table class="stats"><thead><tr><td></td><th scope="col">'+(fr?"Auj.":"Today")+'</th><th scope="col">'+(fr?"7 j":"7 days")+'</th><th scope="col">'+(fr?"30 j":"30 days")+'</th></tr></thead><tbody>';
+  h+=row(fr?"Parties en ligne":"Online games","on")+row(fr?"… terminées":"… finished","fin")+row(fr?"Parties locales":"Local games","loc")+row(fr?"… terminées":"… finished","lfin")+row(fr?"Joueurs actifs*":"Active players*","dev")+row(fr?"Nouveaux comptes":"New accounts","nw")+'</tbody></table>';
+  var cs=Object.keys(c.cc).sort(function(x,y){return c.cc[y].g-c.cc[x].g});
+  h+='<h3 style="margin-top:14px">'+(fr?"Par pays · 30 jours":"By country · 30 days")+'</h3>';
+  h+=cs.length?'<table class="stats"><thead><tr><td></td><th scope="col">'+(fr?"Joueurs*":"Players*")+'</th><th scope="col">'+(fr?"Parties jouées":"Games played")+'</th></tr></thead><tbody>'+cs.map(function(k){return '<tr><th scope="row">'+CN[k]+'</th><td>'+fmt(c.cc[k].dev)+'</td><td>'+fmt(c.cc[k].g)+'</td></tr>'}).join("")+'</tbody></table>':'<p class="note" style="margin:0">'+(fr?"Aucune donnée pour l'instant.":"No data yet.")+'</p>';
+  h+='<p class="note">'+(fr?"* Un téléphone qui joue un jour compte pour un joueur ce jour-là ; sur 7 ou 30 jours, c'est le total des jours joués. Les jours sont comptés en heure universelle.":"* A phone that plays on a day counts as one player that day; over 7 or 30 days this is the total of days played. Days follow universal time.")+'</p>';
+  return h;
+}
 function openOwner(){renderOwner();$("sheet-owner").classList.add("open")}
 function renderOwner(){
   var p=$("panel-owner"),fr=lang==="fr",h='<h2>'+(fr?"Outils du propriétaire":"Owner tools")+'</h2>';
@@ -2093,6 +2139,7 @@ function renderOwner(){
     h+='<div><h3>'+(fr?"Mes points":"My points")+(pr?" · "+esc(pr.name)+" ★ "+fmt(pr.pts):"")+'</h3><div class="seg">'+[1000,10000,50000].map(function(n){return '<button type="button" data-own-me="'+n+'">+'+fmt(n)+'</button>'}).join("")+'</div>'+(pr?"":'<p class="note">'+(fr?"Écrivez d'abord votre nom dans « Jouer en ligne ».":"Type your name under “Play online” first.")+'</p>')+'</div>';
     h+='<div><h3>'+(fr?"Offrir des points à":"Gift points to")+'</h3><div class="seg">'+friends.slice(0,12).map(function(f){return '<button type="button" data-own-to="'+f.fc+'" aria-pressed="'+(ownTo===f.fc)+'">'+esc(f.name||fcShow(f.fc))+'</button>'}).join("")+'</div><div class="who" style="margin-top:8px"><input type="text" id="own-fc" maxlength="12" autocomplete="off" autocapitalize="characters" placeholder="'+(fr?"ou code ami":"or friend code")+'" value="'+(ownTo&&!isFriend(ownTo)?fcShow(ownTo):"")+'"></div></div>';
     h+='<div class="seg">'+[500,1000,5000,10000].map(function(n){return '<button type="button" data-own-gift="'+n+'">🎁 '+fmt(n)+'</button>'}).join("")+'</div>';
+    h+='<div><h3>'+(fr?"Statistiques":"Statistics")+'</h3>'+(ownStats?statsHTML():"")+(ownStatsMsg?'<p class="note" style="margin:0 0 8px" role="status">'+esc(ownStatsMsg)+'</p>':"")+'<button type="button" class="mini" id="own-stats">'+(ownStats?(fr?"Actualiser":"Refresh"):(fr?"Afficher":"Show"))+'</button></div>';
     h+='<button type="button" class="ghost" id="own-lock">'+(fr?"Verrouiller":"Lock owner tools")+'</button>';
   }
   h+='<p class="note" id="own-msg" style="margin:0">'+esc(ownMsg)+'</p><button type="button" class="ghost" id="own-close">'+L().close+'</button>';
@@ -2106,6 +2153,7 @@ function renderOwner(){
       renderOwner();
     });
   });
+  if($("own-stats"))$("own-stats").addEventListener("click",loadStats);
   if($("own-lock"))$("own-lock").addEventListener("click",function(){ownerOn=false;try{localStorage.removeItem("ludo-owner")}catch(e){}closeSheets()});
   all("[data-own-me]").forEach(function(b){b.addEventListener("click",function(){
     var pr=myProfile(true);if(!pr)return;
@@ -2306,6 +2354,31 @@ function openChat(){
   $("sheet-chat").classList.add("open");
 }
 
+// ---------- Usage totals ----------
+// Each phone keeps a small daily tally (games started, games finished, country chosen at sign-in) and saves
+// it under a random key that is not linked to the player's account, name or number.
+var statId="",statBox=null,statT=null;
+try{statId=localStorage.getItem("ludo-sid")||""}catch(e){}
+if(!/^[a-z0-9]{10}$/.test(statId)){statId="";while(statId.length<10)statId+=Math.random().toString(36).slice(2);statId=statId.replace(/[^a-z0-9]/g,"").slice(0,10);try{localStorage.setItem("ludo-sid",statId)}catch(e){}}
+try{statBox=JSON.parse(localStorage.getItem("ludo-stats")||"null")}catch(e){}
+function statDay(){return new Date().toISOString().slice(0,10)}
+function statCc(){var c=acct&&acct.cc?String(acct.cc):guessCc();return /^(221|1|33|39|other)$/.test(c)?c:"other"}
+function statAdd(o){
+  if(!DB)return;
+  var d=statDay();
+  if(!statBox||statBox.day!==d||!statBox.doc)statBox={day:d,doc:{}};
+  Object.keys(o).forEach(function(k){statBox.doc[k]=(statBox.doc[k]||0)+o[k]});
+  statBox.doc.cc=statCc();statBox.doc.b=parseInt(BUILD,10)||0;
+  try{localStorage.setItem("ludo-stats",JSON.stringify(statBox))}catch(e){}
+  clearTimeout(statT);
+  statT=setTimeout(function(){var b=statBox;dbx("PUT","/stats/days/"+b.day+"/"+statId,b.doc).catch(function(){})},3000);
+}
+// One phone reports the end of an online game: the first person in seat order.
+function statOver(){
+  if(!live()){statAdd({lfin:1});return}
+  var first=null;g.players.forEach(function(pl){if(!first&&pl.kind==="human"&&pl.id)first=pl.id});
+  if(first===myId)statAdd({fin:1});
+}
 // ---------- Chat safety: word filter, blocked players, reports ----------
 // Typed comments pass through a word filter when sent and again when shown.
 var BADW=("fuck fucker fucking fucked motherfucker shit shitty bullshit bitch bitches asshole bastard cunt pussy whore slut nigger nigga faggot fag retard wanker twat "+
@@ -2445,12 +2518,12 @@ function signIn(cc,raw){
   scramble(num).then(function(aid){
     return dbx("GET","/accounts/"+aid).then(function(d){
       if(d&&d.id&&d.fc){
-        acct={aid:aid,hint:num.slice(-2),t:d.t||0,name:d.name};saveAcct();
+        acct={aid:aid,hint:num.slice(-2),t:d.t||0,name:d.name,cc:String(cc)};saveAcct();
         adoptAcct(d);acctNote=L().welcomeBack(String(d.name||"").slice(0,12));
       }else{
         if(!hasName()){onErr=L().errNameNew;renderOnline();var el=$("me-name");if(el){el.focus();el.classList.add("bad")}return}
-        acct={aid:aid,hint:num.slice(-2),t:0,name:meName()};saveAcct();
-        pushAcct(true);acctNote=L().acctMade;
+        acct={aid:aid,hint:num.slice(-2),t:0,name:meName(),cc:String(cc)};saveAcct();
+        pushAcct(true);acctNote=L().acctMade;statAdd({"new":1});
       }
       publishMe();renderOnline();if(g)renderAll();
     });
@@ -2746,7 +2819,7 @@ function boot(data){
 setTimeout(dailyBonus,1500);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)dailyBonus()});
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="33";
+var BUILD="34";
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
