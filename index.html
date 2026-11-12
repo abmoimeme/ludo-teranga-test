@@ -3140,12 +3140,15 @@ function boot(data){
     if(fcClean(pendingFriend).length===8&&!pendingCode){closeSheets();openOnline();addFriendByCode(pendingFriend)}
     // a link ending in ?stats opens the owner's statistics (the owner code is still needed)
     if(wantStats&&!savedRoom&&!pendingCode){closeSheets();openOwner();if(ownerOn)loadStats()}
+    // a link ending in ?login opens the sign-in panel straight away
+    var wantLogin=false;try{wantLogin=new URLSearchParams(location.search).has("login")}catch(e){}
+    if(wantLogin&&!wantStats&&!savedRoom&&!pendingCode){closeSheets();openOnline()}
   }
 }
 setTimeout(dailyBonus,1500);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)dailyBonus()});
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="39";
+var BUILD="40";
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
