@@ -326,7 +326,7 @@ function absIdx(seat,p){return (seat*13+p)%52}
 function isSafe(g,idx){return g.opts.safe&&(STARS.indexOf(idx)>=0||STARTS.indexOf(idx)>=0)}
 function newGame(cfg){
   return {players:cfg.seats.map(function(s){return {seat:s.seat,kind:s.kind,tokens:[-1,-1,-1,-1]}}),
-    opts:{twoDice:!!cfg.twoDice,safe:!!cfg.safe,blockPass:!!cfg.blockPass,bonus:!!cfg.bonus,captureHome:!!cfg.captureHome,jail:!!cfg.jail,homeBonus:!!cfg.homeBonus},
+    opts:{twoDice:!!cfg.twoDice,safe:!!cfg.safe,blockPass:!!cfg.blockPass,bonus:!!cfg.bonus,captureHome:!!cfg.captureHome,jail:!!cfg.jail,homeBonus:!!cfg.homeBonus,hop:!!cfg.hop},
     turn:0,dice:[],rolled:null,bonus:false,winner:-1,rank:[],over:false};
 }
 function enemyBlock(g,pi,idx){
@@ -338,6 +338,47 @@ function enemyBlock(g,pi,idx){
   }
   return false;
 }
+// How many pieces one opponent has stacked on a square (0 when it is not a block).
+function blockSize(g,pi,idx){
+  if(isSafe(g,idx))return 0;
+  var best=0;
+  for(var oi=0;oi<g.players.length;oi++){
+    if(oi===pi)continue;var op=g.players[oi],n=0;
+    for(var k=0;k<4;k++){var q=op.tokens[k];if(q>=0&&q<=50&&absIdx(op.seat,q)===idx)n++}
+    if(n>best)best=n;
+  }
+  return best>=2?best:0;
+}
+// Counts the sixes rolled in a row during one turn.
+function noteRoll(g,vals){
+  var c=0;vals.forEach(function(v){if(v===6)c++});
+  g.six=c?(g.six||0)+c:0;
+}
+// Hopping a block: a piece standing right behind an opponent's block can jump to the square just past it
+// when as many sixes were rolled in a row this turn as there are pieces in the block (two for a block of
+// two, three for a block of three...). The sixes of the current roll that count towards it are used up.
+// Returns {to, k} (k = dice used) or null.
+function hopInfo(g,pi,ti){
+  if(!g.opts.hop||!g.opts.blockPass)return null;
+  var pl=g.players[pi],p=pl.tokens[ti];
+  if(p<0||p>49)return null;
+  var n=blockSize(g,pi,absIdx(pl.seat,p+1));
+  if(!n||(g.six||0)<n)return null;
+  var to=p+2;
+  if(to<=50&&enemyBlock(g,pi,absIdx(pl.seat,to)))return null; // another block right behind the first
+  var c=0,left=0;
+  (g.rolled||[]).forEach(function(v){if(v===6)c++});
+  g.dice.forEach(function(v){if(v===6)left++});
+  var k=Math.min(n,c);
+  if(k<1||left<k)return null;
+  return {to:to,k:k};
+}
+// Removes the die that was played; a hop also uses up the other sixes that counted towards it.
+function spendDie(g,di,res){
+  g.dice.splice(di,1);
+  var x=(res&&res.hop?res.hop:1)-1;
+  for(var i=g.dice.length-1;i>=0&&x>0;i--){if(g.dice[i]===6){g.dice.splice(i,1);x--}}
+}
 // Returns the destination progress, or null when the move is not allowed.
 function canMove(g,pi,ti,die){
   var pl=g.players[pi],p=pl.tokens[ti],np;
@@ -346,12 +387,18 @@ function canMove(g,pi,ti,die){
   if(p===-1){if(die!==6)return null;np=0}
   else{np=p+die;if(np>56)return null}
   var first=g.opts.blockPass?(p===-1?0:p+1):np;
-  for(var s=first;s<=np&&s<=50;s++){if(enemyBlock(g,pi,absIdx(pl.seat,s)))return null}
+  for(var s=first;s<=np&&s<=50;s++){
+    if(enemyBlock(g,pi,absIdx(pl.seat,s))){
+      if(die===6&&p>=0){var h=hopInfo(g,pi,ti);if(h)return h.to}
+      return null;
+    }
+  }
   return np;
 }
 function legalMoves(g,pi,die){var r=[];for(var t=0;t<4;t++){if(canMove(g,pi,t,die)!==null)r.push(t)}return r}
 function applyMove(g,pi,ti,die){
   var pl=g.players[pi],from=pl.tokens[ti],np=canMove(g,pi,ti,die),captured=[];
+  var hop=(die===6&&from>=0&&np===from+2)?hopInfo(g,pi,ti):null;
   pl.tokens[ti]=np;
   if(np>=0&&np<=50){
     var idx=absIdx(pl.seat,np);
@@ -364,16 +411,17 @@ function applyMove(g,pi,ti,die){
   }
   if(captured.length){if(g.opts.bonus)g.bonus=true;if(g.opts.captureHome)pl.tokens[ti]=56}
   if(g.opts.homeBonus&&pl.tokens[ti]===56)g.bonus=true; // a piece safely home earns another roll
+  if(hop)g.bonus=true; // after a hop the player rolls again and plays that number
   if(g.rank.indexOf(pi)<0&&pl.tokens.every(function(q){return q===56})){
     g.rank.push(pi);if(g.winner<0)g.winner=pi;
     if(g.rank.length+(g.out||[]).length>=g.players.length-1){g.over=true;lastStanding(g)}
   }
-  return {from:from,to:np,captured:captured};
+  return {from:from,to:np,captured:captured,hop:hop?hop.k:0};
 }
 function rollDice(g,rng){
   var n=g.opts.twoDice?2:1;g.dice=[];
   for(var i=0;i<n;i++)g.dice.push(1+Math.floor(rng()*6));
-  g.rolled=g.dice.slice();g.bonus=false;
+  g.rolled=g.dice.slice();g.bonus=false;noteRoll(g,g.dice);
 }
 function playableDice(g){var r=[];g.dice.forEach(function(d,i){if(legalMoves(g,g.turn,d).length)r.push(i)});return r}
 // Ends the current roll. Returns true when the same player rolls again.
@@ -383,7 +431,7 @@ function endRoll(g){
   if(g.over)return false;
   var out=g.out||[];
   if(g.rank.indexOf(g.turn)>=0||out.indexOf(g.turn)>=0)again=false;
-  if(!again){do{g.turn=(g.turn+1)%g.players.length}while(g.rank.indexOf(g.turn)>=0||out.indexOf(g.turn)>=0)}
+  if(!again){g.six=0;do{g.turn=(g.turn+1)%g.players.length}while(g.rank.indexOf(g.turn)>=0||out.indexOf(g.turn)>=0)}
   return again;
 }
 // Takes a player out of the game: their pieces leave the board and anyone held in their kër goes home.
@@ -674,6 +722,10 @@ T.en.wantsIn=function(n){return n+" wants to join the game"};T.fr.wantsIn=functi
 T.en.accept="Accept";T.fr.accept="Accepter";T.it.accept="Accetta";
 T.en.decline="Decline";T.fr.decline="Refuser";T.it.decline="Rifiuta";
 T.en.joined=function(n){return n+" joined the game"};T.fr.joined=function(n){return n+" a rejoint la partie"};T.it.joined=function(n){return n+" è entrato nella partita"};
+T.en.blockHop="Two or more of your pieces on one square form a block. Opponents cannot capture it or pass it, except by hopping: a piece right behind the block jumps just past it with as many sixes in a row as the block has pieces (double six for two, three sixes for three). The sixes are used up, then the player rolls again.";
+T.fr.blockHop="Deux pions ou plus sur une case forment un barrage. Les adversaires ne peuvent ni le capturer ni le dépasser, sauf en sautant : un pion placé juste derrière le barrage passe de l'autre côté avec autant de 6 à la suite que le barrage compte de pions (double six pour deux, trois 6 pour trois). Les 6 sont consommés, puis le joueur relance.";
+T.it.blockHop="Due o più tue pedine sulla stessa casella formano un blocco. Gli avversari non possono catturarlo né superarlo, tranne con un salto: una pedina subito dietro il blocco lo scavalca con tanti 6 di fila quante sono le pedine del blocco (doppio sei per due, tre 6 per tre). I 6 vengono consumati, poi il giocatore tira di nuovo.";
+T.en.hopped=function(n){return n+" hops the block!"};T.fr.hopped=function(n){return n+" saute le barrage !"};T.it.hopped=function(n){return n+" salta il blocco!"};
 T.en.privacy="Privacy";T.fr.privacy="Confidentialité";T.it.privacy="Privacy";
 T.en.support="Help";T.fr.support="Aide";T.it.support="Aiuto";
 T.en.terms="By signing in you accept the privacy policy and the rules of conduct.";T.fr.terms="En vous connectant, vous acceptez la politique de confidentialité et les règles de conduite.";T.it.terms="Accedendo accetti l'informativa sulla privacy e le regole di condotta.";
@@ -994,7 +1046,7 @@ function startGame(){
   if(net)leaveRoom(true);
   epoch++;stopClock();
   var seats=seatsFor(cfg.count).map(function(s){return {seat:s,kind:cfg.kinds[s]}});
-  g=newGame({seats:seats,twoDice:cfg.twoDice,safe:cfg.safe,blockPass:cfg.blockPass,bonus:cfg.bonus,captureHome:false,jail:cfg.jail,homeBonus:cfg.homeBonus});
+  g=newGame({seats:seats,twoDice:cfg.twoDice,safe:cfg.safe,blockPass:cfg.blockPass,bonus:cfg.bonus,captureHome:false,jail:cfg.jail,homeBonus:cfg.homeBonus,hop:true});
   g.stake=cfg.stake>minBal()?0:(cfg.stake||0);g.pot=g.stake*g.players.length;g.gains={};g.v=3;
   g.players.forEach(function(pl){
     var s=pl.seat;
@@ -1257,7 +1309,7 @@ function showRoll(vals){
   (function tick(){
     if(e!==epoch)return;
     if(ticks-->0){var v=[];for(var i=0;i<n;i++)v.push(1+Math.floor(Math.random()*6));renderDice(v);setTimeout(tick,85);return}
-    g.dice=vals.slice();g.rolled=vals.slice();g.bonus=false;selDie=0;step();
+    g.dice=vals.slice();g.rolled=vals.slice();g.bonus=false;noteRoll(g,vals);selDie=0;step();
   })();
 }
 function options(){
@@ -1318,7 +1370,8 @@ async function doMove(ti,di,remote){
   phase="anim";stopClock();
   var e=epoch,pi=g.turn,pl=g.players[pi],die=g.dice[di],el=$("tok-"+pi+"-"+ti);
   var was=g.rank.length,res=applyMove(g,pi,ti,die),caps=res.captured.length,home=pl.tokens[ti]===56,placed=g.rank.length>was,rankNo=g.rank.length;
-  g.dice.splice(di,1);selDie=0;
+  spendDie(g,di,res);selDie=0;
+  if(res.hop){toast(L().hopped(nameOf(pi)));sfx("home")}
   var gain=award(pi,PTS_CAP*caps)+(home?award(pi,PTS_HOME):0);
   stat(pi,"caps",caps);
   if(caps&&live()&&isHuman(pi)){
@@ -1360,7 +1413,7 @@ function api(method,path,body,code){
   return fetch(roomUrl(code||net.code,path),{method:method,headers:{"Content-Type":"application/json"},body:body===undefined?undefined:JSON.stringify(body)})
     .then(function(r){if(!r.ok)throw new Error("net");return r.json()});
 }
-var PROTO=4,rejoining=false;
+var PROTO=5,rejoining=false;
 // The agreed list of inputs, in order. Inputs are only ever added, never overwritten. Each one says which
 // position it was meant for; if two phones send an input for the same position, the first to arrive counts
 // and the other is ignored by everyone.
@@ -1449,8 +1502,8 @@ function simEvent(gm,e){
   if(!evOk(gm,e))return;
   if(e.t==="j"){applyJoin(gm,e);return}
   if(e.t!=="m"&&missStep(gm,e)){gm.dice=[];gm.rolled=null;gm.bonus=false;endRoll(gm);return}
-  if(e.t==="r"){gm.dice=e.d.slice();gm.rolled=e.d.slice();gm.bonus=false}
-  else if(e.t==="m"){applyMove(gm,gm.turn,e.ti,gm.dice[e.di]);gm.dice.splice(e.di,1)}
+  if(e.t==="r"){gm.dice=e.d.slice();gm.rolled=e.d.slice();gm.bonus=false;noteRoll(gm,e.d)}
+  else if(e.t==="m"){var mr=applyMove(gm,gm.turn,e.ti,gm.dice[e.di]);spendDie(gm,e.di,mr)}
   else{gm.dice=[];gm.rolled=null;gm.bonus=false;endRoll(gm);return}
   if(gm.over)return;
   if(!playableDice(gm).length)endRoll(gm);
@@ -1513,7 +1566,7 @@ function rebuildRound(){
   var c=r.cfg||{};
   epoch++;stopClock();closeSheets();
   net.live=true;net.round=r.round;net.applied=0;net.ok=0;net.log=[];net.out=[];rejoining=false;
-  g=newGame({seats:gm.seats.map(function(s){return {seat:s.seat,kind:s.kind==="human"?"human":"cpu"}}),twoDice:c.twoDice,safe:c.safe,blockPass:c.blockPass,bonus:c.bonus,captureHome:c.captureHome,jail:c.jail,homeBonus:c.homeBonus});
+  g=newGame({seats:gm.seats.map(function(s){return {seat:s.seat,kind:s.kind==="human"?"human":"cpu"}}),twoDice:c.twoDice,safe:c.safe,blockPass:c.blockPass,bonus:c.bonus,captureHome:c.captureHome,jail:c.jail,homeBonus:c.homeBonus,hop:(r.v||1)>=5});
   g.stake=c.stake||0;g.pot=g.stake*g.players.length;g.gains={};g.v=3;
   g.nokick=g.join=(r.v||1)>=4;
   g.players.forEach(function(pl,i){
@@ -2567,7 +2620,7 @@ function renderSetup(){
   $("cancel").addEventListener("click",function(){firstVisit=false;closeSheets()});
 }
 function renderRules(){
-  var t=L(),r=t.r,o=g.opts,li=[r.out,o.twoDice?r.two:r.one,o.jail?r.jail:r.cap,o.blockPass?r.blockPass:r.block];
+  var t=L(),r=t.r,o=g.opts,li=[r.out,o.twoDice?r.two:r.one,o.jail?r.jail:r.cap,o.blockPass?(o.hop?t.blockHop:r.blockPass):r.block];
   if(o.safe)li.push(r.safe);if(o.bonus)li.push(r.bonus);if(o.captureHome)li.push(r.home);if(o.homeBonus)li.push(r.homeBonus);li.push(r.end,r.pts);if(turnSecs())li.push(r.timer(turnSecs()));
   $("panel-rules").innerHTML='<h2>'+t.rulesTitle+'</h2><ul>'+li.map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul><button type="button" class="ghost" id="rules-close">'+t.close+'</button>';
   $("rules-close").addEventListener("click",closeSheets);
@@ -2677,7 +2730,7 @@ function boot(data){
 setTimeout(dailyBonus,1500);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)dailyBonus()});
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="31";
+var BUILD="32";
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
