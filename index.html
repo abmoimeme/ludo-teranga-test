@@ -2172,7 +2172,7 @@ function renderGate(){
     '<div class="ad" id="gate-ad" role="complementary"></div>'+
     '<button type="button" class="cta" id="gate-go" style="width:100%">'+t.gateCta+'</button>';
   renderAd();
-  $("gate-go").addEventListener("click",function(){onErr="";$("sheet-gate").classList.remove("open");publishMe();openLobby()});
+  $("gate-go").addEventListener("click",function(){onErr="";$("sheet-gate").classList.remove("open");closeLobby();onlineView="settings";openOnline()});
 }
 // The simple home screen shown once a player is past the sign-in gate: two big choices (play
 // online, or a local game), and the smaller everyday actions underneath.
@@ -3853,7 +3853,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="75";
+var BUILD="76";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
