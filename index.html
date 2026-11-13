@@ -583,7 +583,7 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
   updateReady:"A newer version of the game is ready.",updateGo:"Update",
   toAll:"→ All",toOne:function(n){return "→ "+n},you:"you",everyone:"Everyone",chatTitle:"Say something",chatTo:"Who sees it",chatPh:"Short message",send:"Send",
   phrases:["Got you!","Nice move!","Hurry up!","Good game!","Wait for me!","Thank you!","Bad luck!","I'm coming for you!"],
-  friends:"Friends",yourCode:"Your friend code:",share:"Share",addFriend:"Add",fcPh:"Friend code",remove:"Remove",addF:"+ Friend",
+  friends:"Friends",yourCode:"Your friend code:",share:"Share",addFriend:"Add",fcPh:"Friend code or @username",remove:"Remove",addF:"+ Friend",
   noFriends:"No friends yet. Share your code, type a friend's code here, or tap + Friend next to someone you play with.",
   inviteFriends:"Invite a friend",inviteBtn:"Invite",invitedOk:"Invited",invFrom:function(n){return n+" invites you to a game"},notNow:"Not now",
   errFc:"A friend code has 8 letters and numbers. Check it and try again.",errRules:"Friends are not switched on yet. The new database rules still need to be published in Firebase.",errSelf:"That is your own code.",shareFc:function(c){return "Add me on Ludo Teranga. My friend code: "+c},
@@ -645,7 +645,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
   updateReady:"Une nouvelle version du jeu est prête.",updateGo:"Mettre à jour",
   toAll:"→ Tous",toOne:function(n){return "→ "+n},you:"vous",everyone:"Tout le monde",chatTitle:"Dire quelque chose",chatTo:"Qui le voit",chatPh:"Message court",send:"Envoyer",
   phrases:["Je t'ai eu !","Beau coup !","Dépêche-toi !","Belle partie !","Attends-moi !","Merci !","Pas de chance !","J'arrive pour toi !"],
-  friends:"Amis",yourCode:"Votre code ami :",share:"Partager",addFriend:"Ajouter",fcPh:"Code ami",remove:"Retirer",addF:"+ Ami",
+  friends:"Amis",yourCode:"Votre code ami :",share:"Partager",addFriend:"Ajouter",fcPh:"Code ami ou @pseudo",remove:"Retirer",addF:"+ Ami",
   noFriends:"Pas encore d'amis. Partagez votre code, tapez le code d'un ami ici, ou touchez + Ami à côté d'un joueur.",
   inviteFriends:"Inviter un ami",inviteBtn:"Inviter",invitedOk:"Invité",invFrom:function(n){return n+" vous invite à une partie"},notNow:"Plus tard",
   errFc:"Un code ami a 8 lettres et chiffres. Vérifiez-le et réessayez.",errRules:"Les amis ne sont pas encore activés. Les nouvelles règles de la base doivent être publiées dans Firebase.",errSelf:"C'est votre propre code.",shareFc:function(c){return "Ajoute-moi sur Ludo Teranga. Mon code ami : "+c},
@@ -712,7 +712,7 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
   updateReady:"È pronta una nuova versione del gioco.",updateGo:"Aggiorna",
   toAll:"→ Tutti",toOne:function(n){return "→ "+n},you:"te",everyone:"Tutti",chatTitle:"Di' qualcosa",chatTo:"Chi lo vede",chatPh:"Messaggio breve",send:"Invia",
   phrases:["Ti ho preso!","Bella mossa!","Sbrigati!","Bella partita!","Aspettami!","Grazie!","Che sfortuna!","Sto arrivando!"],
-  friends:"Amici",yourCode:"Il tuo codice amico:",share:"Condividi",addFriend:"Aggiungi",fcPh:"Codice amico",remove:"Rimuovi",addF:"+ Amico",
+  friends:"Amici",yourCode:"Il tuo codice amico:",share:"Condividi",addFriend:"Aggiungi",fcPh:"Codice amico o @nomeutente",remove:"Rimuovi",addF:"+ Amico",
   noFriends:"Ancora nessun amico. Condividi il tuo codice, scrivi qui il codice di un amico, o tocca + Amico accanto a chi gioca con te.",
   inviteFriends:"Invita un amico",inviteBtn:"Invita",invitedOk:"Invitato",invFrom:function(n){return n+" ti invita a una partita"},notNow:"Non ora",
   errFc:"Un codice amico ha 8 lettere e numeri. Controllalo e riprova.",errRules:"Gli amici non sono ancora attivi. Le nuove regole del database devono essere pubblicate in Firebase.",errSelf:"Questo è il tuo codice.",
@@ -803,6 +803,19 @@ T.en.errLogin2="Sign in, or create your login, first.";T.fr.errLogin2="Connectez
 T.en.emInvalid="That email address does not look right.";T.fr.emInvalid="Cette adresse e-mail ne semble pas correcte.";T.it.emInvalid="Questo indirizzo e-mail non sembra corretto.";
 T.en.emNoEmail="Type your email first.";T.fr.emNoEmail="Entrez d'abord votre e-mail.";T.it.emNoEmail="Inserisci prima la tua e-mail.";
 T.en.emNoPw="Type your password.";T.fr.emNoPw="Tapez votre mot de passe.";T.it.emNoPw="Scrivi la tua password.";
+T.en.unameNeed="Pick a @username so friends can find and add you.";T.fr.unameNeed="Choisissez un @pseudo pour que vos amis puissent vous trouver.";T.it.unameNeed="Scegli un @nomeutente per farti trovare dagli amici.";
+T.en.unamePh="username";T.fr.unamePh="pseudo";T.it.unamePh="nomeutente";
+T.en.unameSet="Set";T.fr.unameSet="Valider";T.it.unameSet="Conferma";
+T.en.unameIs="Your username:";T.fr.unameIs="Votre pseudo :";T.it.unameIs="Il tuo nome utente:";
+T.en.unameChange="Change";T.fr.unameChange="Changer";T.it.unameChange="Cambia";
+T.en.unameWait=function(d){return "You can change it again in "+d+" day"+(d===1?"":"s")+"."};
+T.fr.unameWait=function(d){return "Vous pourrez le changer de nouveau dans "+d+" jour"+(d===1?"":"s")+"."};
+T.it.unameWait=function(d){return "Potrai cambiarlo di nuovo in "+d+" giorno"+(d===1?"":"i")+"."};
+T.en.unameBad="3 to 20 letters, numbers, \".\" or \"_\" only.";T.fr.unameBad="3 à 20 lettres, chiffres, « . » ou « _ » seulement.";T.it.unameBad="Da 3 a 20 lettere, numeri, \".\" o \"_\".";
+T.en.unameBad2="Please choose a different username.";T.fr.unameBad2="Choisissez un autre pseudo.";T.it.unameBad2="Scegli un altro nome utente.";
+T.en.unameTaken="That username is already taken.";T.fr.unameTaken="Ce pseudo est déjà pris.";T.it.unameTaken="Questo nome utente è già in uso.";
+T.en.unameFail="Could not save that right now. Try again.";T.fr.unameFail="Impossible d'enregistrer pour le moment. Réessayez.";T.it.unameFail="Impossibile salvare ora. Riprova.";
+T.en.errUname="Pick a @username first.";T.fr.errUname="Choisissez d'abord un @pseudo.";T.it.errUname="Scegli prima un @nomeutente.";
 T.en.emWeak="Choose a password of 8 characters or more.";T.fr.emWeak="Choisissez un mot de passe de 8 caractères ou plus.";T.it.emWeak="Scegli una password di almeno 8 caratteri.";
 T.en.emName="Type your name above first.";T.fr.emName="Écrivez d'abord votre nom ci-dessus.";T.it.emName="Scrivi prima il tuo nome qui sopra.";
 T.en.emExists="This email already has a login. Tap Sign in, or use Forgot your password.";T.fr.emExists="Cet e-mail a déjà un compte. Touchez Me connecter, ou Mot de passe oublié.";T.it.emExists="Questa e-mail ha già un account. Tocca Accedi, oppure Password dimenticata.";
@@ -2145,8 +2158,8 @@ function renderOnline(){
   var on=function(id,fn){var el=$(id);if(el)el.addEventListener("click",fn)};
   on("on-close",closeSheets);
   on("rejoin-stop",function(){rejoining=false;try{localStorage.removeItem("ludo-room")}catch(e){}closeSheets()});
-  on("join-go",function(){var c=$("join-code").value;pendingCode=fcClean(c).slice(0,6);if(needName()||needLogin())return;joinTries=0;joinRoom(c)});
-  on("create-go",function(){if(!needName()&&!needLogin())createRoom()});
+  on("join-go",function(){var c=$("join-code").value;pendingCode=fcClean(c).slice(0,6);if(needName()||needLogin()||needUname())return;joinTries=0;joinRoom(c)});
+  on("create-go",function(){if(!needName()&&!needLogin()&&!needUname())createRoom()});
   bindAcct();
   on("invite-go",invite);
   on("start-go",startOnline);
@@ -2187,7 +2200,7 @@ var friendsOff=false,friendsAt=0;
 function netMsg(e){if(e&&(e.status===401||e.status===403)){friendsOff=true;return L().errRules}return L().errNet}
 function publishMe(){
   if(!DB||!hasName()||(EMAIL_ON&&!pAuth))return;
-  dbx("PUT","/players/"+myFc,{name:meName(),av:meAv(),t:Date.now()}).then(function(){friendsOff=false}).catch(function(e){netMsg(e)});
+  dbx("PUT","/players/"+myFc,{name:meName(),av:meAv(),uname:(acct&&acct.uname)||"",t:Date.now()}).then(function(){friendsOff=false}).catch(function(e){netMsg(e)});
 }
 // Keeps friends' names and pictures current, and fills in a friend who was added before they had set a name.
 function refreshFriends(){
@@ -2211,14 +2224,29 @@ function addFriend(fc,name,av){
   if(friends.length>40)friends.shift();
   saveFriends();return true;
 }
-function addFriendByCode(raw){
-  var fc=fcClean(raw);onErr="";
+function addByFc(fc){
+  onErr="";
   if(fc.length!==8){onErr=L().errFc;renderOnline();return}
   if(fc===myFc){onErr=L().errSelf;renderOnline();return}
   if(isFriend(fc)){renderOnline();return}
   dbx("GET","/players/"+fc).then(function(p){
     // a friend who has not opened the game since friends were switched on is added by code; the name fills in later
     addFriend(fc,p&&p.name,p&&p.av);friendsAt=0;renderOnline();
+  }).catch(function(e){onErr=netMsg(e);renderOnline()});
+}
+function addFriendByCode(raw){
+  onErr="";
+  var s=String(raw||"");
+  // a real friend code is 8 uppercase letters/digits only; '@', lowercase, "_" or "." mean it's a username instead
+  if(!/^@/.test(s.trim())&&!/[a-z_.]/.test(s)){
+    var fc=fcClean(s);
+    if(fc.length===8){addByFc(fc);return}
+  }
+  var u=unameNorm(s);
+  if(!unameOk(u)){onErr=L().errFc;renderOnline();return}
+  dbx("GET","/usernames/"+u).then(function(owner){
+    if(!owner){onErr=L().errFc;renderOnline();return}
+    addByFc(owner);
   }).catch(function(e){onErr=netMsg(e);renderOnline()});
 }
 function removeFriend(fc){friends=friends.filter(function(f){return f.fc!==fc});saveFriends();renderOnline()}
@@ -2331,6 +2359,7 @@ function ownerRules(){
   ' "rooms":{"$code":{".read":"auth != null",".write":"auth != null",".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
   ' "players":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "inbox":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
+  ' "usernames":{"$u":{".read":"auth != null",".write":"auth != null",".validate":"$u.matches(/^[a-z0-9_.]{3,20}$/) && (!newData.exists() || (newData.isString() && newData.val().matches(/^[A-Z0-9]{8}$/)))"}},\n'+
   ' "accounts":{"$id":{".read":"auth != null && ($id.matches(/^[a-f0-9]{40}$/) || auth.uid === $id)",".write":"auth != null && ($id.matches(/^[a-f0-9]{40}$/) || auth.uid === $id)"}},\n'+
   ' "reports":{"$id":{".write":"!data.exists()"}},\n'+
   ' "events":{".read":"auth != null && auth.uid === \''+own+'\'","$d":{".write":"auth != null && auth.uid === \''+own+'\' && !newData.exists()","$k":{".write":"!data.exists()",".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChildren([\'e\',\'t\']) && newData.child(\'e\').isString() && newData.child(\'e\').val().length <= 24 && (!newData.child(\'r\').exists() || (newData.child(\'r\').isString() && newData.child(\'r\').val().length <= 60))"}}},\n'+
@@ -2340,6 +2369,7 @@ function ownerRules(){
   ' "rooms":{"$code":{".read":true,".write":true,".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
   ' "players":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "inbox":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
+  ' "usernames":{"$u":{".read":true,".write":true,".validate":"$u.matches(/^[a-z0-9_.]{3,20}$/) && (!newData.exists() || (newData.isString() && newData.val().matches(/^[A-Z0-9]{8}$/)))"}},\n'+
   ' "accounts":{"$id":{".read":true,".write":true,".validate":"$id.matches(/^[a-f0-9]{40}$/)"}},\n'+
   ' "reports":{"$id":{".write":"!data.exists()"}},\n'+
   ' "stats":{"days":{".read":"auth != null && auth.uid === \''+String(ownAuth&&ownAuth.uid||"").replace(/[^A-Za-z0-9]/g,"")+'\'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
@@ -2523,7 +2553,7 @@ function acceptInvite(code){
   if(net)leaveRoom();
   closeSheets();joinTries=0;pendingCode=code;onErr="";
   openOnline();
-  if(!needName()&&!needLogin())joinRoom(code);
+  if(!needName()&&!needLogin()&&!needUname())joinRoom(code);
 }
 function renderInvite(){
   var bar=$("invite-bar"),ks=Object.keys(invites);
@@ -2537,8 +2567,8 @@ function renderInvite(){
 }
 function avHTML(av){av=cleanAv(av,0);return '<span class="av">'+(av.t==="i"?'<img alt="" src="'+esc(av.v)+'">':esc(av.v))+'</span>'}
 function friendsHTML(){
-  var t=L(),h='<div><h3>'+t.friends+'</h3>'+(friendsOff?'<p class="warn" style="margin:0 0 8px">'+t.errRules+'</p>':"")+'<p class="note" style="margin:0 0 8px">'+t.yourCode+' <b class="fc">'+fcShow(myFc)+'</b> <button type="button" class="mini" id="fc-share">'+t.share+'</button> <span id="fc-note"></span></p>';
-  h+='<div class="who"><input type="text" id="fc-add" maxlength="9" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="XXXX-XXXX" aria-label="'+t.fcPh+'"><button type="button" class="cta" id="fc-go" style="padding:0 22px">'+t.addFriend+'</button></div>';
+  var t=L(),h='<div><h3>'+t.friends+'</h3>'+(friendsOff?'<p class="warn" style="margin:0 0 8px">'+t.errRules+'</p>':"")+'<p class="note" style="margin:0 0 8px">'+(acct&&acct.uname?'<b>@'+esc(acct.uname)+'</b> · ':"")+t.yourCode+' <b class="fc">'+fcShow(myFc)+'</b> <button type="button" class="mini" id="fc-share">'+t.share+'</button> <span id="fc-note"></span></p>';
+  h+='<div class="who"><input type="text" id="fc-add" maxlength="21" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="'+t.fcPh+'" aria-label="'+t.fcPh+'"><button type="button" class="cta" id="fc-go" style="padding:0 22px">'+t.addFriend+'</button></div>';
   if(!friends.length)h+='<p class="note">'+t.noFriends+'</p>';
   else h+='<ol class="places" style="margin-top:8px">'+friends.map(function(f){
     return '<li>'+avHTML(f.av)+'<b>'+esc(f.name)+'</b><button type="button" class="mini q" data-rmf="'+f.fc+'" aria-label="'+t.remove+' '+esc(f.name)+'">'+t.remove+'</button></li>';
@@ -2943,6 +2973,44 @@ function reportPlayer(pi){
 // The number itself is never stored or sent. It is turned into a scrambled code on the device, and that
 // code is the key to the player's saved name, picture, points and friends. Other players never receive it.
 var acct=null,acctT=null,acctOff=false,acctNote="",saveOff=false;
+var unameEditing=false,unameErr="",unameBusy=false;
+var UNAME_LOCK_MS=15*24*60*60*1000;
+function unameNorm(s){return String(s||"").trim().replace(/^@+/,"").toLowerCase()}
+function unameOk(u){return /^[a-z0-9_.]{3,20}$/.test(u)&&!/\.\.|^\.|\.$/.test(u)}
+function unameLockedUntil(){return acct&&acct.uname&&acct.unameAt?acct.unameAt+UNAME_LOCK_MS:0}
+function unameLocked(){return !!(acct&&acct.uname)&&Date.now()<unameLockedUntil()}
+function needUname(){
+  if(!DB||!acct||acct.uname)return false;
+  unameEditing=true;onErr=L().errUname;renderOnline();focusBad("uname-in");return true;
+}
+function claimUname(raw){
+  var u=unameNorm(raw);
+  if(!unameOk(u)){unameErr=L().unameBad;renderOnline();focusBad("uname-in");return}
+  if(badWord(u)){unameErr=L().unameBad2;renderOnline();focusBad("uname-in");return}
+  if(unameBusy)return;
+  var old=acct&&acct.uname?unameNorm(acct.uname):"";
+  if(u===old){unameEditing=false;unameErr="";renderOnline();return}
+  unameBusy=true;unameErr="";renderOnline();
+  dbx("GET","/usernames/"+u).then(function(owner){
+    unameBusy=false;
+    if(owner!==null&&owner!==myFc){unameErr=L().unameTaken;renderOnline();focusBad("uname-in");return}
+    dbx("PUT","/usernames/"+u,myFc).then(function(){
+      if(old&&old!==u)dbx("PUT","/usernames/"+old,null).catch(function(){});
+      if(!acct)return;
+      acct.uname=u;acct.unameAt=Date.now();saveAcct();unameEditing=false;
+      publishMe();pushAcct(true);renderOnline();
+    }).catch(function(){unameBusy=false;unameErr=L().unameFail;renderOnline()});
+  }).catch(function(){unameBusy=false;unameErr=L().unameFail;renderOnline()});
+}
+function unameBlockHTML(){
+  if(!acct)return "";
+  var t=L();
+  if(acct.uname&&!unameEditing){
+    var left=Math.max(0,Math.ceil((unameLockedUntil()-Date.now())/86400000));
+    return '<p class="note" style="margin:6px 0 0">'+t.unameIs+' <b>@'+esc(acct.uname)+'</b>'+(left>0?' <span style="color:var(--muted)">'+t.unameWait(left)+'</span>':' <button type="button" class="mini q" id="uname-edit" style="padding-left:0;text-decoration:underline">'+t.unameChange+'</button>')+'</p>';
+  }
+  return '<div style="margin-top:8px"><p class="warn" style="margin:0 0 6px">'+t.unameNeed+'</p><div class="who"><input type="text" id="uname-in" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="'+t.unamePh+'" value="'+esc(acct.uname||"")+'" aria-label="'+t.unamePh+'"><button type="button" class="cta" id="uname-go" style="padding:0 18px"'+(unameBusy?" disabled":"")+'>'+t.unameSet+'</button></div>'+(unameErr?'<p class="err" role="alert">'+esc(unameErr)+'</p>':"")+'</div>';
+}
 try{acct=JSON.parse(localStorage.getItem("ludo-acct")||"null")}catch(e){}
 if(!acct||!/^([a-f0-9]{40}|[A-Za-z0-9]{20,40})$/.test(acct.aid||""))acct=null;
 // With email sign-in, a device that was signed in the old way (phone number) keeps its name and points on
@@ -2982,7 +3050,7 @@ function scramble(s){
 function saveAcct(){try{if(acct)localStorage.setItem("ludo-acct",JSON.stringify(acct));else localStorage.removeItem("ludo-acct")}catch(e){}}
 function acctDoc(){
   var nm=meName(),pr=bank.profiles[keyOf(nm)]||{};
-  return {id:myId,fc:myFc,name:nm,av:meAv(),pts:typeof pr.pts==="number"?pr.pts:WELCOME,games:pr.games||0,wins:pr.wins||0,caps:pr.caps||0,best:pr.best||0,run:pr.run||0,day:pr.day||"",friends:friends.slice(0,40),cc:(acct&&acct.cc)||"",mig:acct&&acct.mig?1:0,t:Date.now()};
+  return {id:myId,fc:myFc,name:nm,av:meAv(),pts:typeof pr.pts==="number"?pr.pts:WELCOME,games:pr.games||0,wins:pr.wins||0,caps:pr.caps||0,best:pr.best||0,run:pr.run||0,day:pr.day||"",friends:friends.slice(0,40),cc:(acct&&acct.cc)||"",mig:acct&&acct.mig?1:0,uname:(acct&&acct.uname)||"",unameAt:(acct&&acct.unameAt)||0,t:Date.now()};
 }
 // Saves the signed-in player's data a moment after it changes.
 function pushAcct(now){
@@ -3036,7 +3104,7 @@ function pushAcct(now){
 function baseOf(d){return {pts:typeof d.pts==="number"?d.pts:WELCOME,games:d.games||0,wins:d.wins||0,caps:d.caps||0}}
 // Brings the saved account onto this device.
 function adoptAcct(d){
-  if(acct){acct.b=baseOf(d);saveAcct()}
+  if(acct){acct.b=baseOf(d);if(typeof d.uname==="string"&&d.uname){acct.uname=d.uname;acct.unameAt=d.unameAt||acct.unameAt||0}saveAcct()}
   if(typeof d.id==="string"&&/^p[a-z0-9]{6,40}$/.test(d.id)){myId=d.id;try{localStorage.setItem("ludo-id",myId)}catch(e){}}
   if(typeof d.fc==="string"&&/^[A-Z0-9]{8}$/.test(d.fc)&&d.fc!==myFc){
     myFc=d.fc;try{localStorage.setItem("ludo-fc",myFc)}catch(e){}
@@ -3290,6 +3358,7 @@ function emailAcctHTML(){
   if(acct){
     h+='<p class="note" style="margin:0">'+t.signedInAs(esc(acct.hint||""))+' <button type="button" class="mini" id="ph-out">'+t.signOut+'</button></p>'+(acctNote?'<p class="note" style="margin:6px 0 0;color:var(--accent)" role="status">'+esc(acctNote)+'</p>':"");
     if(saveOff)h+='<p class="warn" style="margin:8px 0 0">'+t.saveOff+'</p>';
+    h+=unameBlockHTML();
     if(pAuth&&pAuth.ver===false)h+='<p class="note">'+t.emConfirm+' <button type="button" class="mini" id="em-resend">'+t.emAgain+'</button></p>';
     if(!acct.mig&&!net)h+='<details class="mv"><summary>'+t.moveAsk+'</summary><p class="note" style="margin:8px 0">'+t.moveNote+'</p><div class="who"><select id="mv-cc" aria-label="'+t.phCc+'">'+CCS.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===(acct.cc||guessCc())?" selected":"")+'>'+c[1]+'</option>'}).join("")+'</select><input type="tel" id="mv-num" inputmode="tel" maxlength="20" placeholder="'+t.phPh+'" aria-label="'+t.phPh+'"></div><button type="button" class="mini" id="mv-go" style="margin-top:8px">'+t.moveGo+'</button></details>';
     if(delAsk)h+='<p class="warn" style="margin:10px 0 8px">'+t.delAsk+'</p><div class="who"><button type="button" class="mini danger" id="del-yes">'+t.delYes+'</button><button type="button" class="mini" id="del-no">'+t.delNo+'</button></div>';
@@ -3332,6 +3401,9 @@ function acctHTML(){
 }
 function bindAcct(){
   fetchGeo();
+  if($("uname-go"))$("uname-go").addEventListener("click",function(){claimUname($("uname-in").value)});
+  if($("uname-in"))$("uname-in").addEventListener("keydown",function(ev){if(ev.key==="Enter")claimUname($("uname-in").value)});
+  if($("uname-edit"))$("uname-edit").addEventListener("click",function(){if(unameLocked())return;unameEditing=true;unameErr="";renderOnline()});
   if($("ph-go"))$("ph-go").addEventListener("click",function(){signIn($("ph-cc").value,$("ph-num").value)});
   if($("em-in"))$("em-in").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,false,$("em-cc").value)});
   if($("em-new"))$("em-new").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,true,$("em-cc").value)});
@@ -3615,7 +3687,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="68";
+var BUILD="69";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
