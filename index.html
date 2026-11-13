@@ -2193,22 +2193,25 @@ function renderGate(){
 // online, or a local game), and the smaller everyday actions underneath.
 function renderLobby(){
   var t=L(),resume=resumable&&g&&!g.over;
+  // While still an active player in a live game with others, hide these two home-screen choices too
+  // (same reason as the matching buttons on the game screen): a tap here shouldn't abandon that game.
+  var mine=myPi(),inPlay=live()&&g&&!g.over&&mine>=0&&(g.out||[]).indexOf(mine)<0;
   $("panel-lobby").innerHTML='<div class="adtop" id="lobby-adtop" role="complementary"></div>'+
     '<div class="gate-banner"><div class="gate-crown">👑</div>'+
     '<div class="gate-wordmark"><span class="gw-l" style="background:var(--red)">L</span><span class="gw-l" style="background:var(--green)">U</span><span class="gw-l" style="background:var(--blue)">D</span><span class="gw-l" style="background:var(--yellow);color:#1a1500">O</span><b class="gw-word">Teranga</b></div>'+
     '<div class="gate-pawns"><i style="background:var(--red)"></i><i style="background:var(--green)"></i><span class="gate-die">🎲</span><i style="background:var(--blue)"></i><i style="background:var(--yellow)"></i></div></div>'+
     '<span class="lobby-bal">★ '+fmt(balanceOf(meName()))+'</span>'+
-    '<div class="lobby-tiles"><button type="button" class="tile tile-gold" id="lobby-online"><i>🌍</i>'+esc(t.online)+'</button>'+
+    (inPlay?'':'<div class="lobby-tiles"><button type="button" class="tile tile-gold" id="lobby-online"><i>🌍</i>'+esc(t.online)+'</button>'+
     '<button type="button" class="tile tile-blue" id="lobby-new"><i>🎮</i>'+(resume?esc(t.resumeGame):esc(t.newGame))+'</button></div>'+
-    (resume?'<button type="button" class="ghost" id="lobby-fresh" style="min-height:38px">'+esc(t.newGameInstead)+'</button>':'')+
+    (resume?'<button type="button" class="ghost" id="lobby-fresh" style="min-height:38px">'+esc(t.newGameInstead)+'</button>':''))+
     '<div class="lobby-mini"><button type="button" id="lobby-rules">❓ '+esc(t.rules)+'</button>'+
     '<button type="button" id="lobby-scores">🏆 '+esc(t.scores)+'</button>'+
     '<button type="button" id="lobby-sound">'+esc(soundOn?t.soundOn:t.soundOff)+'</button>'+
     '<button type="button" id="lobby-settings">⚙️</button></div>'+
     '<div class="ad" id="lobby-ad" role="complementary"></div>';
   renderAd();
-  $("lobby-online").addEventListener("click",function(){closeLobby();onErr="";onlineView="play";leaveAsk=false;publishMe();openOnline()});
-  $("lobby-new").addEventListener("click",function(){
+  if($("lobby-online"))$("lobby-online").addEventListener("click",function(){closeLobby();onErr="";onlineView="play";leaveAsk=false;publishMe();openOnline()});
+  if($("lobby-new"))$("lobby-new").addEventListener("click",function(){
     if(resume){closeLobby();return}
     closeLobby();renderSetup();$("sheet-setup").classList.add("open");
   });
@@ -3868,7 +3871,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="82";
+var BUILD="83";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
