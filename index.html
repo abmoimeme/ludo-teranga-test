@@ -208,7 +208,7 @@ h1 span{color:var(--accent);display:block}
 .sheet{position:fixed;inset:0;background:rgba(6,9,26,.78);display:none;align-items:flex-end;justify-content:center;z-index:20}
 .sheet.open{display:flex}
 .sheet.gate{z-index:50;align-items:center;background:radial-gradient(circle at 50% 0%,rgba(58,78,170,.55) 0%,rgba(6,9,26,.88) 60%)}
-.sheet.lobby{z-index:40;align-items:center;background:radial-gradient(circle at 50% 0%,rgba(58,78,170,.55) 0%,rgba(6,9,26,.88) 60%)}
+.sheet.lobby{z-index:40;align-items:center;background:radial-gradient(circle at 50% 0%,#33408f 0%,#0a0e24 60%)}
 .sheet.lobby .panel{border-radius:22px;text-align:center;max-width:420px;margin:16px;gap:12px;border:3px solid #cc9f30;box-shadow:0 18px 44px rgba(0,0,0,.5),0 0 0 6px rgba(240,191,0,.1);padding-top:0}
 .lobby-bal{display:inline-flex;align-self:center;background:rgba(0,0,0,.25);border-radius:999px;padding:6px 16px;font-weight:800;color:var(--accent)}
 .lobby-tiles{display:flex;gap:10px}
@@ -228,7 +228,10 @@ h1 span{color:var(--accent);display:block}
 .gate-tag{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:#1a1500;font-weight:800;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;border-radius:999px;padding:5px 12px;margin:2px auto 0;box-shadow:0 2px 0 #b58a00}
 .gate-spons-label{display:block;color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px}
 .gate-spons{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:4px 0}
-.gate-spons img{width:30px;height:30px;border-radius:9px;object-fit:cover;background:var(--cloth);border:1.5px solid rgba(240,191,0,.35)}
+.gate-spons img{width:30px;height:30px;border-radius:9px;object-fit:cover;background:var(--cloth);border:1.5px solid rgba(240,191,0,.35);animation:spon-float 2.6s ease-in-out infinite}
+.gate-spons img:nth-child(odd){animation-delay:-1.3s}
+@keyframes spon-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@media (prefers-reduced-motion:reduce){.gate-spons img{animation:none}}
 #sheet-gate .cta{box-shadow:0 4px 0 #b58a00;font-size:1.2rem}
 #sheet-gate .cta:active{box-shadow:0 1px 0 #b58a00;transform:translateY(3px)}
 #toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-140%);z-index:40;max-width:92%;background:#fff;color:#161c3d;font-weight:700;font-size:.95rem;border-radius:14px;padding:10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:transform .35s ease,opacity .2s linear;text-align:center;pointer-events:none;opacity:0;visibility:hidden}
@@ -617,6 +620,7 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
   autoNoteGuest:"The game starts once every seat is taken, or sooner if the host starts it.",startingNow:"Everyone is here. Starting…",
   startOnline:"Start game",waitHost:"Waiting for the host to start…",leave:"Leave game",waitAgain:"Waiting for the host to start the next game…",
   leaveGame:"Leave game",leaveAsk:"If you leave now, you lose this game for good. This cannot be undone.",leaveYes:"Yes, leave and forfeit",leaveNo:"Stay in the game",
+  resumeGame:"Resume game",newGameInstead:"Start a new game instead",
   rejoinTitle:"Getting you back into your game…",rejoinNote:"Reconnecting. Your seat and your pieces are kept.",rejoinStop:"Stop and play on this phone",errOld:"This game needs the newest version. Close the game completely and open it again.",
   acctTitle:"Your account",phCc:"Country",phPh:"Phone number",signIn:"Sign in with my number",signOut:"Sign out",
   tabPlay:"Play with friends",tabSettings:"Settings",blockedTitle:"Blocked players",blockedNone:"No blocked players.",blockedWho:"A player",unblock:"Unblock",prefsTitle:"Preferences",
@@ -682,6 +686,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
   autoNoteGuest:"La partie démarre quand tous les sièges sont pris, ou avant si l'hôte la lance.",startingNow:"Tout le monde est là. C'est parti…",
   startOnline:"Commencer",waitHost:"En attente de l'hôte…",leave:"Quitter la partie",waitAgain:"En attente de l'hôte pour la prochaine partie…",
   leaveGame:"Quitter la partie",leaveAsk:"Si vous quittez maintenant, vous perdez cette partie pour de bon. Impossible de revenir en arrière.",leaveYes:"Oui, quitter et abandonner",leaveNo:"Rester dans la partie",
+  resumeGame:"Reprendre la partie",newGameInstead:"Commencer une nouvelle partie",
   rejoinTitle:"Retour dans votre partie…",rejoinNote:"Reconnexion en cours. Votre siège et vos pions sont gardés.",rejoinStop:"Arrêter et jouer sur ce téléphone",errOld:"Cette partie demande la dernière version. Fermez complètement le jeu puis rouvrez-le.",
   acctTitle:"Votre compte",phCc:"Pays",phPh:"Numéro de téléphone",signIn:"Me connecter avec mon numéro",signOut:"Se déconnecter",
   tabPlay:"Jouer avec des amis",tabSettings:"Réglages",blockedTitle:"Joueurs bloqués",blockedNone:"Aucun joueur bloqué.",blockedWho:"Un joueur",unblock:"Débloquer",prefsTitle:"Préférences",
@@ -753,6 +758,7 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
   autoNoteGuest:"La partita inizia quando tutti i posti sono occupati, o prima se l'host la avvia.",startingNow:"Ci siete tutti. Si parte…",
   startOnline:"Inizia la partita",waitHost:"In attesa che l'host inizi…",leave:"Esci dalla partita",waitAgain:"In attesa che l'host avvii la prossima partita…",
   leaveGame:"Esci dalla partita",leaveAsk:"Se esci ora, perdi questa partita per sempre. Non si può annullare.",leaveYes:"Sì, esci e abbandona",leaveNo:"Resta nella partita",
+  resumeGame:"Riprendi la partita",newGameInstead:"Inizia una nuova partita",
   rejoinTitle:"Ti riportiamo nella tua partita…",rejoinNote:"Riconnessione in corso. Il tuo posto e le tue pedine sono conservati.",rejoinStop:"Ferma e gioca su questo telefono",
   errOld:"Questa partita richiede l'ultima versione. Chiudi del tutto il gioco e riaprilo.",
   acctTitle:"Il tuo account",phCc:"Paese",phPh:"Numero di telefono",signIn:"Accedi con il mio numero",signOut:"Esci",
@@ -1634,7 +1640,7 @@ async function doMove(ti,di,remote){
 var DB=((window.LUDO_CONFIG&&window.LUDO_CONFIG.databaseURL)||"").replace(/\/+$/,"");
 var CFG=window.LUDO_CONFIG||{},AUTH_URL=(CFG.authUrl||"https://identitytoolkit.googleapis.com/v1").replace(/\/+$/,""),TOKEN_URL=(CFG.tokenUrl||"https://securetoken.googleapis.com/v1").replace(/\/+$/,"");
 var net=null,idleAt=0,myId=null,onErr="",pendingCode="",joinTries=0;
-var onlineView="play",leaveAsk=false;
+var onlineView="play",leaveAsk=false,resumable=false;
 try{myId=localStorage.getItem("ludo-id")}catch(e){}
 if(!myId){myId="p"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);try{localStorage.setItem("ludo-id",myId)}catch(e){}}
 try{pendingCode=(new URLSearchParams(location.search).get("room")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6)}catch(e){}
@@ -2152,19 +2158,24 @@ function renderGate(){
 // The simple home screen shown once a player is past the sign-in gate: two big choices (play
 // online, or a local game), and the smaller everyday actions underneath.
 function renderLobby(){
-  var t=L();
+  var t=L(),resume=resumable&&g&&!g.over;
   $("panel-lobby").innerHTML='<div class="gate-banner"><div class="gate-crown">👑</div>'+
     '<div class="gate-wordmark"><span class="gw-l" style="background:var(--red)">L</span><span class="gw-l" style="background:var(--green)">U</span><span class="gw-l" style="background:var(--blue)">D</span><span class="gw-l" style="background:var(--yellow);color:#1a1500">O</span><b class="gw-word">Teranga</b></div>'+
     '<div class="gate-pawns"><i style="background:var(--red)"></i><i style="background:var(--green)"></i><span class="gate-die">🎲</span><i style="background:var(--blue)"></i><i style="background:var(--yellow)"></i></div></div>'+
     '<span class="lobby-bal">★ '+fmt(balanceOf(meName()))+'</span>'+
     '<div class="lobby-tiles"><button type="button" class="tile tile-gold" id="lobby-online"><i>🌍</i>'+esc(t.online)+'</button>'+
-    '<button type="button" class="tile tile-blue" id="lobby-new"><i>🎮</i>'+esc(t.newGame)+'</button></div>'+
+    '<button type="button" class="tile tile-blue" id="lobby-new"><i>🎮</i>'+(resume?esc(t.resumeGame):esc(t.newGame))+'</button></div>'+
+    (resume?'<button type="button" class="ghost" id="lobby-fresh" style="min-height:38px">'+esc(t.newGameInstead)+'</button>':'')+
     '<div class="lobby-mini"><button type="button" id="lobby-rules">❓ '+esc(t.rules)+'</button>'+
     '<button type="button" id="lobby-scores">🏆 '+esc(t.scores)+'</button>'+
     '<button type="button" id="lobby-sound">'+esc(soundOn?t.soundOn:t.soundOff)+'</button>'+
     '<button type="button" id="lobby-settings">⚙️</button></div>';
   $("lobby-online").addEventListener("click",function(){closeLobby();onErr="";onlineView="play";leaveAsk=false;publishMe();openOnline()});
-  $("lobby-new").addEventListener("click",function(){closeLobby();renderSetup();$("sheet-setup").classList.add("open")});
+  $("lobby-new").addEventListener("click",function(){
+    if(resume){closeLobby();return}
+    closeLobby();renderSetup();$("sheet-setup").classList.add("open");
+  });
+  if($("lobby-fresh"))$("lobby-fresh").addEventListener("click",function(){closeLobby();renderSetup();$("sheet-setup").classList.add("open")});
   $("lobby-rules").addEventListener("click",function(){closeLobby();renderRules();$("sheet-rules").classList.add("open")});
   $("lobby-scores").addEventListener("click",function(){closeLobby();openScores()});
   $("lobby-sound").addEventListener("click",function(){$("btn-sound").click();renderLobby()});
@@ -3785,7 +3796,7 @@ function boot(data){
   var saved=null;
   if(!saved){try{var s=localStorage.getItem("ludo-game3");if(s){var sj=JSON.parse(s);if(validGame(sj)&&!sj.over)saved=sj}}catch(e){}}
   if(saved){
-    g=saved;renamePlayer("Ndeye","Yama");
+    g=saved;renamePlayer("Ndeye","Yama");resumable=true;
     try{localStorage.setItem("ludo-cfg2",JSON.stringify(cfg))}catch(e){}
     epoch++;mount();
     if(g.over){phase="over";renderAll();showWin()}
@@ -3793,8 +3804,8 @@ function boot(data){
     else{g.dice=[];g.rolled=null;beginTurn()}
   }else{
     cfg.stake=0;startGame();
-    openLobby();
   }
+  openLobby();
   var savedRoom="";
   try{savedRoom=localStorage.getItem("ludo-room")||""}catch(e){}
   if(DB&&savedRoom&&(!pendingCode||savedRoom===pendingCode)){
@@ -3820,7 +3831,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="72";
+var BUILD="73";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
