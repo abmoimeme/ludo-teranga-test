@@ -660,6 +660,8 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
     home:"A piece that captures goes straight home.",
     end:"You need the exact number to reach the centre. The first player with all four pieces home wins. With 3 or 4 players, the game goes on to decide the other places.",
     pts:"Points: +10 ★ for a capture, +25 ★ for each piece home, +100 ★ for 1st place, +50 ★ for 2nd, +25 ★ for 3rd. In a points game with 3 or 4 players, 1st takes 70% of the pot and 2nd takes 30%. With 2 players the winner takes it all.",
+    fair:"The dice are plain, unweighted randomness, the same for every player. Points or stake never change the odds.",
+    away:"If a player goes quiet in an online game, you'll see \"away\" next to their name while the game plays safely for them, until they return or leave.",
     timer:function(n){return "Each player has "+n+" seconds to play. If time runs out before the roll, the turn passes. If it runs out after the roll, the game moves a piece for you."}}},
 fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:"Nouvelle partie",rules:"Règles",start:"Commencer",close:"Fermer",again:"Rejouer",
   colors:["Rouge","Vert","Jaune","Bleu"],cpu:"Ordi",player:"Joueur ",
@@ -726,6 +728,8 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
     home:"Le pion qui capture rentre directement au centre.",
     end:"Il faut le nombre exact pour atteindre le centre. Le premier à rentrer ses quatre pions gagne. À 3 ou 4 joueurs, la partie continue pour les autres places.",
     pts:"Points : +10 ★ par capture, +25 ★ par pion rentré, +100 ★ pour la 1re place, +50 ★ pour la 2e, +25 ★ pour la 3e. En partie à points à 3 ou 4 joueurs, le 1er prend 70 % de la cagnotte et le 2e 30 %. À 2 joueurs, le gagnant prend tout.",
+    fair:"Les dés sont un tirage au sort simple, sans pondération, le même pour tous les joueurs. Les points ou la mise ne changent jamais les chances.",
+    away:"Si un joueur ne répond plus dans une partie en ligne, vous verrez \"absent\" à côté de son nom pendant que le jeu joue prudemment pour lui, jusqu'à son retour ou son départ.",
     timer:function(n){return "Chaque joueur a "+n+" secondes pour jouer. Si le temps est écoulé avant le lancer, le tour passe. S'il est écoulé après le lancer, le jeu déplace un pion pour vous."}}}
 };
 // Italian. Any text missing here falls back to English.
@@ -798,6 +802,8 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
     home:"La pedina che cattura va subito al centro.",
     end:"Serve il numero esatto per arrivare al centro. Vince il primo che porta a casa tutte e quattro le pedine. Con 3 o 4 giocatori la partita continua per gli altri posti.",
     pts:"Punti: +10 ★ per una cattura, +25 ★ per ogni pedina arrivata, +100 ★ per il 1º posto, +50 ★ per il 2º, +25 ★ per il 3º. In una partita a punti con 3 o 4 giocatori, il 1º prende il 70% del piatto e il 2º il 30%. In 2, chi vince prende tutto.",
+    fair:"I dadi sono un sorteggio semplice, senza pesi, uguale per tutti i giocatori. Punti o posta non cambiano mai le probabilità.",
+    away:"Se un giocatore non risponde più in una partita online, vedrai \"assente\" accanto al suo nome mentre il gioco gioca con prudenza per lui, finché non torna o esce.",
     timer:function(n){return "Ogni giocatore ha "+n+" secondi per giocare. Se il tempo scade prima del tiro, il turno passa. Se scade dopo il tiro, il gioco muove una pedina per te."}}};
 T.it=Object.assign({},T.en,IT);T.it.r=Object.assign({},T.en.r,IT.r);
 T.en.gateTag="Free to play";T.fr.gateTag="Gratuit";T.it.gateTag="Gratis";
@@ -3716,7 +3722,7 @@ function renderSetup(){
 }
 function renderRules(){
   var t=L(),r=t.r,o=g.opts,li=[r.out,o.twoDice?r.two:r.one,o.jail?r.jail:r.cap,o.blockPass?(o.hop?t.blockHop:r.blockPass):r.block];
-  if(o.door)li.push(t.doorRule);if(o.safe)li.push(o.door?t.safeStars:r.safe);if(o.bonus)li.push(r.bonus);if(o.captureHome)li.push(r.home);if(o.homeBonus)li.push(r.homeBonus);li.push(r.end,r.pts);if(turnSecs())li.push(r.timer(turnSecs()));
+  if(o.door)li.push(t.doorRule);if(o.safe)li.push(o.door?t.safeStars:r.safe);if(o.bonus)li.push(r.bonus);if(o.captureHome)li.push(r.home);if(o.homeBonus)li.push(r.homeBonus);li.push(r.end,r.pts,r.fair);if(turnSecs())li.push(r.timer(turnSecs()));if(live())li.push(r.away);
   $("panel-rules").innerHTML='<h2>'+t.rulesTitle+'</h2><ul>'+li.map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul><button type="button" class="ghost" id="rules-close">'+t.close+'</button>';
   $("rules-close").addEventListener("click",closeSheets);
 }
@@ -3853,7 +3859,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="76";
+var BUILD="77";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
