@@ -1126,7 +1126,7 @@ function timeUp(remote){
   if(live()){
     var kp=g.turn;
     if(missStep(g,{t:"x"})){kickFlow(kp);return}
-    if(!remote&&!g.nokick&&g.miss&&g.miss[kp]===KICK_AFTER-1)toast(L().missWarn);
+    if(!remote&&!g.nokick&&g.miss&&g.miss[kp]===KICK_AFTER-1){toast(L().missWarn);logEv("miss_warn")}
   }
   stopClock();
   sfx("timeup");say(L().timeUp(nameOf(g.turn)));
@@ -1488,6 +1488,7 @@ var stepNo=0;
 // Shown on every phone when a player is taken out for not playing.
 function kickFlow(pi){
   var mine=g.players[pi].id===myId;
+  if(mine)logEv("kicked");
   stopClock();sfx("timeup");
   say(L().kicked(nameOf(pi)));toast(mine?L().youOut:L().kicked(nameOf(pi)));
   phase="anim";g.dice=[];g.rolled=null;g.bonus=false;renderAll();
@@ -3503,7 +3504,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="59";
+var BUILD="60";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
