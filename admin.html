@@ -662,8 +662,17 @@ function start(){
     if(e&&e.message==="signin"){renderSign("Please sign in again.");return}
     loadErr="Could not reach the game server. Check your connection and tap Refresh.";loadedAt=0;render();
   });
+  armPoll();
 }
-$("signout").addEventListener("click",function(){own=null;tok=null;saveOwn();EV=[];SEEN={};STATS={};renderSign("")});
+// Keep the numbers current on their own: re-load once a minute while this tab is open and the owner
+// is signed in. Paused while the tab isn't visible, so it doesn't poll in the background forever.
+var pollT=null;
+function armPoll(){
+  clearInterval(pollT);
+  pollT=setInterval(function(){if(own&&!document.hidden)start()},60000);
+}
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&own&&loadedAt&&Date.now()-loadedAt>=60000)start()});
+$("signout").addEventListener("click",function(){own=null;tok=null;saveOwn();EV=[];SEEN={};STATS={};clearInterval(pollT);renderSign("")});
 $("refresh").addEventListener("click",start);
 if(own)start();else renderSign("");
 })();
