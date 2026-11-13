@@ -92,6 +92,8 @@ h1 span{color:var(--accent);display:block}
 .ker.on{box-shadow:inset 0 0 0 3px #fff,inset 0 0 14px 5px rgba(255,255,255,.75);animation:kerglow 1.2s ease-in-out infinite}
 @keyframes kerglow{0%,100%{box-shadow:inset 0 0 0 3px #fff,inset 0 0 12px 4px rgba(255,255,255,.55)}50%{box-shadow:inset 0 0 0 4px #fff,inset 0 0 26px 10px rgba(255,255,255,.95)}}
 @media (prefers-reduced-motion:reduce){.ker.on{animation:none}}
+.ker.mine{outline:3px solid var(--accent);outline-offset:-3px}
+.ker.mine::before{content:attr(data-you);position:absolute;left:3%;bottom:4%;font-size:.62rem;font-weight:800;letter-spacing:.03em;line-height:1.6;color:#1a1500;background:var(--accent);padding:0 6px;border-radius:99px;z-index:2}
 .tok{position:absolute;width:6.6667%;height:6.6667%;padding:0;border:0;background:none;transition:left .1s linear,top .1s linear;z-index:2;cursor:default}
 .tok.slow{transition:left .42s ease,top .42s ease}
 .tok span{position:absolute;inset:11%;border-radius:50%;border:2px solid #0b102a;transform:scale(var(--s,1));transition:transform .15s;
@@ -793,6 +795,7 @@ T.en.emNew="Create my login";T.fr.emNew="Créer mon compte";T.it.emNew="Crea il 
 T.en.emForgot="Forgot your password?";T.fr.emForgot="Mot de passe oublié ?";T.it.emForgot="Password dimenticata?";
 T.en.acctNote2="Your email and password are your login on any phone or computer. They bring back your name, points and friends. Your email is never shown to other players.";T.fr.acctNote2="Votre e-mail et votre mot de passe sont votre identifiant sur n'importe quel téléphone ou ordinateur. Vous retrouvez votre nom, vos points et vos amis. Votre e-mail n'est jamais montré aux autres joueurs.";T.it.acctNote2="La tua e-mail e la tua password sono il tuo accesso su qualsiasi telefono o computer. Ritrovi il tuo nome, i tuoi punti e i tuoi amici. La tua e-mail non viene mai mostrata agli altri giocatori.";
 T.en.orWord="or";T.fr.orWord="ou";T.it.orWord="o";
+T.en.youTag="YOU";T.fr.youTag="VOUS";T.it.youTag="TU";
 T.en.googleFail="Google sign-in failed. Try again.";T.fr.googleFail="La connexion Google a échoué. Réessayez.";T.it.googleFail="Accesso Google non riuscito. Riprova.";
 T.en.signedInAs=function(h){return "Signed in · "+h};T.fr.signedInAs=function(h){return "Connecté · "+h};T.it.signedInAs=function(h){return "Connesso · "+h};
 T.en.acctMade2="Login created. Use the same email and password on any device.";T.fr.acctMade2="Compte créé. Utilisez le même e-mail et le même mot de passe sur tous vos appareils.";T.it.acctMade2="Account creato. Usa la stessa e-mail e la stessa password su tutti i dispositivi.";
@@ -1181,6 +1184,7 @@ function mount(){
   g.players.forEach(function(pl,pi){
     var k=document.createElement("div"),sx=(pl.seat===0||pl.seat===3)?0:60,sy=pl.seat<2?0:60;
     k.className="ker"+(pl.seat===2?" dark":"");k.id="ker-"+pi;k.style.left=sx+"%";k.style.top=sy+"%";
+    k.setAttribute("data-you",L().youTag);
     k.innerHTML="<small></small><i></i>";b.appendChild(k);
     for(var t=0;t<4;t++){
       var el=document.createElement("button");
@@ -1330,6 +1334,7 @@ function renderChips(){
     var k=$("ker-"+pi);if(!k)return;
     var pr=pl.key&&bank.profiles[pl.key],out=g.out&&g.out.indexOf(pi)>=0,turn=pi===g.turn&&phase!=="over"&&!out;
     k.classList.toggle("on",turn);
+    k.classList.toggle("mine",pi===myPi());
     if(!turn)k.classList.remove("clock","low");
     k.dataset.info=out?L().outTag:(pl.key?"★ "+fmt(pr?pr.pts:0):tagOf(pl));
     kerText(pi);
@@ -3565,7 +3570,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="62";
+var BUILD="63";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
