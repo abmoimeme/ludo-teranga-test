@@ -801,6 +801,7 @@ T.en.signedInAs=function(h){return "Signed in · "+h};T.fr.signedInAs=function(h
 T.en.acctMade2="Login created. Use the same email and password on any device.";T.fr.acctMade2="Compte créé. Utilisez le même e-mail et le même mot de passe sur tous vos appareils.";T.it.acctMade2="Account creato. Usa la stessa e-mail e la stessa password su tutti i dispositivi.";
 T.en.errLogin2="Sign in, or create your login, first.";T.fr.errLogin2="Connectez-vous d'abord, ou créez votre compte.";T.it.errLogin2="Prima accedi o crea il tuo account.";
 T.en.emInvalid="That email address does not look right.";T.fr.emInvalid="Cette adresse e-mail ne semble pas correcte.";T.it.emInvalid="Questo indirizzo e-mail non sembra corretto.";
+T.en.emNoEmail="Type your email first.";T.fr.emNoEmail="Entrez d'abord votre e-mail.";T.it.emNoEmail="Inserisci prima la tua e-mail.";
 T.en.emNoPw="Type your password.";T.fr.emNoPw="Tapez votre mot de passe.";T.it.emNoPw="Scrivi la tua password.";
 T.en.emWeak="Choose a password of 8 characters or more.";T.fr.emWeak="Choisissez un mot de passe de 8 caractères ou plus.";T.it.emWeak="Scegli una password di almeno 8 caratteri.";
 T.en.emName="Type your name above first.";T.fr.emName="Écrivez d'abord votre nom ci-dessus.";T.it.emName="Scrivi prima il tuo nome qui sopra.";
@@ -3119,6 +3120,17 @@ function pullAcct(force){
 // ---------- Email sign-in: create a login, sign in, bring an older account along ----------
 var CCN=[["221","🇸🇳 Sénégal"],["1","🇺🇸 USA / Canada"],["33","🇫🇷 France"],["39","🇮🇹 Italia"],["other","🌍 …"]];
 function emailOk(e){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)&&e.length<=120}
+var MAIL_FIX={"gmial.com":"gmail.com","gmai.com":"gmail.com","gmail.co":"gmail.com","gmail.con":"gmail.com","gnail.com":"gmail.com","gmil.com":"gmail.com","gmail.cm":"gmail.com",
+  "yaho.com":"yahoo.com","yahoo.co":"yahoo.com","yahoo.con":"yahoo.com","yaoo.com":"yahoo.com",
+  "hotmial.com":"hotmail.com","hotmai.com":"hotmail.com","hotmail.co":"hotmail.com","hotmail.con":"hotmail.com",
+  "outlok.com":"outlook.com","outlook.co":"outlook.com","outlool.com":"outlook.com",
+  "icloud.co":"icloud.com","iclod.com":"icloud.com","icloud.con":"icloud.com"};
+// Quietly fixes a handful of common typo'd email domains before we check the address.
+function fixEmailTypo(e){
+  var at=e.lastIndexOf("@");if(at<0)return e;
+  var fixed=MAIL_FIX[e.slice(at+1)];
+  return fixed?e.slice(0,at+1)+fixed:e;
+}
 function maskMail(e){var q=String(e||"").split("@");return q.length===2?q[0].slice(0,2)+"•••@"+q[1]:""}
 function langOfCc(cc){return cc==="221"||cc==="33"?"fr":cc==="39"?"it":cc==="1"?"en":""}
 function authMsg(e){
@@ -3134,10 +3146,11 @@ function authMsg(e){
 }
 function focusBad(id){var el=$(id);if(el){el.focus();el.classList.add("bad")}}
 function emailSign(email,pw,create,cc){
-  email=String(email||"").trim().toLowerCase();pw=String(pw||"");
+  email=fixEmailTypo(String(email||"").trim().toLowerCase());pw=String(pw||"");
   onErr="";acctNote="";
   if(authBusy)return;
   authKind=create?"signup":"signin";
+  if(!email){logEv(authKind+"_fail","no_email");onErr=L().emNoEmail;renderOnline();focusBad("em-mail");return}
   if(!emailOk(email)){logEv(authKind+"_fail","bad_email");onErr=L().emInvalid;renderOnline();focusBad("em-mail");return}
   if(!pw){logEv(authKind+"_fail","no_password");onErr=L().emNoPw;renderOnline();focusBad("em-pw");return}
   if(create&&pw.length<8){logEv("signup_fail","weak_password");onErr=L().emWeak;renderOnline();focusBad("em-pw");return}
@@ -3225,7 +3238,7 @@ function resendVerify(){
     .then(function(){acctNote=L().emSent;renderOnline()},function(e){onErr=e&&e.auth?authMsg(e):L().errNet;renderOnline()});
 }
 function resetPassword(email){
-  email=String(email||"").trim().toLowerCase();onErr="";acctNote="";
+  email=fixEmailTypo(String(email||"").trim().toLowerCase());onErr="";acctNote="";
   if(!emailOk(email)){onErr=L().emResetNeed;renderOnline();focusBad("em-mail");return}
   logEv("reset_request");
   authCall("accounts:sendOobCode",{requestType:"PASSWORD_RESET",email:email})
@@ -3277,7 +3290,7 @@ function emailAcctHTML(){
   h+='<button type="button" class="cta" id="em-in"'+(authBusy?" disabled":"")+'>'+t.emIn+'</button><button type="button" class="ghost" id="em-new" style="margin:0"'+(authBusy?" disabled":"")+'>'+t.emNew+'</button></div>';
   if(GOOGLE_CLIENT_ID)h+='<div class="or-div">'+t.orWord+'</div><div class="g-wrap" id="g-wrap"></div>';
   h+=(acctNote?'<p class="note" style="color:var(--accent)" role="status">'+esc(acctNote)+'</p>':"");
-  h+='<p class="note"><button type="button" class="mini q" id="em-reset" style="padding-left:0;text-decoration:underline">'+t.emForgot+'</button></p>';
+  h+='<p class="note" style="text-align:center"><button type="button" class="mini" id="em-reset" style="color:var(--accent);border-color:var(--accent);font-weight:800">'+t.emForgot+'</button></p>';
   h+='<p class="note">'+t.acctNote2+'</p><p class="note"><a href="privacy.html"'+BLANK+'>'+t.terms+'</a></p></div>';
   return h;
 }
@@ -3308,6 +3321,16 @@ function bindAcct(){
   if($("em-in"))$("em-in").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,false,$("em-cc").value)});
   if($("em-new"))$("em-new").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,true,$("em-cc").value)});
   if($("em-reset"))$("em-reset").addEventListener("click",function(){resetPassword($("em-mail").value)});
+  if($("em-mail")&&$("em-pw")){
+    var emGate=function(){
+      var ok=$("em-mail").value.trim()&&$("em-pw").value;
+      if($("em-in"))$("em-in").disabled=authBusy||!ok;
+      if($("em-new"))$("em-new").disabled=authBusy||!ok;
+    };
+    emGate();
+    $("em-mail").addEventListener("input",emGate);
+    $("em-pw").addEventListener("input",emGate);
+  }
   if($("em-resend"))$("em-resend").addEventListener("click",resendVerify);
   if($("mv-go"))$("mv-go").addEventListener("click",function(){claimPhone($("mv-cc").value,$("mv-num").value)});
   if($("ask-stop"))$("ask-stop").addEventListener("click",function(){stopAsk("",true)});
@@ -3577,7 +3600,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="65";
+var BUILD="66";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
