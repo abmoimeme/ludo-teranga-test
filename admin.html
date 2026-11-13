@@ -314,6 +314,13 @@ function allHistorySummaries(){
   Object.keys(HIST||{}).forEach(function(code){var h=HIST[code];if(h&&typeof h==="object"&&h.cfg)out.push(historySummary(code,h))});
   return out;
 }
+// Raw finished-game records (not the display shape above) whose end falls in the selected period.
+function historyInRange(){
+  var f=fromDay(),out=[];
+  Object.keys(HIST||{}).forEach(function(code){var h=HIST[code];if(h&&typeof h==="object"&&h.cfg&&dayOf(num(h.ended))>=f)out.push(h)});
+  return out;
+}
+function seatedCount(h){return Object.keys(h.seats||{}).filter(function(si){return h.seats[si]&&h.seats[si].id}).length}
 function liveRooms(){
   var now=Date.now();
   // nobody in it has checked in for 2 min: treat as not currently going
@@ -349,6 +356,27 @@ function vRecentRooms(){
   h+='</div>';
   return h;
 }
+// How many points changed hands in finished games, from the permanent per-game record — not from the
+// point balances themselves, which live on each device and have no single server-side ledger to total.
+function vWagering(){
+  var H=historyInRange(),staked=H.filter(function(h){return (h.cfg&&h.cfg.stake)>0}),wagered=0;
+  staked.forEach(function(h){wagered+=(h.cfg.stake||0)*seatedCount(h)});
+  var avg=staked.length?Math.round(wagered/staked.length):0;
+  var h='<div class="card"><h2>Stakes & wagering · '+rangeWord()+'</h2>'+
+    '<div class="grid">'+kpi("Finished games",fmt(H.length),rangeWord())+kpi("Played for points",pct(staked.length,H.length),fmt(staked.length)+" of "+fmt(H.length))+kpi("Points wagered",fmt(wagered),"across staked games")+kpi("Average stake",avg?fmt(avg)+" ★":"–","per staked game")+'</div>'+
+    '<p class="note">From finished games\' permanent record, not from the (editable, on-device) point balances — there is no single server-side points ledger to total. "Wagered" is the entry cost times the real players seated, not seats the computer filled in.</p></div>';
+  return h;
+}
+// A quick daily shape for errors, so a spike after a release is visible without switching to the Errors tab.
+function vErrorsTrend(){
+  var days=dayList(),byDay={};
+  EV.forEach(function(x){if(x.e==="js_error")byDay[x.day]=(byDay[x.day]||0)+1});
+  var counts=days.map(function(d){return byDay[d]||0}),tot=counts.reduce(function(a,b){return a+b},0);
+  var h='<div class="card"><h2>Errors per day · '+rangeWord()+'</h2>';
+  h+=tot?bars(days,[{n:"Errors",c:"#c8402a",v:counts}],90):'<p class="note" style="margin:0">No error reported in this period.</p>';
+  h+='<p class="note">See the Errors tab for what each one was.</p></div>';
+  return h;
+}
 function vOverview(){
   var list=evs(),L=login(list),P=players(),days=dayList(),f=fromDay();
   var active=P.filter(function(o){return o.days>0}).length,newp=P.filter(function(o){return o.first&&dayOf(o.first)>=f}).length,sec=0,ses=0,secAll=0;
@@ -357,7 +385,7 @@ function vOverview(){
   P.forEach(function(o){var fd=o.first?dayOf(o.first):"";if(fd&&fd<today&&fd>=dayAgo(29)){elig++;if(num(o.d[dayOf(Date.parse(fd+"T00:00:00Z")+86400000)]))back++}});
   var tot=L.si_ok+L.si_fail,sut=L.su_ok+L.su_fail,games=0,fin=0;
   Object.keys(STATS).forEach(function(d){if(d<f)return;var rows=STATS[d]||{};Object.keys(rows).forEach(function(k){var r=rows[k]||{};if((F.cc&&(CN[r.cc]?String(r.cc):"other")!==F.cc)||(F.b&&String(r.b)!==F.b))return;games+=num(r.on)+num(r.loc);fin+=num(r.fin)+num(r.lfin)})});
-  var h=vLiveGames()+vRecentRooms()+'<div class="grid">'+
+  var h=vLiveGames()+vRecentRooms()+vWagering()+'<div class="grid">'+
     kpi("Active players",fmt(active),"signed in, "+rangeWord())+
     kpi("New logins",fmt(L.su_ok||newp),rangeWord())+
     kpi("Sign-in success",pct(L.si_ok,tot),fmt(L.si_ok)+" of "+fmt(tot)+" tries",tot<5?"":L.si_fail/tot>0.25?"warn":"good")+
@@ -367,6 +395,7 @@ function vOverview(){
     kpi("Back the next day",elig?pct(back,elig):"–",elig?back+" of "+elig+" new players, 30 days":"not enough history")+
     kpi("Games started",fmt(games),fmt(fin)+" finished · all devices")+'</div>';
   h+='<div class="card"><h2>Needs attention</h2>'+attention(L,P)+'</div>';
+  h+=vErrorsTrend();
   var act=days.map(function(d){var n=0;P.forEach(function(o){if(num(o.d[d]))n++});return n});
   var ok=days.map(function(d){return list.filter(function(x){return x.day===d&&(x.e==="signin_ok"||x.e==="signup_ok")}).length});
   var ko=days.map(function(d){return list.filter(function(x){return x.day===d&&(x.e==="signin_fail"||x.e==="signup_fail")}).length});
@@ -393,9 +422,20 @@ function vLogin(){
   h+='<div class="card"><h2>Latest problems</h2>'+(recent.length?'<div class="scroll"><table><thead><tr><th>When (UTC)</th><th style="text-align:left">Event</th><th style="text-align:left">Reason</th><th>Country</th><th style="text-align:left">Where (sign-in only)</th><th>On</th><th style="text-align:left">Player</th></tr></thead><tbody>'+recent.map(function(x){var nm=x.u&&SEEN[x.u]?esc(String(SEEN[x.u].n||"")):"not signed in",where=(x.gci||x.gco)?esc([x.gci,x.gco].filter(Boolean).join(", ")):"–";return '<tr><td>'+stamp(x.t)+'</td><td style="text-align:left"><span class="pill '+tone(x.e)+'">'+label(x.e)+'</span></td><td style="text-align:left">'+esc(x.r.replace(/_/g," "))+'</td><td>'+flag(x.cc)+'</td><td style="text-align:left">'+where+'</td><td>'+x.pf+" v"+x.b+'</td><td style="text-align:left">'+nm+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">"Where" comes from a public location lookup at the moment of a sign-in or create-login failure — city/country only, never the IP address itself. Not recorded for other kinds of problems.</p>':'<p class="note" style="margin:0">None in this period.</p>')+'</div>';
   return h;
 }
+// Which build each active player's last visit used, so a release's rollout is visible at a glance.
+function vBuildAdoption(){
+  var P=players().filter(function(o){return o.days>0}),g={};
+  P.forEach(function(o){g[o.b||0]=(g[o.b||0]||0)+1});
+  var ks=Object.keys(g).map(Number).sort(function(a,b){return b-a}),tot=P.length,latest=ks[0];
+  var h='<div class="card" style="margin-top:0"><h2>Build adoption · '+rangeWord()+'</h2>';
+  h+=tot?'<div class="scroll"><table><thead><tr><th>Build</th><th>Active players</th><th>Share</th><th style="text-align:left;width:40%">&nbsp;</th></tr></thead><tbody>'+ks.map(function(b){var w=tot?Math.round(g[b]*100/tot):0;return '<tr><td><b>'+(b||"?")+'</b>'+(b===latest&&b?' <span class="pill good">latest</span>':"")+'</td><td>'+fmt(g[b])+'</td><td>'+pct(g[b],tot)+'</td><td><div style="height:14px;border-radius:7px;background:#ece8db;overflow:hidden"><div style="height:100%;width:'+w+'%;background:#121938;border-radius:7px"></div></div></td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No active player in this period.</p>';
+  h+='<p class="note">Counted once per signed-in player active in this period, by the build their most recent visit used.</p></div>';
+  return h;
+}
 function vPlayers(){
   var all=players(),q=find.trim().toLowerCase(),P=q?all.filter(function(o){return o.n.toLowerCase().indexOf(q)>=0}):all;
-  var h='<div class="card" style="margin-top:0"><h2>Signed-in players · '+fmt(P.length)+(q?" of "+fmt(all.length):"")+'</h2><p style="margin:0 0 10px"><input type="search" id="find" value="'+esc(find)+'" placeholder="Find a player by game name" aria-label="Find a player by game name" style="width:100%;max-width:340px;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff"></p>';
+  var h=vBuildAdoption();
+  h+='<div class="card"><h2>Signed-in players · '+fmt(P.length)+(q?" of "+fmt(all.length):"")+'</h2><p style="margin:0 0 10px"><input type="search" id="find" value="'+esc(find)+'" placeholder="Find a player by game name" aria-label="Find a player by game name" style="width:100%;max-width:340px;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff"></p>';
   if(!P.length)h+='<p class="note" style="margin:0">'+(q?"No player with that name.":"No signed-in player has opened the game since activity recording was switched on.")+'</p>';
   else h+='<div class="scroll"><table><thead><tr><th>Player</th><th>Last seen</th><th>Time, '+rangeWord()+'</th><th>Days active</th><th>Sessions</th><th>Total time</th><th>Avg session</th><th>Games</th><th>Wins</th><th>Since</th><th>On</th></tr></thead><tbody>'+P.map(function(o){return '<tr class="pick" data-u="'+esc(o.id)+'" tabindex="0"><td>'+flag(o.cc)+" <b>"+esc(o.n)+'</b>'+(o.u?' <span style="color:var(--ink2);font-weight:600">@'+esc(o.u)+'</span>':"")+'</td><td>'+ago(o.last)+'</td><td>'+(o.in?dur(o.in):"–")+'</td><td>'+o.days+'</td><td>'+fmt(o.ses)+'</td><td>'+dur(o.sec)+'</td><td>'+(o.ses?dur(o.sec/o.ses):"–")+'</td><td>'+fmt(o.g)+'</td><td>'+fmt(o.w)+'</td><td>'+(o.first?dayOf(o.first):"–")+'</td><td>'+o.pf+(o.b?" v"+o.b:"")+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">Tap a player to see their recent sign-ins and problems. Players appear by game name. Emails are in Firebase > Authentication > Users.</p>';
   h+='</div>';
@@ -447,7 +487,10 @@ function vGames(){
   });
   var ks=Object.keys(G).sort(function(a,b){return G[b].s-G[a].s}),open=Math.max(0,tot.s-tot.e-tot.l);
   var warned=count(list,"miss_warn"),removed=count(list,"kicked");
-  var h='<div class="grid">'+kpi("Games started",fmt(tot.s),"by signed-in and other players, "+rangeWord())+kpi("Finished",pct(tot.e,tot.s),fmt(tot.e)+" game"+(tot.e===1?"":"s"),tot.s<5?"":tot.e/tot.s<0.5?"warn":"good")+kpi("Left before the end",fmt(tot.l),tot.s?pct(tot.l,tot.s)+" of games":"",tot.l&&tot.s>=5&&tot.l/tot.s>0.3?"warn":"")+kpi("Average finished game",tot.e?Math.round(tot.min/tot.e)+" min":"–","")+kpi("Warned for not playing",fmt(warned),"3 missed turns in a row",warned?"warn":"")+kpi("Removed for not playing",fmt(removed),"local games only, for now",removed?"warn":"")+'</div>';
+  // How many of a finished online game's seats were real people versus the computer filling in, from the permanent per-game record.
+  var HG=historyInRange(),fillPct=0,padded=0;
+  if(HG.length){var sum=0;HG.forEach(function(h){var n=(h.cfg&&h.cfg.count)||0,seated=seatedCount(h);if(n){sum+=seated/n;if(seated<n)padded++}});fillPct=Math.round(sum/HG.length*100)}
+  var h='<div class="grid">'+kpi("Games started",fmt(tot.s),"by signed-in and other players, "+rangeWord())+kpi("Finished",pct(tot.e,tot.s),fmt(tot.e)+" game"+(tot.e===1?"":"s"),tot.s<5?"":tot.e/tot.s<0.5?"warn":"good")+kpi("Left before the end",fmt(tot.l),tot.s?pct(tot.l,tot.s)+" of games":"",tot.l&&tot.s>=5&&tot.l/tot.s>0.3?"warn":"")+kpi("Average finished game",tot.e?Math.round(tot.min/tot.e)+" min":"–","")+kpi("Warned for not playing",fmt(warned),"3 missed turns in a row",warned?"warn":"")+kpi("Removed for not playing",fmt(removed),"local games only, for now",removed?"warn":"")+kpi("Seats filled by people",HG.length?fillPct+" %":"–",HG.length?"rest filled by the computer":"")+kpi("Finished games padded with the computer",fmt(padded),HG.length?pct(padded,HG.length)+" of finished games":"")+'</div>';
   h+='<div class="card"><h2>By kind of game · '+rangeWord()+'</h2>'+(ks.length?'<div class="scroll"><table><thead><tr><th>Game</th><th>Players</th><th>Started</th><th>Finished</th><th>Left</th><th>Finish rate</th><th>Avg length</th><th>Left after</th></tr></thead><tbody>'+ks.map(function(k){var o=G[k];return '<tr><td><b>'+(o.mode==="online"?"Online":"Local")+'</b> · '+o.who+'</td><td>'+o.n+'</td><td>'+fmt(o.s)+'</td><td>'+fmt(o.e)+'</td><td>'+fmt(o.l)+'</td><td>'+pct(o.e,o.s)+'</td><td>'+(o.e?Math.round(o.min/o.e)+" min":"–")+'</td><td>'+(o.l?Math.round(o.lmin/o.l)+" min":"–")+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No game recorded in this period.</p>')+
     '<p class="note">Counted once per device in the game, so an online game with three people counts three times. '+fmt(open)+' started game'+(open===1?" has":"s have")+' no ending recorded: still being played, or the game was closed without leaving.</p></div>';
   var days=dayList();
