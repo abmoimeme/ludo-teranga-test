@@ -110,6 +110,9 @@ h1 span{color:var(--accent);display:block}
 @keyframes ready{0%,100%{box-shadow:0 0 0 0 rgba(240,191,0,.9)}50%{box-shadow:0 0 0 6px rgba(240,191,0,.15)}}
 .die.shake{animation:shake .12s linear infinite}
 @keyframes shake{0%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}100%{transform:rotate(-9deg)}}
+.dice-center{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.6);display:flex;gap:10px;z-index:5;opacity:0;pointer-events:none;transition:opacity .22s ease,transform .22s ease;filter:drop-shadow(0 8px 18px rgba(0,0,0,.5))}
+.dice-center.show{opacity:1;transform:translate(-50%,-50%) scale(1)}
+.dice-center .die{width:clamp(44px,15vw,72px);height:clamp(44px,15vw,72px);padding:6px}
 .status{flex:1;min-width:0;font-weight:600;font-size:.95rem}
 .roll{flex:none;font-family:var(--display);font-weight:800;font-size:1.2rem;background:var(--accent);color:#1a1500;border:0;border-radius:14px;padding:6px 20px;min-height:54px;box-shadow:0 4px 0 #9a7a00}
 .roll:active{transform:translateY(2px);box-shadow:0 2px 0 #9a7a00}
@@ -301,7 +304,7 @@ h1 span{color:var(--accent);display:block}
   <div class="chips" id="chips"></div>
   <div class="pot" id="pot"></div>
 
-  <div class="board" id="board"><svg id="svg" viewBox="0 0 15 15" aria-hidden="true"></svg></div>
+  <div class="board" id="board"><svg id="svg" viewBox="0 0 15 15" aria-hidden="true"></svg><div class="dice-center" id="dice-center" aria-hidden="true"></div></div>
 
   <div class="react" id="react" hidden></div>
 
@@ -1448,14 +1451,27 @@ function doRoll(){
   }
   showRoll(vals);
 }
+// A larger, purely visual echo of the roll shown over the board's center, for everyone looking at a shared
+// screen to see at a glance. It never intercepts taps; the real controls stay in the tray below.
+var diceCenterT=null;
+function diceCenterShow(vals,shaking){
+  var box=$("dice-center");if(!box)return;
+  var html="";vals.forEach(function(v){html+='<div class="die'+(shaking?" shake":"")+'">'+dieHTML(v)+'</div>'});
+  box.innerHTML=html;box.classList.add("show");
+}
+function diceCenterFadeLater(){
+  clearTimeout(diceCenterT);
+  diceCenterT=setTimeout(function(){var box=$("dice-center");if(box)box.classList.remove("show")},1100);
+}
 function showRoll(vals){
   stopClock();sfx("roll");
   phase="anim";$("roll").disabled=true;
+  clearTimeout(diceCenterT);
   var n=vals.length,ticks=reduced?0:7,e=epoch;
   (function tick(){
     if(e!==epoch)return;
-    if(ticks-->0){var v=[];for(var i=0;i<n;i++)v.push(1+Math.floor(Math.random()*6));renderDice(v);setTimeout(tick,85);return}
-    g.dice=vals.slice();g.rolled=vals.slice();g.bonus=false;noteRoll(g,vals);selDie=0;step();
+    if(ticks-->0){var v=[];for(var i=0;i<n;i++)v.push(1+Math.floor(Math.random()*6));renderDice(v);diceCenterShow(v,true);setTimeout(tick,85);return}
+    g.dice=vals.slice();g.rolled=vals.slice();g.bonus=false;noteRoll(g,vals);selDie=0;diceCenterShow(vals,false);diceCenterFadeLater();step();
   })();
 }
 function options(){
@@ -3504,7 +3520,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="60";
+var BUILD="61";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
