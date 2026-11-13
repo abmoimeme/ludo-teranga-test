@@ -3573,7 +3573,7 @@ function boot(data){
     else{g.dice=[];g.rolled=null;beginTurn()}
   }else{
     cfg.stake=0;startGame();
-    if(firstVisit){renderSetup();$("sheet-setup").classList.add("open")}
+    openOnline();
   }
   var savedRoom="";
   try{savedRoom=localStorage.getItem("ludo-room")||""}catch(e){}
@@ -3600,7 +3600,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="66";
+var BUILD="67";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
