@@ -545,13 +545,13 @@ var KICK_AFTER=3;
 function missStep(g,e){
   var pi=g.turn,pl=g.players[pi];
   g.miss=g.miss||[0,0,0,0];
-  if(g.mflag!==undefined&&g.mflag!==null&&g.mflag!==pi)g.mflag=null;
   if(pl.kind!=="human")return false;
-  if(e.t==="x"){g.miss[pi]++;g.mflag=null}
-  else if(e.t==="r"){
-    if(e.a){if(g.mflag!==pi){g.miss[pi]++;g.mflag=pi}}
-    else{g.miss[pi]=0;g.mflag=null}
-  }else return false;
+  // Only a genuine skip on the player's own phone counts toward removal. When the host rolls for
+  // an away seat just to keep the game moving (e.a), that's a connection hiccup, not a strike:
+  // it neither adds to the count nor clears it. A real roll by the player themself clears it.
+  if(e.t==="x")g.miss[pi]++;
+  else if(e.t==="r"){if(!e.a)g.miss[pi]=0}
+  else return false;
   return !g.nokick&&g.miss[pi]>=KICK_AFTER?kickPlayer(g,pi):false;
 }
 function threat(g,pi,idx){
@@ -3868,7 +3868,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="81";
+var BUILD="82";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
