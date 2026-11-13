@@ -968,12 +968,18 @@ var YARD=[[0,0],[0,9],[9,9],[9,0]];
 var SPOT=[[1.5,1.5],[1.5,3.5],[3.5,1.5],[3.5,3.5]];
 var COLS=[[[7,1],[7,2],[7,3],[7,4],[7,5]],[[1,7],[2,7],[3,7],[4,7],[5,7]],[[7,13],[7,12],[7,11],[7,10],[7,9]],[[13,7],[12,7],[11,7],[10,7],[9,7]]];
 var HOMEPOS=[[7,6.05],[6.05,7],[7,7.95],[7.95,7]];
+// In an online game, each phone draws the board turned so its own player always sits in the same
+// corner and color (seat 0 / red). This never touches the game rules: captures, blocks and doors
+// still run on the real, shared seat number everywhere above this line. Only drawing uses visSeat.
+function rotOf(){if(!live()||!g)return 0;var pi=myPi();return pi>=0?g.players[pi].seat:0}
+function visSeat(seat){return (seat-rotOf()+4)%4}
 function cellOf(seat,ti,p){
-  if(p===-1)return [YARD[seat][0]+SPOT[ti][0],YARD[seat][1]+SPOT[ti][1]];
-  if(p<=50)return PATH[absIdx(seat,p)];
-  if(p<=55)return COLS[seat][p-51];
-  var o=[-0.45,-0.15,0.15,0.45][ti],h=HOMEPOS[seat];
-  return seat%2===0?[h[0]+o,h[1]]:[h[0],h[1]+o];
+  var vs=visSeat(seat);
+  if(p===-1)return [YARD[vs][0]+SPOT[ti][0],YARD[vs][1]+SPOT[ti][1]];
+  if(p<=50)return PATH[absIdx(vs,p)];
+  if(p<=55)return COLS[vs][p-51];
+  var o=[-0.45,-0.15,0.15,0.45][ti],h=HOMEPOS[vs];
+  return vs%2===0?[h[0]+o,h[1]]:[h[0],h[1]+o];
 }
 
 // ---------- State ----------
@@ -1182,14 +1188,15 @@ function mount(){
   var b=$("board");
   Array.prototype.slice.call(b.querySelectorAll(".tok,.ker")).forEach(function(n){n.remove()});
   g.players.forEach(function(pl,pi){
-    var k=document.createElement("div"),sx=(pl.seat===0||pl.seat===3)?0:60,sy=pl.seat<2?0:60;
-    k.className="ker"+(pl.seat===2?" dark":"");k.id="ker-"+pi;k.style.left=sx+"%";k.style.top=sy+"%";
+    var vs=visSeat(pl.seat);
+    var k=document.createElement("div"),sx=(vs===0||vs===3)?0:60,sy=vs<2?0:60;
+    k.className="ker"+(vs===2?" dark":"");k.id="ker-"+pi;k.style.left=sx+"%";k.style.top=sy+"%";
     k.setAttribute("data-you",L().youTag);
     k.innerHTML="<small></small><i></i>";b.appendChild(k);
     for(var t=0;t<4;t++){
       var el=document.createElement("button");
       el.type="button";el.className="tok";el.id="tok-"+pi+"-"+t;el.tabIndex=-1;
-      el.style.setProperty("--c",CSSC[pl.seat]);
+      el.style.setProperty("--c",CSSC[vs]);
       el.innerHTML="<span></span>";
       el.addEventListener("click",(function(a,c){return function(){onToken(a,c)}})(pi,t));
       b.appendChild(el);
@@ -1203,7 +1210,7 @@ function star(cx,cy,r){
 }
 function drawBoard(){
   var bySeat={},s='<rect width="15" height="15" fill="var(--board)"/>',LN='stroke="var(--line)" stroke-width=".045"';
-  var seatIdx={};g.players.forEach(function(p,i){bySeat[p.seat]=p;seatIdx[p.seat]=i});
+  var seatIdx={};g.players.forEach(function(p,i){var vs=visSeat(p.seat);bySeat[vs]=p;seatIdx[vs]=i});
   PATH.forEach(function(rc,i){
     var si=STARTS.indexOf(i),fill=si>=0?CSSC[si]:"var(--board)";
     s+='<rect x="'+rc[1]+'" y="'+rc[0]+'" width="1" height="1" fill="'+fill+'" '+LN+'/>';
@@ -1258,7 +1265,7 @@ function confetti(){
     if(t<4000)requestAnimationFrame(frame);else c.remove();
   })();
 }
-function yardCell(seat,ti){return [YARD[seat][0]+SPOT[ti][0]-0.15,YARD[seat][1]+SPOT[ti][1]]}
+function yardCell(seat,ti){var vs=visSeat(seat);return [YARD[vs][0]+SPOT[ti][0]-0.15,YARD[vs][1]+SPOT[ti][1]]}
 function place(el,rc,scale){
   el.style.left=(rc[1]*100/15)+"%";el.style.top=(rc[0]*100/15)+"%";
   el.style.setProperty("--s",scale);
@@ -1268,7 +1275,7 @@ function layout(){
   g.players.forEach(function(pl,pi){pl.tokens.forEach(function(p,ti){
     var el=$("tok-"+pi+"-"+ti);
     if(p<=-10){
-      var hs=g.players[-p-10].seat,n=held[hs]=(held[hs]||0)+1;
+      var hs=visSeat(g.players[-p-10].seat),n=held[hs]=(held[hs]||0)+1;
       place(el,[YARD[hs][0]+2.35+Math.floor((n-1)/6)*0.6,YARD[hs][1]+0.95+((n-1)%6)*0.62],0.58);return;
     }
     if(p===-1){place(el,yardCell(pl.seat,ti),1);return}
@@ -1327,7 +1334,7 @@ function renderChips(){
   var h="";
   g.players.forEach(function(pl,pi){
     var pr=pl.key&&bank.profiles[pl.key];
-    h+='<div class="chip'+(pi===g.turn&&phase!=="over"?" on":"")+'"><b><i style="background:'+CSSC[pl.seat]+'"></i>'+esc(pl.name)+'</b><small>'+(g.rank.indexOf(pi)>=0?"#"+(g.rank.indexOf(pi)+1)+" · "+(pl.key?fmt(pr?pr.pts:0):tagOf(pl)):(pl.key?"★ "+fmt(pr?pr.pts:0):tagOf(pl)))+'</small></div>';
+    h+='<div class="chip'+(pi===g.turn&&phase!=="over"?" on":"")+'"><b><i style="background:'+CSSC[visSeat(pl.seat)]+'"></i>'+esc(pl.name)+'</b><small>'+(g.rank.indexOf(pi)>=0?"#"+(g.rank.indexOf(pi)+1)+" · "+(pl.key?fmt(pr?pr.pts:0):tagOf(pl)):(pl.key?"★ "+fmt(pr?pr.pts:0):tagOf(pl)))+'</small></div>';
   });
   $("chips").innerHTML=h;
   g.players.forEach(function(pl,pi){
@@ -2566,7 +2573,7 @@ var aim=-1,aimT=null,lastSentAt=0,REACT=["😂","👏","😮","🔥","👋","�
 var REACT_SFX={"😂":"e-laugh","👏":"e-clap","😮":"e-wow","🔥":"e-fire","👋":"e-wave","🏃🏿‍♂️":"e-run","🏃🏾‍♀️":"e-run","🤷🏾‍♂️":"e-shrug","🤷🏾‍♀️":"e-shrug","⏳":"e-tick","🇸🇳":"e-drum","😜":"e-boing","💀":"e-skull","🙏🏾":"e-chime","🤲🏾":"e-chime","😭":"e-wow","🎲":"e-boing","👀":"e-wow","🤦🏾‍♂️":"e-shrug","👨🏿‍🦯‍➡️":"e-run","🩴":"e-clap","👑":"e-chime","⚽️":"e-boing","🥇":"e-chime","🥈":"e-chime","🥉":"e-chime","🏥":"e-tick","💵":"e-chime"};
 function chatSfx(m){sfx(REACT_SFX[m]||"pop")}
 // Where a player's kër sits on the board, as a percentage of the board's width and height.
-function kerSpot(pi){var s=g.players[pi].seat;return {x:(s===0||s===3)?20:80,y:s<2?20:80}}
+function kerSpot(pi){var s=visSeat(g.players[pi].seat);return {x:(s===0||s===3)?20:80,y:s<2?20:80}}
 // An emoji travels across the board from the sender's kër to the player it is meant for.
 function flyEmoji(from,to,m){
   var board=$("board"),a=kerSpot(from),targets=to>=0?[to]:g.players.map(function(p,i){return i}).filter(function(i){return i!==from});
@@ -2639,7 +2646,7 @@ function bubble(v){
   var emo=REACT.indexOf(m)>=0||(m.length<=4&&!/[A-Za-z0-9]/.test(m));
   if(emo)flyEmoji(v.from,(v.to>=0&&g.players[v.to])?v.to:-1,m);
   b.className="bubble"+(emo?" tag":"");b.id="bub-"+v.from;
-  b.style[pl.seat<2?"top":"bottom"]="2%";b.style[(pl.seat===0||pl.seat===3)?"left":"right"]="2%";
+  var bvs=visSeat(pl.seat);b.style[bvs<2?"top":"bottom"]="2%";b.style[(bvs===0||bvs===3)?"left":"right"]="2%";
   var who=document.createElement("small");
   who.textContent=pl.name+(v.to>=0&&g.players[v.to]?" → "+(v.to===me?L().you:g.players[v.to].name):"");
   b.appendChild(who);if(!emo)b.appendChild(document.createTextNode(m));
@@ -3439,10 +3446,10 @@ function renderRules(){
   $("rules-close").addEventListener("click",closeSheets);
 }
 function showWin(){
-  var t=L(),order=g.order||g.rank.concat(g.players.map(function(x,i){return i}).filter(function(i){return g.rank.indexOf(i)<0})),first=g.players[order[0]],h='<div class="dot" style="background:'+CSSC[first.seat]+'"></div><h2>'+esc(t.wins(first.name))+'</h2><ol class="places">';
+  var t=L(),order=g.order||g.rank.concat(g.players.map(function(x,i){return i}).filter(function(i){return g.rank.indexOf(i)<0})),first=g.players[order[0]],h='<div class="dot" style="background:'+CSSC[visSeat(first.seat)]+'"></div><h2>'+esc(t.wins(first.name))+'</h2><ol class="places">';
   order.forEach(function(pi,i){
     var pl=g.players[pi];
-    h+='<li><em>'+t.ord[i]+'</em><i style="background:'+CSSC[pl.seat]+'"></i><b>'+esc(pl.name)+'</b><span>'+((g.out||[]).indexOf(pi)>=0?t.outTag:pl.key?"+"+fmt(g.gains[pi]||0)+" ★":(pl.kind==="cpu"?t.cpu:""))+'</span></li>';
+    h+='<li><em>'+t.ord[i]+'</em><i style="background:'+CSSC[visSeat(pl.seat)]+'"></i><b>'+esc(pl.name)+'</b><span>'+((g.out||[]).indexOf(pi)>=0?t.outTag:pl.key?"+"+fmt(g.gains[pi]||0)+" ★":(pl.kind==="cpu"?t.cpu:""))+'</span></li>';
   });
   g.players.forEach(function(pl,pi){var sk=pl.key&&g.streaks&&g.streaks[pi];if(sk)h+='</ol><p class="streak">'+esc(t.streak(sk.k,fmt(sk.n)))+'</p><ol class="places" style="display:none">'});
   armClose();
@@ -3570,7 +3577,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="63";
+var BUILD="64";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
