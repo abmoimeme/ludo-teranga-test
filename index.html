@@ -1433,6 +1433,9 @@ function renderAll(){
   renderChips();renderDice();renderTokens();renderReact();
   $("roll").disabled=!(phase==="roll"&&isHuman(g.turn));
   $("roll").textContent=L().roll;$("btn-new").innerHTML='<i>🎮</i>'+esc(L().newGame);$("btn-rules").textContent=L().rules;$("btn-online").innerHTML='<i>🌍</i>'+esc(L().online);$("btn-scores").textContent=L().scores;$("btn-sound").textContent=soundOn?L().soundOn:L().soundOff;$("btn-sound").setAttribute("aria-pressed",soundOn);$("sub").textContent=L().sub;
+  // While still an active player in a live game with others, hide New game/Play online so a tap can't abandon it by mistake.
+  var mine=myPi(),inPlay=live()&&!g.over&&mine>=0&&(g.out||[]).indexOf(mine)<0;
+  $("btn-new").hidden=inPlay;$("btn-online").hidden=inPlay;
   LANGS.forEach(function(l){$("lang-"+l).setAttribute("aria-pressed",lang===l)});
   document.documentElement.lang=lang;
   renderAd();
@@ -3865,7 +3868,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="79";
+var BUILD="80";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
