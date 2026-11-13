@@ -329,6 +329,7 @@ h1 span{color:var(--accent);display:block}
     <button id="btn-rules" type="button"></button>
     <button id="btn-scores" type="button"></button>
     <button id="btn-sound" type="button"></button>
+    <button id="btn-settings" type="button" aria-label="Settings">⚙️</button>
   </div>
   <div class="langrow">
     <div class="lang" role="group" aria-label="Language">
@@ -593,6 +594,7 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
   startOnline:"Start game",waitHost:"Waiting for the host to start…",leave:"Leave game",waitAgain:"Waiting for the host to start the next game…",
   rejoinTitle:"Getting you back into your game…",rejoinNote:"Reconnecting. Your seat and your pieces are kept.",rejoinStop:"Stop and play on this phone",errOld:"This game needs the newest version. Close the game completely and open it again.",
   acctTitle:"Your account",phCc:"Country",phPh:"Phone number",signIn:"Sign in with my number",signOut:"Sign out",
+  tabPlay:"Play with friends",tabSettings:"Settings",blockedTitle:"Blocked players",blockedNone:"No blocked players.",blockedWho:"A player",unblock:"Unblock",prefsTitle:"Preferences",
   acctNote:"Your phone number is your login on any phone or computer. It brings back your name, points and friends. It is never shown to other players.",
   signedIn:function(h){return "Signed in · number ending "+h},welcomeBack:function(n){return "Welcome back, "+n+". Your points and friends are here."},acctMade:"Account created. Use the same number on any device.",
   errPhone:"That phone number does not look right. Choose your country and type the number.",errLogin:"Sign in with your phone number first.",
@@ -655,6 +657,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
   startOnline:"Commencer",waitHost:"En attente de l'hôte…",leave:"Quitter la partie",waitAgain:"En attente de l'hôte pour la prochaine partie…",
   rejoinTitle:"Retour dans votre partie…",rejoinNote:"Reconnexion en cours. Votre siège et vos pions sont gardés.",rejoinStop:"Arrêter et jouer sur ce téléphone",errOld:"Cette partie demande la dernière version. Fermez complètement le jeu puis rouvrez-le.",
   acctTitle:"Votre compte",phCc:"Pays",phPh:"Numéro de téléphone",signIn:"Me connecter avec mon numéro",signOut:"Se déconnecter",
+  tabPlay:"Jouer avec des amis",tabSettings:"Réglages",blockedTitle:"Joueurs bloqués",blockedNone:"Aucun joueur bloqué.",blockedWho:"Un joueur",unblock:"Débloquer",prefsTitle:"Préférences",
   acctNote:"Votre numéro de téléphone est votre identifiant sur n'importe quel téléphone ou ordinateur. Il retrouve votre nom, vos points et vos amis. Les autres joueurs ne le voient jamais.",
   signedIn:function(h){return "Connecté · numéro finissant par "+h},welcomeBack:function(n){return "Bon retour, "+n+". Vos points et vos amis sont là."},acctMade:"Compte créé. Utilisez le même numéro sur tous vos appareils.",
   errPhone:"Ce numéro ne semble pas correct. Choisissez votre pays et écrivez le numéro.",errLogin:"Connectez-vous d'abord avec votre numéro de téléphone.",
@@ -724,6 +727,7 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
   rejoinTitle:"Ti riportiamo nella tua partita…",rejoinNote:"Riconnessione in corso. Il tuo posto e le tue pedine sono conservati.",rejoinStop:"Ferma e gioca su questo telefono",
   errOld:"Questa partita richiede l'ultima versione. Chiudi del tutto il gioco e riaprilo.",
   acctTitle:"Il tuo account",phCc:"Paese",phPh:"Numero di telefono",signIn:"Accedi con il mio numero",signOut:"Esci",
+  tabPlay:"Gioca con gli amici",tabSettings:"Impostazioni",blockedTitle:"Giocatori bloccati",blockedNone:"Nessun giocatore bloccato.",blockedWho:"Un giocatore",unblock:"Sblocca",prefsTitle:"Preferenze",
   acctNote:"Il tuo numero di telefono è il tuo accesso su qualsiasi telefono o computer. Ritrova il tuo nome, i tuoi punti e i tuoi amici. Gli altri giocatori non lo vedono mai.",
   signedIn:function(h){return "Accesso fatto · numero che finisce con "+h},welcomeBack:function(n){return "Bentornato, "+n+". I tuoi punti e i tuoi amici sono qui."},acctMade:"Account creato. Usa lo stesso numero su ogni dispositivo.",
   errPhone:"Questo numero non sembra corretto. Scegli il paese e scrivi il numero.",errLogin:"Accedi prima con il tuo numero di telefono.",
@@ -1600,6 +1604,7 @@ async function doMove(ti,di,remote){
 var DB=((window.LUDO_CONFIG&&window.LUDO_CONFIG.databaseURL)||"").replace(/\/+$/,"");
 var CFG=window.LUDO_CONFIG||{},AUTH_URL=(CFG.authUrl||"https://identitytoolkit.googleapis.com/v1").replace(/\/+$/,""),TOKEN_URL=(CFG.tokenUrl||"https://securetoken.googleapis.com/v1").replace(/\/+$/,"");
 var net=null,idleAt=0,myId=null,onErr="",pendingCode="",joinTries=0;
+var onlineView="play";
 try{myId=localStorage.getItem("ludo-id")}catch(e){}
 if(!myId){myId="p"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);try{localStorage.setItem("ludo-id",myId)}catch(e){}}
 try{pendingCode=(new URLSearchParams(location.search).get("room")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6)}catch(e){}
@@ -1976,7 +1981,7 @@ function enter(code,room){
 function hasName(){var hs=humanSeats();return !!(((cfg.me&&cfg.me.name)||"").trim()||(hs.length&&(cfg.names[hs[0]]||"").trim()))}
 function needName(){
   if(hasName()&&cleanText(meName())===meName())return false;
-  onErr=hasName()?L().errBadName:L().errName;renderOnline();
+  onErr=hasName()?L().errBadName:L().errName;onlineView="settings";renderOnline();
   var el=$("me-name");if(el){el.focus();el.classList.add("bad")}
   return true;
 }
@@ -2124,13 +2129,21 @@ function renderOnline(){
   }else if(!net&&asking){
     h='<h2>'+t.askTitle+'</h2><p class="note" style="margin:0">'+t.askWait+(asking.stake?' '+t.askStake(fmt(asking.stake)):'')+'</p><button type="button" class="ghost" id="ask-stop">'+t.cancel+'</button>';
   }else if(!net){
-    h='<h2>'+t.onTitle+'</h2><p class="note" style="margin:0">'+t.onNote+'</p>';
-    h+='<div><h3>'+t.yourName+'</h3><div class="who"><input type="text" id="me-name" maxlength="12" autocomplete="off" placeholder="'+esc(hasName()?meName():t.namePh)+'" value="'+esc((cfg.me&&cfg.me.name)||"")+'" aria-label="'+t.yourName+'"><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div><div class="avs" id="avs-me" style="margin-top:8px"></div></div>';
-    h+=acctHTML();
-    h+='<div><h3>'+t.joinTitle+'</h3><div class="who"><input type="text" id="join-code" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="'+t.codePh+'" value="'+esc(pendingCode)+'" aria-label="'+t.codePh+'"><button type="button" class="cta" id="join-go" style="padding:0 22px">'+t.join+'</button></div></div>';
-    h+='<div><h3>'+t.create+'</h3>'+seg([[2,"2"],[3,"3"],[4,"4"]],cfg.count,"ocount")+'<h3 style="margin-top:12px">'+t.startMode+'</h3>'+seg([["0",t.startManual],["1",t.startAuto]],cfg.autoStart?"1":"0","oauto")+'<p class="note">'+t.createNote+'</p><button type="button" class="cta" id="create-go" style="width:100%;margin-top:10px">'+t.createBtn+'</button></div>';
-    h+=friendsHTML();
-    h+=err+'<button type="button" class="ghost" id="on-close">'+t.close+'</button>';
+    h='<h2>'+(onlineView==="settings"?t.tabSettings:t.onTitle)+'</h2>';
+    if(onlineView!=="settings")h+='<p class="note" style="margin:0">'+t.onNote+'</p>';
+    h+=seg([["play",t.tabPlay],["settings",t.tabSettings]],onlineView,"onview");
+    if(onlineView==="settings"){
+      h+='<div><h3>'+t.yourName+'</h3><div class="who"><input type="text" id="me-name" maxlength="12" autocomplete="off" placeholder="'+esc(hasName()?meName():t.namePh)+'" value="'+esc((cfg.me&&cfg.me.name)||"")+'" aria-label="'+t.yourName+'"><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div><div class="avs" id="avs-me" style="margin-top:8px"></div></div>';
+      h+=acctHTML();
+      h+=blockedHTML();
+      h+=prefsHTML();
+      h+=err+'<button type="button" class="ghost" id="on-close">'+t.close+'</button>';
+    }else{
+      h+='<div><h3>'+t.joinTitle+'</h3><div class="who"><input type="text" id="join-code" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="'+t.codePh+'" value="'+esc(pendingCode)+'" aria-label="'+t.codePh+'"><button type="button" class="cta" id="join-go" style="padding:0 22px">'+t.join+'</button></div></div>';
+      h+='<div><h3>'+t.create+'</h3>'+seg([[2,"2"],[3,"3"],[4,"4"]],cfg.count,"ocount")+'<h3 style="margin-top:12px">'+t.startMode+'</h3>'+seg([["0",t.startManual],["1",t.startAuto]],cfg.autoStart?"1":"0","oauto")+'<p class="note">'+t.createNote+'</p><button type="button" class="cta" id="create-go" style="width:100%;margin-top:10px">'+t.createBtn+'</button></div>';
+      h+=friendsHTML();
+      h+=err+'<button type="button" class="ghost" id="on-close">'+t.close+'</button>';
+    }
   }else{
     var r=net.room,c=r.cfg||{},host=r.host===myId,bs=seatsFor(c.count||4);
     h='<h2>'+t.lobby+'</h2><div class="code"><small>'+t.codeIs+'</small><b>'+esc(net.code)+'</b></div>';
@@ -2173,6 +2186,10 @@ function renderOnline(){
     cfg.count=parseInt(b.getAttribute("data-val"),10);
     Array.prototype.slice.call(p.querySelectorAll('[data-set="ocount"]')).forEach(function(x){x.setAttribute("aria-pressed",x===b)});
   })});
+  Array.prototype.slice.call(p.querySelectorAll('[data-set="onview"]')).forEach(function(b){b.addEventListener("click",function(){
+    onlineView=b.getAttribute("data-val");onErr="";renderOnline();
+  })});
+  bindBlocked(p);bindPrefs(p);
   var nm=$("me-name");
   if(nm){
     nm.addEventListener("input",function(){cfg.me=cfg.me||{};cfg.me.name=nm.value;evName();$("me-bal").textContent="★ "+fmt(balanceOf(meName()))});
@@ -2312,6 +2329,10 @@ function takeGift(k,v){
 }
 // ---------- Owner tools: opened by tapping the copyright line five times, then a private code ----------
 var OWNER="509df743e42091cd8e90480d6a3754c07ae3b30c89b9d8a04c3d9757dc47f6fe",ownerOn=false,footTaps=[],ownTo="",ownMsg="";
+// Firebase accounts allowed to read events, player activity and stats. Fixed on purpose: the rules
+// text always grants exactly these accounts, no matter which one happens to be signed in when it's copied.
+var OWNER_UIDS=["w1c591K1oofHlwp5xw37QQmifTy2","QauEiRdy0dZcQ4p9Dhl5MlI9cSt2"];
+function ownerUidExpr(){return "("+OWNER_UIDS.map(function(u){return "auth.uid === '"+String(u).replace(/[^A-Za-z0-9]/g,"")+"'"}).join(" || ")+")"}
 try{ownerOn=localStorage.getItem("ludo-owner")===OWNER}catch(e){}
 function sha(s){return crypto.subtle.digest("SHA-256",new TextEncoder().encode(s)).then(function(b){return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("")})}
 // ---------- Owner: usage totals ----------
@@ -2353,8 +2374,8 @@ function ownerToken(){
 function ownerSignOut(){ownAuth=null;ownTok=null;ownStats=null;ownOpen=null;ownStatsMsg="";saveOwnAuth();renderOwner()}
 // The database rules that keep the statistics for this owner alone.
 function ownerRules(){
-  var own=String(ownAuth&&ownAuth.uid||"").replace(/[^A-Za-z0-9]/g,"");
-  // logins save, the older live game keeps working, and only the owner account reads the statistics and the player list
+  var ou=ownerUidExpr();
+  // logins save, the older live game keeps working, and only the owner accounts read the statistics and the player list
   if(EMAIL_ON)return '{"rules":{\n'+
   ' "rooms":{"$code":{".read":"auth != null",".write":"auth != null",".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
   ' "players":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
@@ -2362,9 +2383,9 @@ function ownerRules(){
   ' "usernames":{"$u":{".read":"auth != null",".write":"auth != null",".validate":"$u.matches(/^[a-z0-9_.]{3,20}$/) && (!newData.exists() || (newData.isString() && newData.val().matches(/^[A-Z0-9]{8}$/)))"}},\n'+
   ' "accounts":{"$id":{".read":"auth != null && ($id.matches(/^[a-f0-9]{40}$/) || auth.uid === $id)",".write":"auth != null && ($id.matches(/^[a-f0-9]{40}$/) || auth.uid === $id)"}},\n'+
   ' "reports":{"$id":{".write":"!data.exists()"}},\n'+
-  ' "events":{".read":"auth != null && auth.uid === \''+own+'\'","$d":{".write":"auth != null && auth.uid === \''+own+'\' && !newData.exists()","$k":{".write":"!data.exists()",".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChildren([\'e\',\'t\']) && newData.child(\'e\').isString() && newData.child(\'e\').val().length <= 24 && (!newData.child(\'r\').exists() || (newData.child(\'r\').isString() && newData.child(\'r\').val().length <= 60))"}}},\n'+
-  ' "seen":{".read":"auth != null && auth.uid === \''+own+'\'","$u":{".read":"auth != null && auth.uid === $u",".write":"auth != null && auth.uid === $u"}},\n'+
-  ' "stats":{"days":{".read":"auth != null && auth.uid === \''+own+'\'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
+  ' "events":{".read":"auth != null && '+ou+'","$d":{".write":"auth != null && '+ou+' && !newData.exists()","$k":{".write":"!data.exists()",".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChildren([\'e\',\'t\']) && newData.child(\'e\').isString() && newData.child(\'e\').val().length <= 24 && (!newData.child(\'r\').exists() || (newData.child(\'r\').isString() && newData.child(\'r\').val().length <= 60))"}}},\n'+
+  ' "seen":{".read":"auth != null && '+ou+'","$u":{".read":"auth != null && auth.uid === $u",".write":"auth != null && auth.uid === $u"}},\n'+
+  ' "stats":{"days":{".read":"auth != null && '+ou+'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
   return '{"rules":{\n'+
   ' "rooms":{"$code":{".read":true,".write":true,".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
   ' "players":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
@@ -2372,7 +2393,7 @@ function ownerRules(){
   ' "usernames":{"$u":{".read":true,".write":true,".validate":"$u.matches(/^[a-z0-9_.]{3,20}$/) && (!newData.exists() || (newData.isString() && newData.val().matches(/^[A-Z0-9]{8}$/)))"}},\n'+
   ' "accounts":{"$id":{".read":true,".write":true,".validate":"$id.matches(/^[a-f0-9]{40}$/)"}},\n'+
   ' "reports":{"$id":{".write":"!data.exists()"}},\n'+
-  ' "stats":{"days":{".read":"auth != null && auth.uid === \''+String(ownAuth&&ownAuth.uid||"").replace(/[^A-Za-z0-9]/g,"")+'\'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
+  ' "stats":{"days":{".read":"auth != null && '+ou+'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
 }
 function loadStats(){
   if(!ownAuth){ownStats=null;ownStatsMsg="";renderOwner();return}
@@ -2960,6 +2981,32 @@ function blockPlayer(pi){
   var b=$("bub-"+pi);if(b)b.remove();
 }
 function unblockPlayer(pi){var pl=g&&g.players[pi];if(!pl)return;delete blocked[pl.id];saveBlocked()}
+// Settings: the blocked list, shown so a player can undo a block from outside a game.
+function blockedHTML(){
+  var t=L(),keys=Object.keys(blocked);
+  var h='<div><h3>'+t.blockedTitle+'</h3>';
+  if(!keys.length)h+='<p class="note" style="margin:0">'+t.blockedNone+'</p>';
+  else h+='<ol class="places">'+keys.map(function(k){
+    var b=blocked[k]||{};
+    return '<li><b>'+esc(b.n||t.blockedWho)+'</b><button type="button" class="mini q" data-unblk="'+esc(k)+'">'+t.unblock+'</button></li>';
+  }).join("")+'</ol>';
+  return h+'</div>';
+}
+function bindBlocked(p){
+  Array.prototype.slice.call(p.querySelectorAll('[data-unblk]')).forEach(function(b){b.addEventListener("click",function(){
+    delete blocked[b.getAttribute("data-unblk")];saveBlocked();renderOnline();
+  })});
+}
+// Settings: quick access to sound and language, mirroring the icons on the main screen.
+function prefsHTML(){
+  var t=L();
+  return '<div><h3>'+t.prefsTitle+'</h3><p class="note" style="margin:0 0 8px">'+(soundOn?t.soundOn:t.soundOff)+' <button type="button" class="mini" id="pf-sound">'+(soundOn?t.soundOff:t.soundOn)+'</button></p>'+
+    '<div class="lang" role="group" aria-label="Language"><button type="button" data-pflang="en" aria-pressed="'+(lang==="en")+'">EN</button><button type="button" data-pflang="fr" aria-pressed="'+(lang==="fr")+'">FR</button><button type="button" data-pflang="it" aria-pressed="'+(lang==="it")+'">IT</button></div></div>';
+}
+function bindPrefs(p){
+  if($("pf-sound"))$("pf-sound").addEventListener("click",function(){$("btn-sound").click();renderOnline()});
+  Array.prototype.slice.call(p.querySelectorAll('[data-pflang]')).forEach(function(b){b.addEventListener("click",function(){setLang(b.getAttribute("data-pflang"))})});
+}
 // A report holds the two players' game identities, the name and last comment of the reported player,
 // and the room. No phone number is involved.
 function reportPlayer(pi){
@@ -2981,7 +3028,7 @@ function unameLockedUntil(){return acct&&acct.uname&&acct.unameAt?acct.unameAt+U
 function unameLocked(){return !!(acct&&acct.uname)&&Date.now()<unameLockedUntil()}
 function needUname(){
   if(!DB||!acct||acct.uname)return false;
-  unameEditing=true;onErr=L().errUname;renderOnline();focusBad("uname-in");return true;
+  unameEditing=true;onErr=L().errUname;onlineView="settings";renderOnline();focusBad("uname-in");return true;
 }
 function claimUname(raw){
   var u=unameNorm(raw);
@@ -3379,6 +3426,7 @@ function emailAcctHTML(){
 }
 function needLogin(){
   if(acct||acctOff)return false;
+  onlineView="settings";
   if(EMAIL_ON){onErr=L().errLogin2;renderOnline();focusBad("em-mail");return true}
   onErr=L().errLogin;renderOnline();
   var el=$("ph-num");if(el){el.focus();el.classList.add("bad")}
@@ -3621,7 +3669,8 @@ function setLang(l){
 $("roll").addEventListener("click",function(){if(isHuman(g.turn))doRoll()});
 $("btn-new").addEventListener("click",function(){renderSetup();$("sheet-setup").classList.add("open")});
 $("btn-scores").addEventListener("click",openScores);
-$("btn-online").addEventListener("click",function(){onErr="";publishMe();openOnline()});
+$("btn-online").addEventListener("click",function(){onErr="";onlineView="play";publishMe();openOnline()});
+$("btn-settings").addEventListener("click",function(){onErr="";onlineView="settings";publishMe();openOnline()});
 $("btn-sound").addEventListener("click",function(){
   soundOn=!soundOn;try{localStorage.setItem("ludo-sound",soundOn?"1":"0")}catch(e){}
   renderAll();
@@ -3687,7 +3736,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="69";
+var BUILD="70";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
