@@ -195,6 +195,10 @@ h1 span{color:var(--accent);display:block}
 
 .sheet{position:fixed;inset:0;background:rgba(6,9,26,.78);display:none;align-items:flex-end;justify-content:center;z-index:20}
 .sheet.open{display:flex}
+.sheet.gate{z-index:50;align-items:center}
+.sheet.gate .panel{border-radius:20px;text-align:center;max-width:380px;margin:16px}
+.gate-spons{display:flex;gap:10px;flex-wrap:wrap;justify-content:center;padding:4px 0}
+.gate-spons img{width:40px;height:40px;border-radius:10px;object-fit:cover;background:var(--cloth)}
 #toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-140%);z-index:40;max-width:92%;background:#fff;color:#161c3d;font-weight:700;font-size:.95rem;border-radius:14px;padding:10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:transform .35s ease,opacity .2s linear;text-align:center;pointer-events:none;opacity:0;visibility:hidden}
 #toast.on{transform:translate(-50%,0);opacity:1;visibility:visible}
 .streak{margin:0;text-align:center;font-weight:700;color:var(--accent)}
@@ -334,6 +338,7 @@ h1 span{color:var(--accent);display:block}
 <div class="sheet" id="sheet-chat"><div class="panel" id="panel-chat"></div></div>
 <div class="sheet" id="sheet-scores"><div class="panel" id="panel-scores"></div></div>
 <div class="sheet" id="sheet-owner"><div class="panel" id="panel-owner"></div></div>
+<div class="sheet gate" id="sheet-gate"><div class="panel" id="panel-gate"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div class="sheet win" id="sheet-win"><div class="panel" id="panel-win"></div></div>
 
@@ -739,6 +744,9 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
     pts:"Punti: +10 ★ per una cattura, +25 ★ per ogni pedina arrivata, +100 ★ per il 1º posto, +50 ★ per il 2º, +25 ★ per il 3º. In una partita a punti con 3 o 4 giocatori, il 1º prende il 70% del piatto e il 2º il 30%. In 2, chi vince prende tutto.",
     timer:function(n){return "Ogni giocatore ha "+n+" secondi per giocare. Se il tempo scade prima del tiro, il turno passa. Se scade dopo il tiro, il gioco muove una pedina per te."}}};
 T.it=Object.assign({},T.en,IT);T.it.r=Object.assign({},T.en.r,IT.r);
+T.en.gateTitle="Sign up to play";T.fr.gateTitle="Inscrivez-vous pour jouer";T.it.gateTitle="Iscriviti per giocare";
+T.en.gateSub="Create a free account to play Ludo Teranga, against friends or the computer.";T.fr.gateSub="Créez un compte gratuit pour jouer à Ludo Teranga, entre amis ou contre l'ordinateur.";T.it.gateSub="Crea un account gratuito per giocare a Ludo Teranga, con gli amici o contro il computer.";
+T.en.gateCta="Sign in or create an account";T.fr.gateCta="Se connecter ou créer un compte";T.it.gateCta="Accedi o crea un account";
 T.en.closesIn=function(n){return "This room closes in "+n+" s"};T.fr.closesIn=function(n){return "Ce salon ferme dans "+n+" s"};T.it.closesIn=function(n){return "Questa stanza chiude tra "+n+" s"};
 T.en.roomClosed="This room is closed. Start a new game to play again.";T.fr.roomClosed="Ce salon est fermé. Lancez une nouvelle partie pour rejouer.";T.it.roomClosed="Questa stanza è chiusa. Avvia una nuova partita per giocare ancora.";
 T.en.kicked=function(n){return n+" was removed for not playing."};T.fr.kicked=function(n){return n+" a été exclu pour abandon."};T.it.kicked=function(n){return n+" è stato escluso per abbandono."};
@@ -2027,6 +2035,19 @@ function invite(){
   show("");
 }
 function openOnline(){refreshFriends();renderOnline();$("sheet-online").classList.add("open")}
+// No gameplay, local or online, for a visitor who has not signed in. Closes once they do.
+function renderGate(){
+  var t=L(),spons=ADS.map(function(a){return '<img src="'+a.img+'" alt="'+esc(a.name)+'" loading="lazy">'}).join("");
+  $("panel-gate").innerHTML='<h2>'+t.gateTitle+'</h2><p class="note" style="margin:0">'+t.gateSub+'</p>'+
+    '<div class="gate-spons">'+spons+'</div>'+
+    '<button type="button" class="cta" id="gate-go" style="width:100%">'+t.gateCta+'</button>';
+  $("gate-go").addEventListener("click",function(){onErr="";publishMe();openOnline()});
+}
+function syncGate(){
+  if(!EMAIL_ON)return;
+  if(pAuth){$("sheet-gate").classList.remove("open")}
+  else{renderGate();$("sheet-gate").classList.add("open")}
+}
 function refreshMyAvs(){
   var box=$("avs-me");if(!box)return;
   var keep=box.scrollLeft;box.innerHTML=avsHTML("me",meAv());box.scrollLeft=keep;
@@ -2810,6 +2831,7 @@ function sessionEnded(){
   if(acct){acct=null;saveAcct();acctNote=L().sessionOver}
   if(inboxEs){try{inboxEs.close()}catch(e){}inboxEs=null}
   if($("sheet-online")&&$("sheet-online").classList.contains("open")&&!net)renderOnline();
+  syncGate();
 }
 // ---------- Chat safety: word filter, blocked players, reports ----------
 // Typed comments pass through a word filter when sent and again when shown.
@@ -3009,7 +3031,7 @@ function signOut(){
   cfg.me={name:"",av:null};friends=[];
   try{localStorage.setItem("ludo-friends","[]");localStorage.setItem("ludo-cfg2",JSON.stringify(cfg))}catch(e){}
   if(inboxEs){try{inboxEs.close()}catch(e){}inboxEs=null}
-  openInbox();renderOnline();
+  openInbox();renderOnline();syncGate();
 }
 // Clears everything this device holds about the account.
 function wipeLocalAcct(){
@@ -3093,7 +3115,7 @@ function emailSign(email,pw,create,cc){
 function afterAuth(cc){
   var uid=pAuth.uid,hint=maskMail(pAuth.email);
   function done(){
-    authBusy=false;autoLang(langOfCc(acct.cc));publishMe();openInbox();checkVerified();seenStart();renderOnline();if(g)renderAll();
+    authBusy=false;autoLang(langOfCc(acct.cc));publishMe();openInbox();checkVerified();seenStart();renderOnline();syncGate();if(g)renderAll();
   }
   return dbx("GET","/accounts/"+uid).then(function(d){
     if(d&&d.id&&d.fc){
@@ -3104,7 +3126,7 @@ function afterAuth(cc){
     function refused(e){
       pAuth=null;pTok=null;savePAuth();acct=null;saveAcct();authBusy=false;
       logEv(authKind+"_fail",e&&(e.status===401||e.status===403)?"save_refused":"network");
-      onErr=e&&(e.status===401||e.status===403)?L().emSetup:L().errNet;renderOnline();
+      onErr=e&&(e.status===401||e.status===403)?L().emSetup:L().errNet;renderOnline();syncGate();
     }
     var old=legacyAid?dbx("GET","/accounts/"+legacyAid).catch(function(){return null}):Promise.resolve(null);
     return old.then(function(o){
@@ -3474,7 +3496,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="56";
+var BUILD="57";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
@@ -3493,7 +3515,7 @@ function checkUpdate(){
 }
 setTimeout(checkUpdate,4000);setInterval(checkUpdate,180000);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)checkUpdate()});
-boot({});
+boot({});syncGate();
 if(!NAT&&"serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost"))window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
 </script>
 </body>
