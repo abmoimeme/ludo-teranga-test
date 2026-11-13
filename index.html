@@ -7,6 +7,7 @@
 <meta name="description" content="Ludo Teranga: the classic Ludo board game with West African house rules. Play with family and friends on one phone, earn points and climb the leaderboard.">
 <meta name="author" content="Nioro Resources LLC">
 <meta name="theme-color" content="#121938">
+<script src="https://accounts.google.com/gsi/client" async defer></script>
 <meta property="og:title" content="Ludo Teranga">
 <meta property="og:description" content="Classic Ludo with West African house rules. Pass one phone around, earn points, climb the leaderboard.">
 <meta property="og:type" content="website">
@@ -279,6 +280,9 @@ h1 span{color:var(--accent);display:block}
 .panel ul{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:8px}
 .cta{font-family:var(--display);font-weight:800;font-size:1.15rem;background:var(--accent);color:#1a1500;border:0;border-radius:14px;min-height:52px}
 .ghost{background:none;border:1.5px solid var(--muted);border-radius:14px;min-height:48px;font-weight:700}
+.or-div{display:flex;align-items:center;gap:10px;margin:10px 0;color:var(--muted);font-size:.85rem}
+.or-div::before,.or-div::after{content:"";flex:1;height:1px;background:var(--muted);opacity:.4}
+.g-wrap{min-height:48px}
 .win{align-items:center}
 .win .panel{border-radius:20px;text-align:center;max-width:340px;margin:16px}
 .win .dot{width:64px;height:64px;border-radius:50%;margin:0 auto;border:4px solid #fff}
@@ -788,6 +792,8 @@ T.en.emIn="Sign in";T.fr.emIn="Me connecter";T.it.emIn="Accedi";
 T.en.emNew="Create my login";T.fr.emNew="Créer mon compte";T.it.emNew="Crea il mio account";
 T.en.emForgot="Forgot your password?";T.fr.emForgot="Mot de passe oublié ?";T.it.emForgot="Password dimenticata?";
 T.en.acctNote2="Your email and password are your login on any phone or computer. They bring back your name, points and friends. Your email is never shown to other players.";T.fr.acctNote2="Votre e-mail et votre mot de passe sont votre identifiant sur n'importe quel téléphone ou ordinateur. Vous retrouvez votre nom, vos points et vos amis. Votre e-mail n'est jamais montré aux autres joueurs.";T.it.acctNote2="La tua e-mail e la tua password sono il tuo accesso su qualsiasi telefono o computer. Ritrovi il tuo nome, i tuoi punti e i tuoi amici. La tua e-mail non viene mai mostrata agli altri giocatori.";
+T.en.orWord="or";T.fr.orWord="ou";T.it.orWord="o";
+T.en.googleFail="Google sign-in failed. Try again.";T.fr.googleFail="La connexion Google a échoué. Réessayez.";T.it.googleFail="Accesso Google non riuscito. Riprova.";
 T.en.signedInAs=function(h){return "Signed in · "+h};T.fr.signedInAs=function(h){return "Connecté · "+h};T.it.signedInAs=function(h){return "Connesso · "+h};
 T.en.acctMade2="Login created. Use the same email and password on any device.";T.fr.acctMade2="Compte créé. Utilisez le même e-mail et le même mot de passe sur tous vos appareils.";T.it.acctMade2="Account creato. Usa la stessa e-mail e la stessa password su tutti i dispositivi.";
 T.en.errLogin2="Sign in, or create your login, first.";T.fr.errLogin2="Connectez-vous d'abord, ou créez votre compte.";T.it.errLogin2="Prima accedi o crea il tuo account.";
@@ -2819,6 +2825,7 @@ window.addEventListener("pagehide",function(){if(seen&&seenDirty>0)seenFlush()})
 // Switched on when the project's key is present in config.js. The password is sent to the sign-in service
 // only and is never kept; the device keeps a renewal token so the player stays signed in.
 var API_KEY=String(CFG.apiKey||""),EMAIL_ON=!!API_KEY;
+var GOOGLE_CLIENT_ID="263422155646-10h439cj74jmeaqngha5in3a79nkedso.apps.googleusercontent.com";
 var pAuth=null,pTok=null,pTokP=null,legacyAid="",authBusy=false;
 try{pAuth=JSON.parse(localStorage.getItem("ludo-auth")||"null")}catch(e){}
 if(!pAuth||typeof pAuth!=="object"||!pAuth.rt||!pAuth.uid)pAuth=null;
@@ -3135,6 +3142,22 @@ function emailSign(email,pw,create,cc){
     authBusy=false;onErr=e&&e.auth?authMsg(e):L().errNet;renderOnline();
   });
 }
+// Google sign-in: same shared afterAuth() flow as email, just a different way in.
+function googleSign(idToken,cc){
+  onErr="";acctNote="";
+  if(authBusy||!idToken)return;
+  authKind="google";
+  logEv(authKind+"_try");
+  authBusy=true;renderOnline();
+  authCall("accounts:signInWithIdp",{postBody:"id_token="+encodeURIComponent(idToken)+"&providerId=google.com",requestUri:String(window.location.href),returnSecureToken:true}).then(function(j){
+    pAuth={rt:j.refreshToken,uid:j.localId,email:j.email,ver:true};savePAuth();
+    pTok={t:j.idToken,exp:Date.now()+(parseInt(j.expiresIn,10)||3600)*1000-300000};
+    return afterAuth(cc);
+  }).catch(function(e){
+    logEv(authKind+"_fail",authCode(e));
+    authBusy=false;onErr=L().googleFail;renderOnline();
+  });
+}
 // After the sign-in service says yes: load this player's saved game, or bring an older one along, or start one.
 function afterAuth(cc){
   var uid=pAuth.uid,hint=maskMail(pAuth.email);
@@ -3240,6 +3263,7 @@ function emailAcctHTML(){
   h+='<input type="password" class="fld" id="em-pw" autocomplete="current-password" maxlength="100" placeholder="'+t.pwPh+'" aria-label="'+t.pwPh+'">';
   h+='<select class="fld" id="em-cc" aria-label="'+t.phCc+'">'+CCN.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===cc?" selected":"")+'>'+c[1]+'</option>'}).join("")+'</select>';
   h+='<button type="button" class="cta" id="em-in"'+(authBusy?" disabled":"")+'>'+t.emIn+'</button><button type="button" class="ghost" id="em-new" style="margin:0"'+(authBusy?" disabled":"")+'>'+t.emNew+'</button></div>';
+  if(GOOGLE_CLIENT_ID)h+='<div class="or-div">'+t.orWord+'</div><div class="g-wrap" id="g-wrap"></div>';
   h+=(acctNote?'<p class="note" style="color:var(--accent)" role="status">'+esc(acctNote)+'</p>':"");
   h+='<p class="note"><button type="button" class="mini q" id="em-reset" style="padding-left:0;text-decoration:underline">'+t.emForgot+'</button></p>';
   h+='<p class="note">'+t.acctNote2+'</p><p class="note"><a href="privacy.html"'+BLANK+'>'+t.terms+'</a></p></div>';
@@ -3279,7 +3303,28 @@ function bindAcct(){
   if($("del-go"))$("del-go").addEventListener("click",function(){delAsk=true;acctNote="";renderOnline()});
   if($("del-no"))$("del-no").addEventListener("click",function(){delAsk=false;renderOnline()});
   if($("del-yes"))$("del-yes").addEventListener("click",deleteAcct);
+  if($("g-wrap"))mountGoogleButton();
 }
+var gBtnTries=0;
+function mountGoogleButton(){
+  var el=$("g-wrap");if(!el||!GOOGLE_CLIENT_ID)return;
+  gBtnTries=0;
+  (function tick(){
+    el=$("g-wrap");if(!el)return;
+    if(window.google&&window.google.accounts&&window.google.accounts.id){
+      google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:onGoogleCred});
+      el.innerHTML="";
+      var w=Math.round(el.getBoundingClientRect().width)||280;
+      google.accounts.id.renderButton(el,{theme:"outline",size:"large",text:"continue_with",width:Math.max(220,Math.min(360,w))});
+      return;
+    }
+    if(++gBtnTries>40)return;
+    setTimeout(tick,150);
+  })();
+}
+window.onGoogleCred=function(resp){
+  googleSign(resp&&resp.credential,$("em-cc")?$("em-cc").value:"");
+};
 
 // ---------- Sheets ----------
 function seg(items,cur,name){
@@ -3520,7 +3565,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="61";
+var BUILD="62";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
