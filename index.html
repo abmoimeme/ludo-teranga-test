@@ -592,9 +592,11 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
   autoNoteHost:"The game starts by itself once every seat is taken. You can also start sooner, and empty seats go to the computer.",
   autoNoteGuest:"The game starts once every seat is taken, or sooner if the host starts it.",startingNow:"Everyone is here. Starting…",
   startOnline:"Start game",waitHost:"Waiting for the host to start…",leave:"Leave game",waitAgain:"Waiting for the host to start the next game…",
+  leaveGame:"Leave game",leaveAsk:"If you leave now, you lose this game for good. This cannot be undone.",leaveYes:"Yes, leave and forfeit",leaveNo:"Stay in the game",
   rejoinTitle:"Getting you back into your game…",rejoinNote:"Reconnecting. Your seat and your pieces are kept.",rejoinStop:"Stop and play on this phone",errOld:"This game needs the newest version. Close the game completely and open it again.",
   acctTitle:"Your account",phCc:"Country",phPh:"Phone number",signIn:"Sign in with my number",signOut:"Sign out",
   tabPlay:"Play with friends",tabSettings:"Settings",blockedTitle:"Blocked players",blockedNone:"No blocked players.",blockedWho:"A player",unblock:"Unblock",prefsTitle:"Preferences",
+  helpTitle:"Help",aboutTitle:"About",
   acctNote:"Your phone number is your login on any phone or computer. It brings back your name, points and friends. It is never shown to other players.",
   signedIn:function(h){return "Signed in · number ending "+h},welcomeBack:function(n){return "Welcome back, "+n+". Your points and friends are here."},acctMade:"Account created. Use the same number on any device.",
   errPhone:"That phone number does not look right. Choose your country and type the number.",errLogin:"Sign in with your phone number first.",
@@ -655,9 +657,11 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
   autoNoteHost:"La partie démarre toute seule quand tous les sièges sont pris. Vous pouvez aussi commencer avant ; les sièges vides vont à l'ordinateur.",
   autoNoteGuest:"La partie démarre quand tous les sièges sont pris, ou avant si l'hôte la lance.",startingNow:"Tout le monde est là. C'est parti…",
   startOnline:"Commencer",waitHost:"En attente de l'hôte…",leave:"Quitter la partie",waitAgain:"En attente de l'hôte pour la prochaine partie…",
+  leaveGame:"Quitter la partie",leaveAsk:"Si vous quittez maintenant, vous perdez cette partie pour de bon. Impossible de revenir en arrière.",leaveYes:"Oui, quitter et abandonner",leaveNo:"Rester dans la partie",
   rejoinTitle:"Retour dans votre partie…",rejoinNote:"Reconnexion en cours. Votre siège et vos pions sont gardés.",rejoinStop:"Arrêter et jouer sur ce téléphone",errOld:"Cette partie demande la dernière version. Fermez complètement le jeu puis rouvrez-le.",
   acctTitle:"Votre compte",phCc:"Pays",phPh:"Numéro de téléphone",signIn:"Me connecter avec mon numéro",signOut:"Se déconnecter",
   tabPlay:"Jouer avec des amis",tabSettings:"Réglages",blockedTitle:"Joueurs bloqués",blockedNone:"Aucun joueur bloqué.",blockedWho:"Un joueur",unblock:"Débloquer",prefsTitle:"Préférences",
+  helpTitle:"Aide",aboutTitle:"À propos",
   acctNote:"Votre numéro de téléphone est votre identifiant sur n'importe quel téléphone ou ordinateur. Il retrouve votre nom, vos points et vos amis. Les autres joueurs ne le voient jamais.",
   signedIn:function(h){return "Connecté · numéro finissant par "+h},welcomeBack:function(n){return "Bon retour, "+n+". Vos points et vos amis sont là."},acctMade:"Compte créé. Utilisez le même numéro sur tous vos appareils.",
   errPhone:"Ce numéro ne semble pas correct. Choisissez votre pays et écrivez le numéro.",errLogin:"Connectez-vous d'abord avec votre numéro de téléphone.",
@@ -724,10 +728,12 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
   autoNoteHost:"La partita inizia da sola quando tutti i posti sono occupati. Puoi anche iniziare prima; i posti vuoti vanno al computer.",
   autoNoteGuest:"La partita inizia quando tutti i posti sono occupati, o prima se l'host la avvia.",startingNow:"Ci siete tutti. Si parte…",
   startOnline:"Inizia la partita",waitHost:"In attesa che l'host inizi…",leave:"Esci dalla partita",waitAgain:"In attesa che l'host avvii la prossima partita…",
+  leaveGame:"Esci dalla partita",leaveAsk:"Se esci ora, perdi questa partita per sempre. Non si può annullare.",leaveYes:"Sì, esci e abbandona",leaveNo:"Resta nella partita",
   rejoinTitle:"Ti riportiamo nella tua partita…",rejoinNote:"Riconnessione in corso. Il tuo posto e le tue pedine sono conservati.",rejoinStop:"Ferma e gioca su questo telefono",
   errOld:"Questa partita richiede l'ultima versione. Chiudi del tutto il gioco e riaprilo.",
   acctTitle:"Il tuo account",phCc:"Paese",phPh:"Numero di telefono",signIn:"Accedi con il mio numero",signOut:"Esci",
   tabPlay:"Gioca con gli amici",tabSettings:"Impostazioni",blockedTitle:"Giocatori bloccati",blockedNone:"Nessun giocatore bloccato.",blockedWho:"Un giocatore",unblock:"Sblocca",prefsTitle:"Preferenze",
+  helpTitle:"Aiuto",aboutTitle:"Informazioni",
   acctNote:"Il tuo numero di telefono è il tuo accesso su qualsiasi telefono o computer. Ritrova il tuo nome, i tuoi punti e i tuoi amici. Gli altri giocatori non lo vedono mai.",
   signedIn:function(h){return "Accesso fatto · numero che finisce con "+h},welcomeBack:function(n){return "Bentornato, "+n+". I tuoi punti e i tuoi amici sono qui."},acctMade:"Account creato. Usa lo stesso numero su ogni dispositivo.",
   errPhone:"Questo numero non sembra corretto. Scegli il paese e scrivi il numero.",errLogin:"Accedi prima con il tuo numero di telefono.",
@@ -1604,7 +1610,7 @@ async function doMove(ti,di,remote){
 var DB=((window.LUDO_CONFIG&&window.LUDO_CONFIG.databaseURL)||"").replace(/\/+$/,"");
 var CFG=window.LUDO_CONFIG||{},AUTH_URL=(CFG.authUrl||"https://identitytoolkit.googleapis.com/v1").replace(/\/+$/,""),TOKEN_URL=(CFG.tokenUrl||"https://securetoken.googleapis.com/v1").replace(/\/+$/,"");
 var net=null,idleAt=0,myId=null,onErr="",pendingCode="",joinTries=0;
-var onlineView="play";
+var onlineView="play",leaveAsk=false;
 try{myId=localStorage.getItem("ludo-id")}catch(e){}
 if(!myId){myId="p"+Math.random().toString(36).slice(2,10)+Date.now().toString(36);try{localStorage.setItem("ludo-id",myId)}catch(e){}}
 try{pendingCode=(new URLSearchParams(location.search).get("room")||"").toUpperCase().replace(/[^A-Z0-9]/g,"").slice(0,6)}catch(e){}
@@ -1637,10 +1643,11 @@ function evOk(gm,e){
   if(e.t==="m")return gm.dice.length>0&&e.di>=0&&e.di<gm.dice.length&&e.ti>=0&&e.ti<4&&canMove(gm,gm.turn,e.ti,gm.dice[e.di])!==null;
   if(e.t==="j")return !!gm.join&&e.pi>=0&&e.pi<gm.players.length&&gm.players[e.pi].kind==="cpu"&&(gm.out||[]).indexOf(e.pi)<0&&gm.rank.indexOf(e.pi)<0&&
     typeof e.id==="string"&&/^p[a-z0-9]{6,40}$/.test(e.id)&&!gm.players.some(function(q){return q.id===e.id});
+  if(e.t==="k")return e.pi>=0&&e.pi<gm.players.length&&gm.players[e.pi].kind==="human"&&(gm.out||[]).indexOf(e.pi)<0&&gm.rank.indexOf(e.pi)<0;
   return e.t==="x";
 }
 function seatAt(r,i){return r&&r.seats?r.seats[i]:undefined}
-function canon(e){return e.t+"|"+(e.d?e.d.join(","):"")+"|"+(e.ti===undefined?"":e.ti)+"|"+(e.di===undefined?"":e.di)+"|"+(e.a?1:"")+(e.t==="j"?"|"+e.pi+"|"+e.id:"")}
+function canon(e){return e.t+"|"+(e.d?e.d.join(","):"")+"|"+(e.ti===undefined?"":e.ti)+"|"+(e.di===undefined?"":e.di)+"|"+(e.a?1:"")+(e.t==="j"?"|"+e.pi+"|"+e.id:e.t==="k"?"|"+e.pi:"")}
 function fresh(id){return id===myId||Date.now()-(net.seen[id]||net.since)<25000}
 function actingHost(){
   var r=net.room,ss=(r.game&&r.game.seats)||[];
@@ -1673,6 +1680,16 @@ function pushEv(e){
     api("PUT","/ev/"+n,e).catch(function(){setTimeout(function(){resync(true)},1200)});
   }
 }
+// A player gives up on a game already in progress: their pieces come off the board and, once only
+// one player is left standing, that player wins. Other devices learn about it the same way they learn
+// about a roll or a move, through the shared event log.
+function leaveGame(){
+  if(!live()||!g||g.over)return;
+  var pi=myPi();if(pi<0||g.players[pi].kind!=="human")return;
+  pushEv({t:"k",pi:pi});
+  kickPlayer(g,pi);
+  kickFlow(pi);
+}
 // Sends this phone's inputs one at a time so they always arrive in the order they were played.
 function sendNext(){
   var me=net;if(!me||me.sending||!me.out.length)return;
@@ -1702,6 +1719,7 @@ function applyJoin(gm,e){
 function simEvent(gm,e){
   if(!evOk(gm,e))return;
   if(e.t==="j"){applyJoin(gm,e);return}
+  if(e.t==="k"){kickPlayer(gm,e.pi);return}
   if(e.t!=="m"&&missStep(gm,e)){gm.dice=[];gm.rolled=null;gm.bonus=false;endRoll(gm);return}
   if(e.t==="r"){gm.dice=e.d.slice();gm.rolled=e.d.slice();gm.bonus=false;noteRoll(gm,e.d)}
   else if(e.t==="m"){var mr=applyMove(gm,gm.turn,e.ti,gm.dice[e.di]);spendDie(gm,e.di,mr)}
@@ -1722,6 +1740,7 @@ function pumpEvents(){
   net.log[net.applied]=canon(e);net.applied++;net.ok=net.applied;
   if(!evOk(g,e)){pumpEvents();return}
   if(e.t==="j"){joinFlow(e);return}
+  if(e.t==="k"){kickPlayer(g,e.pi);kickFlow(e.pi);return}
   if(e.t==="r"){var kp=g.turn;if(missStep(g,e)){kickFlow(kp);return}showRoll(e.d)}else if(e.t==="m")doMove(e.ti,e.di,true);else timeUp(true);
 }
 function resync(force){
@@ -2137,6 +2156,7 @@ function renderOnline(){
       h+=acctHTML();
       h+=blockedHTML();
       h+=prefsHTML();
+      h+=helpAboutHTML();
       h+=err+'<button type="button" class="ghost" id="on-close">'+t.close+'</button>';
     }else{
       h+='<div><h3>'+t.joinTitle+'</h3><div class="who"><input type="text" id="join-code" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="'+t.codePh+'" value="'+esc(pendingCode)+'" aria-label="'+t.codePh+'"><button type="button" class="cta" id="join-go" style="padding:0 22px">'+t.join+'</button></div></div>';
@@ -2164,7 +2184,11 @@ function renderOnline(){
       if(host)h+='<button type="button" class="cta" id="start-go">'+(c.auto&&!full?t.startEarly:t.startOnline)+'</button>';
     }
     h+=friendsHTML();
-    h+=err+'<button type="button" class="ghost" id="leave-go">'+t.leave+'</button>';
+    h+=err;
+    if(r.status!=="lobby"&&g&&!g.over){
+      if(leaveAsk)h+='<p class="warn" style="margin:10px 0 8px">'+t.leaveAsk+'</p><div class="who"><button type="button" class="mini danger" id="leave-yes">'+t.leaveYes+'</button><button type="button" class="mini" id="leave-no">'+t.leaveNo+'</button></div>';
+      else h+='<button type="button" class="ghost" id="leave-go">'+t.leaveGame+'</button>';
+    }else h+='<button type="button" class="ghost" id="leave-go">'+t.leave+'</button>';
     if(r.status!=="lobby")h+='<button type="button" class="ghost" id="on-close">'+t.close+'</button>';
   }
   p.innerHTML=h;
@@ -2176,7 +2200,12 @@ function renderOnline(){
   bindAcct();
   on("invite-go",invite);
   on("start-go",startOnline);
-  on("leave-go",function(){closeSheets();leaveRoom()});
+  on("leave-go",function(){
+    if(net&&net.room&&net.room.status!=="lobby"&&g&&!g.over){leaveAsk=true;renderOnline();return}
+    closeSheets();leaveRoom();
+  });
+  on("leave-yes",function(){leaveAsk=false;closeSheets();leaveGame()});
+  on("leave-no",function(){leaveAsk=false;renderOnline()});
   bindFriends(p);
   Array.prototype.slice.call(p.querySelectorAll('[data-set="oauto"]')).forEach(function(b){b.addEventListener("click",function(){
     cfg.autoStart=b.getAttribute("data-val")==="1";
@@ -3007,6 +3036,12 @@ function bindPrefs(p){
   if($("pf-sound"))$("pf-sound").addEventListener("click",function(){$("btn-sound").click();renderOnline()});
   Array.prototype.slice.call(p.querySelectorAll('[data-pflang]')).forEach(function(b){b.addEventListener("click",function(){setLang(b.getAttribute("data-pflang"))})});
 }
+// Settings: quick links to support/privacy, plus the version number for bug reports.
+function helpAboutHTML(){
+  var t=L();
+  return '<div><h3>'+t.helpTitle+'</h3><p class="note" style="margin:0"><a href="support.html"'+BLANK+'>'+t.support+'</a> · <a href="privacy.html"'+BLANK+'>'+t.privacy+'</a></p>'+
+    '<h3 style="margin-top:12px">'+t.aboutTitle+'</h3><p class="note" style="margin:0">Ludo Teranga · v'+BUILD+'</p><p class="note" style="margin:0">© 2026 Nioro Resources LLC</p></div>';
+}
 // A report holds the two players' game identities, the name and last comment of the reported player,
 // and the room. No phone number is involved.
 function reportPlayer(pi){
@@ -3669,7 +3704,7 @@ function setLang(l){
 $("roll").addEventListener("click",function(){if(isHuman(g.turn))doRoll()});
 $("btn-new").addEventListener("click",function(){renderSetup();$("sheet-setup").classList.add("open")});
 $("btn-scores").addEventListener("click",openScores);
-$("btn-online").addEventListener("click",function(){onErr="";onlineView="play";publishMe();openOnline()});
+$("btn-online").addEventListener("click",function(){onErr="";onlineView="play";leaveAsk=false;publishMe();openOnline()});
 $("btn-settings").addEventListener("click",function(){onErr="";onlineView="settings";publishMe();openOnline()});
 $("btn-sound").addEventListener("click",function(){
   soundOn=!soundOn;try{localStorage.setItem("ludo-sound",soundOn?"1":"0")}catch(e){}
@@ -3736,7 +3771,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="70";
+var BUILD="71";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
