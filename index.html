@@ -2048,7 +2048,7 @@ function renderGate(){
     '<h2>'+t.gateTitle+'</h2><p class="note" style="margin:0">'+t.gateSub+'</p>'+
     '<div class="gate-spons"><span class="gate-spons-label">'+t.gateWith+'</span>'+spons+'</div>'+
     '<button type="button" class="cta" id="gate-go" style="width:100%">'+t.gateCta+'</button>';
-  $("gate-go").addEventListener("click",function(){onErr="";publishMe();openOnline()});
+  $("gate-go").addEventListener("click",function(){onErr="";$("sheet-gate").classList.remove("open");publishMe();openOnline()});
 }
 function syncGate(){
   if(!EMAIL_ON)return;
@@ -3425,7 +3425,7 @@ function openScores(){
   $("scores-close").addEventListener("click",closeSheets);
   $("sheet-scores").classList.add("open");
 }
-function closeSheets(){["sheet-setup","sheet-rules","sheet-scores","sheet-online","sheet-chat","sheet-owner","sheet-win"].forEach(function(id){$(id).classList.remove("open")})}
+function closeSheets(){["sheet-setup","sheet-rules","sheet-scores","sheet-online","sheet-chat","sheet-owner","sheet-win"].forEach(function(id){$(id).classList.remove("open")});syncGate()}
 function setLang(l){
   lang=l;langManual=true;try{localStorage.setItem("ludo-lang",l);localStorage.setItem("ludo-lang-m","1")}catch(e){}
   if($("sheet-online").classList.contains("open"))renderOnline();
@@ -3503,7 +3503,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="58";
+var BUILD="59";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
