@@ -2134,6 +2134,11 @@ function armClose(){
   if(!net.closeAt){
     net.closeAt=Date.now()+CLOSE_MS;
     var code=net.code;
+    // One lasting record of the finished game, kept after the live room itself is removed, so the
+    // owner's dashboard can still show who played. Every device in the room tries to write it; only
+    // the first succeeds (the Firebase rule rejects a second write for the same room code).
+    var hist={code:code,created:net.room.created||0,ended:Date.now(),cfg:{count:net.room.cfg.count,stake:net.room.cfg.stake||0},host:net.room.host||"",seats:net.room.seats||{},rank:(g.rank||[]).slice(),out:(g.out||[]).slice()};
+    withAuth(DB+"/history/"+code+".json").then(function(u){return fetch(u,{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(hist)})}).catch(function(){});
     // the finished room is removed from the database even if this phone has already moved to the next game
     setTimeout(function(){withAuth(roomUrl(code,"")).then(function(u){return fetch(u,{method:"DELETE"})}).catch(function(){})},CLOSE_MS);
   }
@@ -3878,7 +3883,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="84";
+var BUILD="85";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;

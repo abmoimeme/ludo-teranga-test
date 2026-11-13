@@ -132,6 +132,7 @@ function rulesText(){
   var o=String(own&&own.uid||"").replace(/[^A-Za-z0-9]/g,"");
   return '{"rules":{\n'+
   ' "rooms":{".read":"auth != null && auth.uid === \''+o+'\'","$code":{".read":true,".write":true,".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
+  ' "history":{".read":"auth != null && auth.uid === \''+o+'\'","$code":{".write":"!data.exists()",".validate":"$code.matches(/^[A-Z0-9]{6}$/) && newData.hasChildren([\'created\',\'ended\',\'cfg\',\'seats\'])"}},\n'+
   ' "players":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "inbox":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "accounts":{"$id":{".read":"$id.matches(/^[a-f0-9]{40}$/) || (auth != null && auth.uid === $id)",".write":"$id.matches(/^[a-f0-9]{40}$/) || (auth != null && auth.uid === $id)"}},\n'+
@@ -142,7 +143,7 @@ function rulesText(){
 }
 
 // ---------- data ----------
-var EV=[],SEEN={},STATS={},ROOMS={},PUB={},denied={},loadedAt=0,loadErr="";
+var EV=[],SEEN={},STATS={},ROOMS={},HIST={},PUB={},denied={},loadedAt=0,loadErr="";
 var F={range:7,cc:"",pf:"",b:""},tab="overview",pick="",find="",SP={who:"",by:"day",names:false};
 function load(){
   loadErr="";denied={};
@@ -153,13 +154,16 @@ function load(){
   }).catch(function(e){if(e.status===401||e.status===403)denied.events=1;else throw e});
   var b=get("/seen").then(function(d){SEEN=d||{}}).catch(function(e){if(e.status===401||e.status===403)denied.seen=1;else throw e});
   var c=get("/stats/days",'orderBy=%22%24key%22&limitToLast=30').then(function(d){STATS=d||{}}).catch(function(e){if(e.status===401||e.status===403)denied.stats=1;else throw e});
-  var d=get("/rooms").then(function(r){ROOMS=r||{}}).catch(function(e){if(e.status===401||e.status===403)denied.rooms=1;else throw e}).then(function(){
-    // Look up the @handle for any seated player, by their public friend-code record (no extra rule needed: it's already readable by anyone).
+  var d=get("/rooms").then(function(r){ROOMS=r||{}}).catch(function(e){if(e.status===401||e.status===403)denied.rooms=1;else throw e});
+  var h=get("/history").then(function(r){HIST=r||{}}).catch(function(e){if(e.status===401||e.status===403)denied.history=1;else throw e});
+  var pub=Promise.all([d,h]).then(function(){
+    // Look up the @handle for any seated player (live room or finished game), by their public friend-code record (no extra rule needed: it's already readable by anyone).
     var fcs={};
     Object.keys(ROOMS||{}).forEach(function(code){var r=ROOMS[code];if(!r||!r.seats)return;Object.keys(r.seats).forEach(function(si){var s=r.seats[si];if(s&&s.fc&&!PUB[s.fc])fcs[s.fc]=1})});
+    Object.keys(HIST||{}).forEach(function(code){var r=HIST[code];if(!r||!r.seats)return;Object.keys(r.seats).forEach(function(si){var s=r.seats[si];if(s&&s.fc&&!PUB[s.fc])fcs[s.fc]=1})});
     return Promise.all(Object.keys(fcs).map(function(fc){return get("/players/"+fc).then(function(p){PUB[fc]=p||null}).catch(function(){})}));
   });
-  return Promise.all([a,b,c,d]).then(function(){loadedAt=Date.now();prune();pruneEmptyRooms()});
+  return Promise.all([a,b,c,d,h,pub]).then(function(){loadedAt=Date.now();prune();pruneEmptyRooms();pruneOldHistory()});
 }
 // Detailed events are kept 90 days.
 function prune(){
@@ -170,6 +174,17 @@ function prune(){
       token().then(function(t){fetch(DB+"/events/"+d+".json?auth="+encodeURIComponent(t),{method:"DELETE"}).catch(function(){})});
     });
   }).catch(function(){});
+}
+// Finished-game records are kept 90 days too, same as events.
+function pruneOldHistory(){
+  if(denied.history)return;
+  var cut=dayAgo(90);
+  Object.keys(HIST||{}).forEach(function(code){
+    var h=HIST[code];
+    if(!h||typeof h!=="object"||num(h.ended)>=Date.parse(cut+"T00:00:00Z"))return;
+    delete HIST[code];
+    token().then(function(t){fetch(DB+"/history/"+code+".json?auth="+encodeURIComponent(t),{method:"DELETE"}).catch(function(){})});
+  });
 }
 // A lobby room that never got going (everyone left, or the creator just closed the tab) can be left
 // behind forever with no players in it. Clear those out whenever the dashboard loads, so the "last
@@ -281,16 +296,35 @@ function allRoomSummaries(){
   Object.keys(ROOMS||{}).forEach(function(code){var r=ROOMS[code];if(r&&typeof r==="object"&&r.cfg)out.push(roomSummary(code,r))});
   return out;
 }
+// A finished game's room is deleted 30 seconds after the win, so this permanent (but lighter) record
+// is what's left to show it on the dashboard afterward.
+var ORD=["1st","2nd","3rd","4th"];
+function historySummary(code,h){
+  var seats=h.seats||{},rank=h.rank||[],out=h.out||[],pls=[];
+  Object.keys(seats).sort().forEach(function(si){
+    var s=seats[si];if(!s)return;
+    var pr=s.fc?PUB[s.fc]:null,u=pr&&pr.uname?String(pr.uname).slice(0,20):"";
+    var pi=parseInt(si,10),pos=rank.indexOf(pi),result=out.indexOf(pi)>=0?"left":pos>=0?(ORD[pos]||(pos+1)+"th"):"";
+    pls.push({name:String(s.name||"").slice(0,12)||"(no name)",u:u,host:String(h.host||"")===String(s.id||""),result:result});
+  });
+  return {code:code,finished:true,playing:false,n:(h.cfg&&h.cfg.count)||pls.length,stake:(h.cfg&&h.cfg.stake)||0,created:num(h.created),last:num(h.ended),players:pls};
+}
+function allHistorySummaries(){
+  var out=[];
+  Object.keys(HIST||{}).forEach(function(code){var h=HIST[code];if(h&&typeof h==="object"&&h.cfg)out.push(historySummary(code,h))});
+  return out;
+}
 function liveRooms(){
   var now=Date.now();
   // nobody in it has checked in for 2 min: treat as not currently going
   return allRoomSummaries().filter(function(x){return x.last&&now-x.last<=120000}).sort(function(a,b){return b.last-a.last});
 }
 function recentRooms(){
-  return allRoomSummaries().sort(function(a,b){return b.created-a.created}).slice(0,10);
+  function when(x){return x.finished?x.last:x.created}
+  return allRoomSummaries().concat(allHistorySummaries()).sort(function(a,b){return when(b)-when(a)}).slice(0,10);
 }
 function roomPlayersHTML(x){
-  return x.players.map(function(p){return "<b>"+esc(p.name)+"</b>"+(p.u?' <span style="color:var(--ink2);font-weight:600">@'+esc(p.u)+"</span>":"")+(p.host?' <span class="pill info">host</span>':"")}).join(", ")||'<span style="color:var(--ink2)">empty</span>';
+  return x.players.map(function(p){return "<b>"+esc(p.name)+"</b>"+(p.u?' <span style="color:var(--ink2);font-weight:600">@'+esc(p.u)+"</span>":"")+(p.host?' <span class="pill info">host</span>':"")+(p.result?' <span class="pill'+(p.result==="1st"?" good":"")+'">'+esc(p.result==="left"?"left":p.result)+'</span>':"")}).join(", ")||'<span style="color:var(--ink2)">empty</span>';
 }
 function vLiveGames(){
   var L=liveRooms();
@@ -305,13 +339,13 @@ function vLiveGames(){
 }
 function vRecentRooms(){
   var L=recentRooms(),now=Date.now();
-  var h='<div class="card"><h2>Last '+fmt(L.length)+' game'+(L.length===1?"":"s")+' created</h2>';
-  if(denied.rooms)h+='<p class="note" style="margin:0">This account can\'t list games yet. See the notice below.</p>';
-  else if(!L.length)h+='<p class="note" style="margin:0">No game created yet.</p>';
-  else h+='<div class="scroll"><table><thead><tr><th style="text-align:left">Room</th><th style="text-align:left">Players</th><th>Seats</th><th>Entry</th><th>Status</th><th>Created</th><th>Last check-in</th></tr></thead><tbody>'+L.map(function(x){
-    var isLive=x.last&&now-x.last<=120000;
-    return '<tr><td style="text-align:left">'+esc(x.code)+'</td><td style="text-align:left">'+roomPlayersHTML(x)+'</td><td>'+x.players.length+" / "+x.n+'</td><td>'+(x.stake?fmt(x.stake)+" ★":"–")+'</td><td>'+(isLive?(x.playing?'<span class="pill good">Playing</span>':'<span class="pill info">Waiting to start</span>'):'<span class="pill">Not active</span>')+'</td><td>'+ago(x.created)+'</td><td>'+(x.last?ago(x.last):"–")+'</td></tr>';
-  }).join("")+'</tbody></table></div><p class="note">The 10 most recently created rooms, whether or not they\'re still going. A room never fully disappears, so an old abandoned lobby can still show up here.</p>';
+  var h='<div class="card"><h2>Last '+fmt(L.length)+' game'+(L.length===1?"":"s")+'</h2>';
+  if(denied.rooms&&denied.history)h+='<p class="note" style="margin:0">This account can\'t list games yet. See the notice below.</p>';
+  else if(!L.length)h+='<p class="note" style="margin:0">No game played yet.</p>';
+  else h+='<div class="scroll"><table><thead><tr><th style="text-align:left">Room</th><th style="text-align:left">Players</th><th>Seats</th><th>Entry</th><th>Status</th><th>When</th></tr></thead><tbody>'+L.map(function(x){
+    var isLive=!x.finished&&x.last&&now-x.last<=120000,status=x.finished?'<span class="pill">Finished</span>':(isLive?(x.playing?'<span class="pill good">Playing</span>':'<span class="pill info">Waiting to start</span>'):'<span class="pill">Not active</span>');
+    return '<tr><td style="text-align:left">'+esc(x.code)+'</td><td style="text-align:left">'+roomPlayersHTML(x)+'</td><td>'+x.players.length+" / "+x.n+'</td><td>'+(x.stake?fmt(x.stake)+" ★":"–")+'</td><td>'+status+'</td><td>'+(x.finished?ago(x.last):ago(x.created))+'</td></tr>';
+  }).join("")+'</tbody></table></div><p class="note">The 10 most recent games, finished ones included with final standings. A lobby that never started can still show up here as "Not active" until it\'s cleaned up.</p>';
   h+='</div>';
   return h;
 }
@@ -549,8 +583,8 @@ function vErrors(){
   return h;
 }
 function notice(){
-  if(!denied.events&&!denied.seen&&!denied.stats&&!denied.rooms)return "";
-  return '<div class="card" style="border-color:var(--bad)"><h2>One step in Firebase</h2><p style="margin:0 0 10px">The database does not yet let this account read '+[denied.events?"the event log":"",denied.seen?"player activity":"",denied.stats?"the game counts":"",denied.rooms?"which games are live right now":""].filter(Boolean).join(", ")+'. In Firebase > Realtime Database > Rules, replace everything with the text below and publish. The live game keeps working.</p><textarea id="rules" readonly rows="7">'+esc(rulesText())+'</textarea><p style="margin:10px 0 0"><button type="button" class="btn gold" id="copy">Copy the rules</button> <span id="copied" style="color:var(--ink2)"></span></p></div>';
+  if(!denied.events&&!denied.seen&&!denied.stats&&!denied.rooms&&!denied.history)return "";
+  return '<div class="card" style="border-color:var(--bad)"><h2>One step in Firebase</h2><p style="margin:0 0 10px">The database does not yet let this account read '+[denied.events?"the event log":"",denied.seen?"player activity":"",denied.stats?"the game counts":"",denied.rooms?"which games are live right now":"",denied.history?"finished games":""].filter(Boolean).join(", ")+'. In Firebase > Realtime Database > Rules, replace everything with the text below and publish. The live game keeps working.</p><textarea id="rules" readonly rows="7">'+esc(rulesText())+'</textarea><p style="margin:10px 0 0"><button type="button" class="btn gold" id="copy">Copy the rules</button> <span id="copied" style="color:var(--ink2)"></span></p></div>';
 }
 function builds(){var b={};EV.forEach(function(x){if(x.b)b[x.b]=1});Object.keys(SEEN).forEach(function(k){var v=Math.floor(num((SEEN[k]||{}).b));if(v)b[v]=1});return Object.keys(b).sort(function(a,c){return c-a})}
 function render(){
