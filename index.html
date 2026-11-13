@@ -2725,6 +2725,19 @@ function statOver(){
 // One short line per event. It never holds an email, a password or a phone number. Before a player is signed in,
 // the line carries only this device's random statistics code.
 var evCount=0,evErr=0,authKind="";
+// Roughly where a sign-in failure happened (city/country only, never the IP itself), looked up once per visit
+// from a public location service. Best-effort: if it is slow, blocked, or fails, failures just log without it.
+var geoTried=false,geoCache=null;
+function fetchGeo(){
+  if(geoTried||!DB||!EMAIL_ON)return;geoTried=true;
+  try{
+    var ctrl=(typeof AbortController!=="undefined")?new AbortController():null;
+    if(ctrl)setTimeout(function(){try{ctrl.abort()}catch(e){}},3000);
+    fetch("https://ipwho.is/?fields=success,country,city",ctrl?{signal:ctrl.signal}:{}).then(function(r){return r.json()}).then(function(j){
+      if(j&&j.success!==false)geoCache={co:String(j.country||"").slice(0,40),ci:String(j.city||"").slice(0,40)};
+    }).catch(function(){});
+  }catch(e){}
+}
 function evDevice(){
   try{
     var ua=navigator.userAgent||"",touch=(navigator.maxTouchPoints||0)>0,small=Math.min(screen.width,screen.height);
@@ -2737,6 +2750,7 @@ function logEv(e,r,more){
   if(!DB||!EMAIL_ON||evCount>=90)return;evCount++;
   var d={e:String(e).slice(0,24),t:Date.now(),d:statId||"",cc:String((acct&&acct.cc)||guessCc()||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0,l:String(typeof lang==="string"?lang:"").slice(0,2),dv:evDevice()};
   if(r)d.r=String(r).slice(0,60);
+  if(/^(signin|signup|google)_fail$/.test(d.e)&&geoCache){d.gco=geoCache.co;d.gci=geoCache.ci}
   if(more)Object.keys(more).forEach(function(k){if(/^(sp|bn|cp|pl|gm|to|bot)$/.test(k)&&more[k]!==""&&more[k]!==0)d[k]=typeof more[k]==="number"?more[k]:String(more[k]).slice(0,120)});
   if(pAuth&&acct)d.u=pAuth.uid;
   try{fetch(DB+"/events/"+statDay()+".json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d),keepalive:true}).catch(function(){})}catch(x){}
@@ -3317,6 +3331,7 @@ function acctHTML(){
   return h;
 }
 function bindAcct(){
+  fetchGeo();
   if($("ph-go"))$("ph-go").addEventListener("click",function(){signIn($("ph-cc").value,$("ph-num").value)});
   if($("em-in"))$("em-in").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,false,$("em-cc").value)});
   if($("em-new"))$("em-new").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,true,$("em-cc").value)});
@@ -3600,7 +3615,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="67";
+var BUILD="68";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
