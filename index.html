@@ -191,6 +191,7 @@ h1 span{color:var(--accent);display:block}
 .ad.big{flex-direction:column;align-items:flex-start;gap:6px;background:rgba(255,255,255,.06);padding:12px 14px;position:relative}
 .ad.big .row{display:flex;align-items:center;gap:10px;width:100%}
 .ad.big b{font-size:1.15rem}.ad.big span{font-size:.88rem;color:var(--ink)}.ad.big small{display:block;font-size:.78rem;color:var(--muted)}
+#lobby-adtop,#lobby-ad,#gate-adtop,#gate-ad{width:100%;box-sizing:border-box;max-width:100%}
 .foot{margin:6px 0 0;text-align:center;font-size:.72rem;color:var(--muted)}
 .links{margin:4px 0 0;text-align:center;font-size:.78rem}
 .links a,.note a{color:var(--muted);text-decoration:underline;padding:6px 4px;display:inline-block}
@@ -1454,12 +1455,20 @@ var adIdx=Math.floor(Math.random()*ADS.length),AD_TAG={en:"Sponsor",fr:"Partenai
 function adText(a){return a[lang]||a.en}
 function adMark(a){return '<div class="mk'+(a.img?' pic':'')+'">'+(a.img?'<img src="'+a.img+'" alt="" width="40" height="40">':a.mk)+'</div>'}
 function renderAd(){
-  // the slim strip at the top is always on screen; the larger banner lower down shows a different company
-  var top=ADS[adIdx%ADS.length],te=$("adtop");
-  if(te){te.style.setProperty("--adc",top.c);te.innerHTML=(top.img?'<img src="'+top.img+'" alt="" width="32" height="32">':'')+'<div><b>'+esc(top.name)+'</b><span>'+esc(adText(top)[0])+'</span></div>';te.setAttribute("aria-label",AD_TAG[lang]+" · "+top.name);te.setAttribute("data-mk",top.mk);te.style.cursor=top.url?"pointer":""}
-  var a=ADS[(adIdx+2)%ADS.length],el=$("ad");if(!el)return;
-  el.style.setProperty("--adc",a.c);el.setAttribute("data-mk",a.mk);el.style.cursor=a.url?"pointer":"";
-  el.innerHTML=''+adMark(a)+'<div class="tx"><b>'+esc(a.name)+'</b><span>'+esc(adText(a)[0])+'</span></div><em>'+AD_TAG[lang]+'</em>';
+  // the slim strip at the top is always on screen; the larger banner lower down shows a different company.
+  // the Gate (before sign-in) and the Lobby (after sign-in) each have their own copy of each slot
+  // (gate-adtop/gate-ad, lobby-adtop/lobby-ad), since either one can sit in front of the header and footer.
+  var top=ADS[adIdx%ADS.length];
+  ["adtop","gate-adtop","lobby-adtop"].forEach(function(id){
+    var te=$(id);if(!te)return;
+    te.style.setProperty("--adc",top.c);te.innerHTML=(top.img?'<img src="'+top.img+'" alt="" width="32" height="32">':'')+'<div><b>'+esc(top.name)+'</b><span>'+esc(adText(top)[0])+'</span></div>';te.setAttribute("aria-label",AD_TAG[lang]+" · "+top.name);te.setAttribute("data-mk",top.mk);te.style.cursor=top.url?"pointer":"";
+  });
+  var a=ADS[(adIdx+2)%ADS.length];
+  ["ad","gate-ad","lobby-ad"].forEach(function(id){
+    var el=$(id);if(!el)return;
+    el.style.setProperty("--adc",a.c);el.setAttribute("data-mk",a.mk);el.style.cursor=a.url?"pointer":"";
+    el.innerHTML=''+adMark(a)+'<div class="tx"><b>'+esc(a.name)+'</b><span>'+esc(adText(a)[0])+'</span></div><em>'+AD_TAG[lang]+'</em>';
+  });
 }
 function adCard(){
   var a=ADS[(adIdx+1)%ADS.length],x=adText(a);
@@ -1494,7 +1503,7 @@ function adDest(a,pl){
 document.addEventListener("click",function(e){
   var el=e.target&&e.target.closest?e.target.closest("[data-mk]"):null;if(!el)return;
   var mk=el.getAttribute("data-mk"),a=ADS.filter(function(x){return x.mk===mk})[0];if(!a)return;
-  var pl=el.id==="adtop"?"top":el.id==="ad"?"bottom":"win",now=Date.now();
+  var pl=/adtop$/.test(el.id)?"top":/(^ad$|-ad$)/.test(el.id)?"bottom":"win",now=Date.now();
   if(now-(adLast[mk]||0)<1500)return;   // a double tap counts once
   adLast[mk]=now;
   var dest=adDest(a,pl);
@@ -2153,20 +2162,24 @@ function openOnline(){refreshFriends();renderOnline();$("sheet-online").classLis
 // No gameplay, local or online, for a visitor who has not signed in. Closes once they do.
 function renderGate(){
   var t=L(),spons=ADS.map(function(a){return '<img src="'+a.img+'" alt="'+esc(a.name)+'" loading="lazy">'}).join("");
-  $("panel-gate").innerHTML='<div class="gate-banner"><div class="gate-crown">👑</div>'+
+  $("panel-gate").innerHTML='<div class="adtop" id="gate-adtop" role="complementary"></div>'+
+    '<div class="gate-banner"><div class="gate-crown">👑</div>'+
     '<div class="gate-wordmark"><span class="gw-l" style="background:var(--red)">L</span><span class="gw-l" style="background:var(--green)">U</span><span class="gw-l" style="background:var(--blue)">D</span><span class="gw-l" style="background:var(--yellow);color:#1a1500">O</span><b class="gw-word">Teranga</b></div>'+
     '<div class="gate-pawns"><i style="background:var(--red)"></i><i style="background:var(--green)"></i><span class="gate-die">🎲</span><i style="background:var(--blue)"></i><i style="background:var(--yellow)"></i></div></div>'+
     '<span class="gate-tag">⭐ '+t.gateTag+'</span>'+
     '<h2>'+t.gateTitle+'</h2><p class="note" style="margin:0">'+t.gateSub+'</p>'+
     '<div class="gate-spons"><span class="gate-spons-label">'+t.gateWith+'</span>'+spons+'</div>'+
+    '<div class="ad" id="gate-ad" role="complementary"></div>'+
     '<button type="button" class="cta" id="gate-go" style="width:100%">'+t.gateCta+'</button>';
+  renderAd();
   $("gate-go").addEventListener("click",function(){onErr="";$("sheet-gate").classList.remove("open");publishMe();openLobby()});
 }
 // The simple home screen shown once a player is past the sign-in gate: two big choices (play
 // online, or a local game), and the smaller everyday actions underneath.
 function renderLobby(){
   var t=L(),resume=resumable&&g&&!g.over;
-  $("panel-lobby").innerHTML='<div class="gate-banner"><div class="gate-crown">👑</div>'+
+  $("panel-lobby").innerHTML='<div class="adtop" id="lobby-adtop" role="complementary"></div>'+
+    '<div class="gate-banner"><div class="gate-crown">👑</div>'+
     '<div class="gate-wordmark"><span class="gw-l" style="background:var(--red)">L</span><span class="gw-l" style="background:var(--green)">U</span><span class="gw-l" style="background:var(--blue)">D</span><span class="gw-l" style="background:var(--yellow);color:#1a1500">O</span><b class="gw-word">Teranga</b></div>'+
     '<div class="gate-pawns"><i style="background:var(--red)"></i><i style="background:var(--green)"></i><span class="gate-die">🎲</span><i style="background:var(--blue)"></i><i style="background:var(--yellow)"></i></div></div>'+
     '<span class="lobby-bal">★ '+fmt(balanceOf(meName()))+'</span>'+
@@ -2176,7 +2189,9 @@ function renderLobby(){
     '<div class="lobby-mini"><button type="button" id="lobby-rules">❓ '+esc(t.rules)+'</button>'+
     '<button type="button" id="lobby-scores">🏆 '+esc(t.scores)+'</button>'+
     '<button type="button" id="lobby-sound">'+esc(soundOn?t.soundOn:t.soundOff)+'</button>'+
-    '<button type="button" id="lobby-settings">⚙️</button></div>';
+    '<button type="button" id="lobby-settings">⚙️</button></div>'+
+    '<div class="ad" id="lobby-ad" role="complementary"></div>';
+  renderAd();
   $("lobby-online").addEventListener("click",function(){closeLobby();onErr="";onlineView="play";leaveAsk=false;publishMe();openOnline()});
   $("lobby-new").addEventListener("click",function(){
     if(resume){closeLobby();return}
@@ -3838,7 +3853,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="74";
+var BUILD="75";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
