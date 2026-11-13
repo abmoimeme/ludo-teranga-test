@@ -972,7 +972,7 @@ var HOMEPOS=[[7,6.05],[6.05,7],[7,7.95],[7.95,7]];
 // corner and color (seat 0 / red). This never touches the game rules: captures, blocks and doors
 // still run on the real, shared seat number everywhere above this line. Only drawing uses visSeat.
 function rotOf(){if(!live()||!g)return 0;var pi=myPi();return pi>=0?g.players[pi].seat:0}
-function visSeat(seat){return (seat-rotOf()+4)%4}
+function visSeat(seat){return (seat-rotOf()+7)%4}
 function cellOf(seat,ti,p){
   var vs=visSeat(seat);
   if(p===-1)return [YARD[vs][0]+SPOT[ti][0],YARD[vs][1]+SPOT[ti][1]];
@@ -3577,7 +3577,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="64";
+var BUILD="65";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
