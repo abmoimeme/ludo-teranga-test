@@ -127,8 +127,14 @@ h1 span{color:var(--accent);display:block}
 .timer.low i{background:var(--red)}
 .timer span{width:2.2em;text-align:right;font-weight:700;font-size:.85rem;font-variant-numeric:tabular-nums}
 .actions{display:flex;gap:8px;flex-wrap:wrap}
-#btn-new,#btn-online{flex:1 1 40%}
-#btn-online{background:var(--ink);color:var(--cloth);border-color:var(--ink)}
+.tile{flex:1 1 44%;border:0;border-radius:16px;min-height:72px;padding:10px 6px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:var(--display);font-weight:800;font-size:1rem;color:#fff;box-shadow:0 4px 0 rgba(0,0,0,.3)}
+.tile i{font-style:normal;font-size:1.5rem;line-height:1}
+.tile.tile-blue{background:linear-gradient(180deg,#2f6fe0,#1d4aa8)}
+.tile.tile-gold{background:linear-gradient(180deg,var(--accent),#c89600);color:#1a1500;box-shadow:0 4px 0 #8a6a00}
+.tile:active{transform:translateY(3px);box-shadow:0 1px 0 rgba(0,0,0,.3)}
+.tile.tile-gold:active{box-shadow:0 1px 0 #8a6a00}
+#btn-new,#btn-online{flex:1 1 44%}
+#btn-rules,#btn-scores,#btn-sound,#btn-settings{flex:1 1 20%}
 .invite{position:fixed;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;max-width:516px;margin:0 auto;z-index:40;display:none;align-items:center;gap:8px;background:var(--ink);color:var(--cloth);border-radius:14px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-weight:700}
 .invite.open{display:flex}
 .invite.ask{top:calc(max(10px,env(safe-area-inset-top)) + 72px)}
@@ -201,13 +207,30 @@ h1 span{color:var(--accent);display:block}
 
 .sheet{position:fixed;inset:0;background:rgba(6,9,26,.78);display:none;align-items:flex-end;justify-content:center;z-index:20}
 .sheet.open{display:flex}
-.sheet.gate{z-index:50;align-items:center}
-.sheet.gate .panel{border-radius:20px;text-align:center;max-width:380px;margin:16px;padding-top:0;gap:10px}
-.gate-hero{width:calc(100% + 32px);margin:0 -16px;display:block;border-radius:20px 20px 0 0;aspect-ratio:1/1;object-fit:cover;background:var(--cloth)}
-.gate-tag{display:inline-block;background:var(--accent);color:#1a1500;font-weight:800;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;border-radius:999px;padding:4px 10px;margin:2px auto 0}
+.sheet.gate{z-index:50;align-items:center;background:radial-gradient(circle at 50% 0%,rgba(58,78,170,.55) 0%,rgba(6,9,26,.88) 60%)}
+.sheet.lobby{z-index:40;align-items:center;background:radial-gradient(circle at 50% 0%,rgba(58,78,170,.55) 0%,rgba(6,9,26,.88) 60%)}
+.sheet.lobby .panel{border-radius:22px;text-align:center;max-width:420px;margin:16px;gap:12px;border:3px solid #cc9f30;box-shadow:0 18px 44px rgba(0,0,0,.5),0 0 0 6px rgba(240,191,0,.1);padding-top:0}
+.lobby-bal{display:inline-flex;align-self:center;background:rgba(0,0,0,.25);border-radius:999px;padding:6px 16px;font-weight:800;color:var(--accent)}
+.lobby-tiles{display:flex;gap:10px}
+.lobby-tiles .tile{font-size:1.05rem}
+.lobby-mini{display:flex;gap:8px}
+.lobby-mini button{flex:1 1 0;border:1.5px solid var(--muted);background:none;color:var(--ink);border-radius:12px;padding:8px 4px;font-size:.78rem;font-weight:700;min-height:44px}
+.sheet.gate .panel{border-radius:22px;text-align:center;max-width:380px;margin:16px;padding-top:0;gap:10px;border:3px solid #cc9f30;box-shadow:0 18px 44px rgba(0,0,0,.5),0 0 0 6px rgba(240,191,0,.1)}
+.gate-banner{width:calc(100% + 32px);margin:0 -16px;padding:22px 14px 18px;border-radius:19px 19px 0 0;background:linear-gradient(180deg,#2c3c86,#171f4a);position:relative;overflow:hidden}
+.gate-banner::before{content:"";position:absolute;inset:0;background-image:radial-gradient(rgba(255,255,255,.09) 1.4px,transparent 1.4px);background-size:15px 15px;opacity:.6;pointer-events:none}
+.gate-crown{font-size:1.9rem;line-height:1;position:relative;filter:drop-shadow(0 2px 0 rgba(0,0,0,.35))}
+.gate-wordmark{display:flex;align-items:center;justify-content:center;gap:3px;margin-top:4px;position:relative;flex-wrap:wrap}
+.gw-l{display:inline-flex;align-items:center;justify-content:center;width:32px;height:32px;flex:0 0 auto;border-radius:50%;font-family:var(--display);font-weight:800;font-size:1.1rem;color:#fff;border:2px solid rgba(255,255,255,.6);box-shadow:0 3px 0 rgba(0,0,0,.28)}
+.gw-word{font-family:var(--display);font-weight:800;font-size:1.25rem;color:var(--accent);margin-left:6px;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.gate-pawns{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;position:relative}
+.gate-pawns i{width:15px;height:15px;border-radius:50%;display:inline-block;box-shadow:0 2px 0 rgba(0,0,0,.3)}
+.gate-die{font-size:1.25rem;filter:drop-shadow(0 2px 0 rgba(0,0,0,.3))}
+.gate-tag{display:inline-flex;align-items:center;gap:4px;background:var(--accent);color:#1a1500;font-weight:800;font-size:.68rem;text-transform:uppercase;letter-spacing:.06em;border-radius:999px;padding:5px 12px;margin:2px auto 0;box-shadow:0 2px 0 #b58a00}
 .gate-spons-label{display:block;color:var(--muted);font-size:.7rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700;margin-bottom:6px}
 .gate-spons{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:4px 0}
-.gate-spons img{width:30px;height:30px;border-radius:9px;object-fit:cover;background:var(--cloth)}
+.gate-spons img{width:30px;height:30px;border-radius:9px;object-fit:cover;background:var(--cloth);border:1.5px solid rgba(240,191,0,.35)}
+#sheet-gate .cta{box-shadow:0 4px 0 #b58a00;font-size:1.2rem}
+#sheet-gate .cta:active{box-shadow:0 1px 0 #b58a00;transform:translateY(3px)}
 #toast{position:fixed;left:50%;top:14px;transform:translate(-50%,-140%);z-index:40;max-width:92%;background:#fff;color:#161c3d;font-weight:700;font-size:.95rem;border-radius:14px;padding:10px 16px;box-shadow:0 8px 24px rgba(0,0,0,.5);transition:transform .35s ease,opacity .2s linear;text-align:center;pointer-events:none;opacity:0;visibility:hidden}
 #toast.on{transform:translate(-50%,0);opacity:1;visibility:visible}
 .streak{margin:0;text-align:center;font-weight:700;color:var(--accent)}
@@ -324,8 +347,8 @@ h1 span{color:var(--accent);display:block}
 
   <div class="ad" id="ad" role="complementary"></div>
   <div class="actions">
-    <button id="btn-new" type="button"></button>
-    <button id="btn-online" type="button"></button>
+    <button id="btn-new" class="tile tile-blue" type="button"></button>
+    <button id="btn-online" class="tile tile-gold" type="button"></button>
     <button id="btn-rules" type="button"></button>
     <button id="btn-scores" type="button"></button>
     <button id="btn-sound" type="button"></button>
@@ -352,6 +375,7 @@ h1 span{color:var(--accent);display:block}
 <div class="sheet" id="sheet-scores"><div class="panel" id="panel-scores"></div></div>
 <div class="sheet" id="sheet-owner"><div class="panel" id="panel-owner"></div></div>
 <div class="sheet gate" id="sheet-gate"><div class="panel" id="panel-gate"></div></div>
+<div class="sheet lobby" id="sheet-lobby"><div class="panel" id="panel-lobby"></div></div>
 <div id="toast" role="status" aria-live="polite"></div>
 <div class="sheet win" id="sheet-win"><div class="panel" id="panel-win"></div></div>
 
@@ -1386,7 +1410,7 @@ function renderAll(){
   $("lnk-privacy").textContent=L().privacy;$("lnk-support").textContent=L().support;
   renderChips();renderDice();renderTokens();renderReact();
   $("roll").disabled=!(phase==="roll"&&isHuman(g.turn));
-  $("roll").textContent=L().roll;$("btn-new").textContent=L().newGame;$("btn-rules").textContent=L().rules;$("btn-online").textContent=L().online;$("btn-scores").textContent=L().scores;$("btn-sound").textContent=soundOn?L().soundOn:L().soundOff;$("btn-sound").setAttribute("aria-pressed",soundOn);$("sub").textContent=L().sub;
+  $("roll").textContent=L().roll;$("btn-new").innerHTML='<i>🎮</i>'+esc(L().newGame);$("btn-rules").textContent=L().rules;$("btn-online").innerHTML='<i>🌍</i>'+esc(L().online);$("btn-scores").textContent=L().scores;$("btn-sound").textContent=soundOn?L().soundOn:L().soundOff;$("btn-sound").setAttribute("aria-pressed",soundOn);$("sub").textContent=L().sub;
   LANGS.forEach(function(l){$("lang-"+l).setAttribute("aria-pressed",lang===l)});
   document.documentElement.lang=lang;
   renderAd();
@@ -2116,13 +2140,38 @@ function openOnline(){refreshFriends();renderOnline();$("sheet-online").classLis
 // No gameplay, local or online, for a visitor who has not signed in. Closes once they do.
 function renderGate(){
   var t=L(),spons=ADS.map(function(a){return '<img src="'+a.img+'" alt="'+esc(a.name)+'" loading="lazy">'}).join("");
-  $("panel-gate").innerHTML='<img class="gate-hero" src="shots/gameplay-1.jpg" alt="" loading="lazy">'+
-    '<span class="gate-tag">'+t.gateTag+'</span>'+
+  $("panel-gate").innerHTML='<div class="gate-banner"><div class="gate-crown">👑</div>'+
+    '<div class="gate-wordmark"><span class="gw-l" style="background:var(--red)">L</span><span class="gw-l" style="background:var(--green)">U</span><span class="gw-l" style="background:var(--blue)">D</span><span class="gw-l" style="background:var(--yellow);color:#1a1500">O</span><b class="gw-word">Teranga</b></div>'+
+    '<div class="gate-pawns"><i style="background:var(--red)"></i><i style="background:var(--green)"></i><span class="gate-die">🎲</span><i style="background:var(--blue)"></i><i style="background:var(--yellow)"></i></div></div>'+
+    '<span class="gate-tag">⭐ '+t.gateTag+'</span>'+
     '<h2>'+t.gateTitle+'</h2><p class="note" style="margin:0">'+t.gateSub+'</p>'+
     '<div class="gate-spons"><span class="gate-spons-label">'+t.gateWith+'</span>'+spons+'</div>'+
     '<button type="button" class="cta" id="gate-go" style="width:100%">'+t.gateCta+'</button>';
-  $("gate-go").addEventListener("click",function(){onErr="";$("sheet-gate").classList.remove("open");publishMe();openOnline()});
+  $("gate-go").addEventListener("click",function(){onErr="";$("sheet-gate").classList.remove("open");publishMe();openLobby()});
 }
+// The simple home screen shown once a player is past the sign-in gate: two big choices (play
+// online, or a local game), and the smaller everyday actions underneath.
+function renderLobby(){
+  var t=L();
+  $("panel-lobby").innerHTML='<div class="gate-banner"><div class="gate-crown">👑</div>'+
+    '<div class="gate-wordmark"><span class="gw-l" style="background:var(--red)">L</span><span class="gw-l" style="background:var(--green)">U</span><span class="gw-l" style="background:var(--blue)">D</span><span class="gw-l" style="background:var(--yellow);color:#1a1500">O</span><b class="gw-word">Teranga</b></div>'+
+    '<div class="gate-pawns"><i style="background:var(--red)"></i><i style="background:var(--green)"></i><span class="gate-die">🎲</span><i style="background:var(--blue)"></i><i style="background:var(--yellow)"></i></div></div>'+
+    '<span class="lobby-bal">★ '+fmt(balanceOf(meName()))+'</span>'+
+    '<div class="lobby-tiles"><button type="button" class="tile tile-gold" id="lobby-online"><i>🌍</i>'+esc(t.online)+'</button>'+
+    '<button type="button" class="tile tile-blue" id="lobby-new"><i>🎮</i>'+esc(t.newGame)+'</button></div>'+
+    '<div class="lobby-mini"><button type="button" id="lobby-rules">❓ '+esc(t.rules)+'</button>'+
+    '<button type="button" id="lobby-scores">🏆 '+esc(t.scores)+'</button>'+
+    '<button type="button" id="lobby-sound">'+esc(soundOn?t.soundOn:t.soundOff)+'</button>'+
+    '<button type="button" id="lobby-settings">⚙️</button></div>';
+  $("lobby-online").addEventListener("click",function(){closeLobby();onErr="";onlineView="play";leaveAsk=false;publishMe();openOnline()});
+  $("lobby-new").addEventListener("click",function(){closeLobby();renderSetup();$("sheet-setup").classList.add("open")});
+  $("lobby-rules").addEventListener("click",function(){closeLobby();renderRules();$("sheet-rules").classList.add("open")});
+  $("lobby-scores").addEventListener("click",function(){closeLobby();openScores()});
+  $("lobby-sound").addEventListener("click",function(){$("btn-sound").click();renderLobby()});
+  $("lobby-settings").addEventListener("click",function(){closeLobby();onErr="";onlineView="settings";publishMe();openOnline()});
+}
+function openLobby(){renderLobby();$("sheet-lobby").classList.add("open")}
+function closeLobby(){$("sheet-lobby").classList.remove("open")}
 function syncGate(){
   if(!EMAIL_ON)return;
   if(pAuth){$("sheet-gate").classList.remove("open")}
@@ -3692,7 +3741,7 @@ function openScores(){
   $("scores-close").addEventListener("click",closeSheets);
   $("sheet-scores").classList.add("open");
 }
-function closeSheets(){["sheet-setup","sheet-rules","sheet-scores","sheet-online","sheet-chat","sheet-owner","sheet-win"].forEach(function(id){$(id).classList.remove("open")});syncGate()}
+function closeSheets(){["sheet-setup","sheet-rules","sheet-scores","sheet-online","sheet-chat","sheet-owner","sheet-win","sheet-lobby"].forEach(function(id){$(id).classList.remove("open")});syncGate()}
 function setLang(l){
   lang=l;langManual=true;try{localStorage.setItem("ludo-lang",l);localStorage.setItem("ludo-lang-m","1")}catch(e){}
   if($("sheet-online").classList.contains("open"))renderOnline();
@@ -3744,7 +3793,7 @@ function boot(data){
     else{g.dice=[];g.rolled=null;beginTurn()}
   }else{
     cfg.stake=0;startGame();
-    openOnline();
+    openLobby();
   }
   var savedRoom="";
   try{savedRoom=localStorage.getItem("ludo-room")||""}catch(e){}
@@ -3771,7 +3820,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="71";
+var BUILD="72";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
