@@ -2161,7 +2161,14 @@ function leaveRoom(quiet){
   clearInterval(n.beat);clearTimeout(n.autoT);clearInterval(closeTick);
   try{localStorage.removeItem("ludo-room")}catch(e){}
   if(n.room&&n.room.status==="lobby"){
-    for(var i=0;i<4;i++){var s=seatAt(n.room,i);if(s&&s.id===myId)(function(i){withAuth(roomUrl(n.code,"/seats/"+i)).then(function(u){return fetch(u,{method:"PUT",headers:{"Content-Type":"application/json"},body:"null"})}).catch(function(){})})(i)}
+    var stillOthers=false;
+    for(var i=0;i<4;i++){var so=seatAt(n.room,i);if(so&&so.id&&so.id!==myId)stillOthers=true}
+    if(stillOthers){
+      for(var i=0;i<4;i++){var s=seatAt(n.room,i);if(s&&s.id===myId)(function(i){withAuth(roomUrl(n.code,"/seats/"+i)).then(function(u){return fetch(u,{method:"PUT",headers:{"Content-Type":"application/json"},body:"null"})}).catch(function(){})})(i)}
+    }else{
+      // No one else is waiting in this lobby — remove the whole room rather than leaving an empty shell behind.
+      withAuth(roomUrl(n.code,"")).then(function(u){return fetch(u,{method:"DELETE"})}).catch(function(){})
+    }
   }
   if(!quiet&&n.live){cfg.stake=0;startGame()}
 }
@@ -3871,7 +3878,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="83";
+var BUILD="84";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;

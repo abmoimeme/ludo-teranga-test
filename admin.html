@@ -159,7 +159,7 @@ function load(){
     Object.keys(ROOMS||{}).forEach(function(code){var r=ROOMS[code];if(!r||!r.seats)return;Object.keys(r.seats).forEach(function(si){var s=r.seats[si];if(s&&s.fc&&!PUB[s.fc])fcs[s.fc]=1})});
     return Promise.all(Object.keys(fcs).map(function(fc){return get("/players/"+fc).then(function(p){PUB[fc]=p||null}).catch(function(){})}));
   });
-  return Promise.all([a,b,c,d]).then(function(){loadedAt=Date.now();prune()});
+  return Promise.all([a,b,c,d]).then(function(){loadedAt=Date.now();prune();pruneEmptyRooms()});
 }
 // Detailed events are kept 90 days.
 function prune(){
@@ -170,6 +170,20 @@ function prune(){
       token().then(function(t){fetch(DB+"/events/"+d+".json?auth="+encodeURIComponent(t),{method:"DELETE"}).catch(function(){})});
     });
   }).catch(function(){});
+}
+// A lobby room that never got going (everyone left, or the creator just closed the tab) can be left
+// behind forever with no players in it. Clear those out whenever the dashboard loads, so the "last
+// rooms" list only shows games that actually went somewhere.
+function pruneEmptyRooms(){
+  if(denied.rooms)return;
+  Object.keys(ROOMS||{}).forEach(function(code){
+    var r=ROOMS[code];
+    if(!r||typeof r!=="object"||r.status!=="lobby")return;
+    var seats=r.seats||{},hasPlayer=Object.keys(seats).some(function(si){return seats[si]&&seats[si].id});
+    if(hasPlayer)return;
+    delete ROOMS[code];
+    token().then(function(t){fetch(DB+"/rooms/"+code+".json?auth="+encodeURIComponent(t),{method:"DELETE"}).catch(function(){})});
+  });
 }
 function fromDay(){return dayAgo(F.range-1)}
 function evs(){var f=fromDay();return EV.filter(function(x){return x.day>=f&&(!F.cc||x.cc===F.cc)&&(!F.pf||x.pf===F.pf)&&(!F.b||String(x.b)===F.b)})}
