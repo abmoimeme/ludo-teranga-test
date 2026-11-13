@@ -131,7 +131,7 @@ function get(path,q){
 function rulesText(){
   var o=String(own&&own.uid||"").replace(/[^A-Za-z0-9]/g,"");
   return '{"rules":{\n'+
-  ' "rooms":{"$code":{".read":true,".write":true,".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
+  ' "rooms":{".read":"auth != null && auth.uid === \''+o+'\'","$code":{".read":true,".write":true,".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
   ' "players":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "inbox":{"$fc":{".read":true,".write":true,".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "accounts":{"$id":{".read":"$id.matches(/^[a-f0-9]{40}$/) || (auth != null && auth.uid === $id)",".write":"$id.matches(/^[a-f0-9]{40}$/) || (auth != null && auth.uid === $id)"}},\n'+
@@ -142,7 +142,7 @@ function rulesText(){
 }
 
 // ---------- data ----------
-var EV=[],SEEN={},STATS={},denied={},loadedAt=0,loadErr="";
+var EV=[],SEEN={},STATS={},ROOMS={},PUB={},denied={},loadedAt=0,loadErr="";
 var F={range:7,cc:"",pf:"",b:""},tab="overview",pick="",find="",SP={who:"",by:"day",names:false};
 function load(){
   loadErr="";denied={};
@@ -153,7 +153,13 @@ function load(){
   }).catch(function(e){if(e.status===401||e.status===403)denied.events=1;else throw e});
   var b=get("/seen").then(function(d){SEEN=d||{}}).catch(function(e){if(e.status===401||e.status===403)denied.seen=1;else throw e});
   var c=get("/stats/days",'orderBy=%22%24key%22&limitToLast=30').then(function(d){STATS=d||{}}).catch(function(e){if(e.status===401||e.status===403)denied.stats=1;else throw e});
-  return Promise.all([a,b,c]).then(function(){loadedAt=Date.now();prune()});
+  var d=get("/rooms").then(function(r){ROOMS=r||{}}).catch(function(e){if(e.status===401||e.status===403)denied.rooms=1;else throw e}).then(function(){
+    // Look up the @handle for any seated player, by their public friend-code record (no extra rule needed: it's already readable by anyone).
+    var fcs={};
+    Object.keys(ROOMS||{}).forEach(function(code){var r=ROOMS[code];if(!r||!r.seats)return;Object.keys(r.seats).forEach(function(si){var s=r.seats[si];if(s&&s.fc&&!PUB[s.fc])fcs[s.fc]=1})});
+    return Promise.all(Object.keys(fcs).map(function(fc){return get("/players/"+fc).then(function(p){PUB[fc]=p||null}).catch(function(){})}));
+  });
+  return Promise.all([a,b,c,d]).then(function(){loadedAt=Date.now();prune()});
 }
 // Detailed events are kept 90 days.
 function prune(){
@@ -173,7 +179,7 @@ function players(){
     var r=SEEN[k];if(!r||typeof r!=="object")return;
     var cc=CN[r.cc]?String(r.cc):"other",pf=r.pf==="app"?"app":"web",b=Math.floor(num(r.b));
     if((F.cc&&cc!==F.cc)||(F.pf&&pf!==F.pf)||(F.b&&String(b)!==F.b))return;
-    var d=r.d&&typeof r.d==="object"?r.d:{},o={id:k,n:String(r.n||"").slice(0,12)||"(no name)",cc:cc,pf:pf,b:b,first:num(r.first),last:num(r.last),ses:Math.floor(num(r.ses)),sec:num(r.sec),g:Math.floor(num(r.g)),w:Math.floor(num(r.w)),d:d,in:0,days:0,today:num(d[today])};
+    var d=r.d&&typeof r.d==="object"?r.d:{},o={id:k,n:String(r.n||"").slice(0,12)||"(no name)",u:String(r.u||"").slice(0,20),cc:cc,pf:pf,b:b,first:num(r.first),last:num(r.last),ses:Math.floor(num(r.ses)),sec:num(r.sec),g:Math.floor(num(r.g)),w:Math.floor(num(r.w)),d:d,in:0,days:0,today:num(d[today])};
     Object.keys(d).forEach(function(day){if(day>=f&&num(d[day])){o.in+=num(d[day]);o.days++}});
     out.push(o);
   });
@@ -246,6 +252,34 @@ function attention(L,P){
   if(!a.length)a.push(["good","Nothing needs attention for "+rangeWord()+"."]);
   return '<ul class="attn">'+a.map(function(x){return '<li><span class="dot '+(x[0]==="bad"?"":x[0])+'"></span><span>'+x[1]+'</span></li>'}).join("")+'</ul>';
 }
+function liveRooms(){
+  var now=Date.now(),out=[];
+  Object.keys(ROOMS||{}).forEach(function(code){
+    var r=ROOMS[code];if(!r||typeof r!=="object"||!r.cfg)return;
+    var hb=r.hb||{},last=0;Object.keys(hb).forEach(function(k){var t=num(hb[k]);if(t>last)last=t});
+    if(!last||now-last>120000)return; // nobody in it has checked in for 2 min: treat as not currently going
+    var seats=r.seats||{},pls=[];
+    Object.keys(seats).sort().forEach(function(si){
+      var s=seats[si];if(!s)return;
+      var pr=s.fc?PUB[s.fc]:null,u=pr&&pr.uname?String(pr.uname).slice(0,20):"";
+      pls.push({name:String(s.name||"").slice(0,12)||"(no name)",u:u,host:String(r.host||"")===String(s.id||"")});
+    });
+    out.push({code:code,playing:r.status==="playing",n:(r.cfg&&r.cfg.count)||pls.length,stake:(r.cfg&&r.cfg.stake)||0,created:num(r.created),last:last,players:pls});
+  });
+  return out.sort(function(a,b){return b.last-a.last});
+}
+function vLiveGames(){
+  var L=liveRooms();
+  var h='<div class="card" style="margin-top:0"><h2>Live games right now · '+fmt(L.length)+'</h2>';
+  if(denied.rooms)h+='<p class="note" style="margin:0">This account can\'t list live games yet. See the notice below.</p>';
+  else if(!L.length)h+='<p class="note" style="margin:0">No game is being played right now.</p>';
+  else h+='<div class="scroll"><table><thead><tr><th style="text-align:left">Room</th><th style="text-align:left">Players</th><th>Seats</th><th>Entry</th><th>Status</th><th>Started</th><th>Last check-in</th></tr></thead><tbody>'+L.map(function(x){
+    var names=x.players.map(function(p){return "<b>"+esc(p.name)+"</b>"+(p.u?' <span style="color:var(--ink2);font-weight:600">@'+esc(p.u)+"</span>":"")+(p.host?' <span class="pill info">host</span>':"")}).join(", ");
+    return '<tr><td style="text-align:left">'+esc(x.code)+'</td><td style="text-align:left">'+names+'</td><td>'+x.players.length+" / "+x.n+'</td><td>'+(x.stake?fmt(x.stake)+" ★":"–")+'</td><td>'+(x.playing?'<span class="pill good">Playing</span>':'<span class="pill info">Waiting to start</span>')+'</td><td>'+ago(x.created)+'</td><td>'+ago(x.last)+'</td></tr>';
+  }).join("")+'</tbody></table></div><p class="note">A game counts as live when at least one phone in it has checked in within the last 2 minutes. The @handle, when shown, comes from that player\'s public friend-code card.</p>';
+  h+='</div>';
+  return h;
+}
 function vOverview(){
   var list=evs(),L=login(list),P=players(),days=dayList(),f=fromDay();
   var active=P.filter(function(o){return o.days>0}).length,newp=P.filter(function(o){return o.first&&dayOf(o.first)>=f}).length,sec=0,ses=0,secAll=0;
@@ -254,7 +288,7 @@ function vOverview(){
   P.forEach(function(o){var fd=o.first?dayOf(o.first):"";if(fd&&fd<today&&fd>=dayAgo(29)){elig++;if(num(o.d[dayOf(Date.parse(fd+"T00:00:00Z")+86400000)]))back++}});
   var tot=L.si_ok+L.si_fail,sut=L.su_ok+L.su_fail,games=0,fin=0;
   Object.keys(STATS).forEach(function(d){if(d<f)return;var rows=STATS[d]||{};Object.keys(rows).forEach(function(k){var r=rows[k]||{};if((F.cc&&(CN[r.cc]?String(r.cc):"other")!==F.cc)||(F.b&&String(r.b)!==F.b))return;games+=num(r.on)+num(r.loc);fin+=num(r.fin)+num(r.lfin)})});
-  var h='<div class="grid">'+
+  var h=vLiveGames()+'<div class="grid">'+
     kpi("Active players",fmt(active),"signed in, "+rangeWord())+
     kpi("New logins",fmt(L.su_ok||newp),rangeWord())+
     kpi("Sign-in success",pct(L.si_ok,tot),fmt(L.si_ok)+" of "+fmt(tot)+" tries",tot<5?"":L.si_fail/tot>0.25?"warn":"good")+
@@ -294,7 +328,7 @@ function vPlayers(){
   var all=players(),q=find.trim().toLowerCase(),P=q?all.filter(function(o){return o.n.toLowerCase().indexOf(q)>=0}):all;
   var h='<div class="card" style="margin-top:0"><h2>Signed-in players · '+fmt(P.length)+(q?" of "+fmt(all.length):"")+'</h2><p style="margin:0 0 10px"><input type="search" id="find" value="'+esc(find)+'" placeholder="Find a player by game name" aria-label="Find a player by game name" style="width:100%;max-width:340px;border:1.5px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff"></p>';
   if(!P.length)h+='<p class="note" style="margin:0">'+(q?"No player with that name.":"No signed-in player has opened the game since activity recording was switched on.")+'</p>';
-  else h+='<div class="scroll"><table><thead><tr><th>Player</th><th>Last seen</th><th>Time, '+rangeWord()+'</th><th>Days active</th><th>Sessions</th><th>Total time</th><th>Avg session</th><th>Games</th><th>Wins</th><th>Since</th><th>On</th></tr></thead><tbody>'+P.map(function(o){return '<tr class="pick" data-u="'+esc(o.id)+'" tabindex="0"><td>'+flag(o.cc)+" <b>"+esc(o.n)+'</b></td><td>'+ago(o.last)+'</td><td>'+(o.in?dur(o.in):"–")+'</td><td>'+o.days+'</td><td>'+fmt(o.ses)+'</td><td>'+dur(o.sec)+'</td><td>'+(o.ses?dur(o.sec/o.ses):"–")+'</td><td>'+fmt(o.g)+'</td><td>'+fmt(o.w)+'</td><td>'+(o.first?dayOf(o.first):"–")+'</td><td>'+o.pf+(o.b?" v"+o.b:"")+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">Tap a player to see their recent sign-ins and problems. Players appear by game name. Emails are in Firebase > Authentication > Users.</p>';
+  else h+='<div class="scroll"><table><thead><tr><th>Player</th><th>Last seen</th><th>Time, '+rangeWord()+'</th><th>Days active</th><th>Sessions</th><th>Total time</th><th>Avg session</th><th>Games</th><th>Wins</th><th>Since</th><th>On</th></tr></thead><tbody>'+P.map(function(o){return '<tr class="pick" data-u="'+esc(o.id)+'" tabindex="0"><td>'+flag(o.cc)+" <b>"+esc(o.n)+'</b>'+(o.u?' <span style="color:var(--ink2);font-weight:600">@'+esc(o.u)+'</span>':"")+'</td><td>'+ago(o.last)+'</td><td>'+(o.in?dur(o.in):"–")+'</td><td>'+o.days+'</td><td>'+fmt(o.ses)+'</td><td>'+dur(o.sec)+'</td><td>'+(o.ses?dur(o.sec/o.ses):"–")+'</td><td>'+fmt(o.g)+'</td><td>'+fmt(o.w)+'</td><td>'+(o.first?dayOf(o.first):"–")+'</td><td>'+o.pf+(o.b?" v"+o.b:"")+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">Tap a player to see their recent sign-ins and problems. Players appear by game name. Emails are in Firebase > Authentication > Users.</p>';
   h+='</div>';
   if(pick&&SEEN[pick]){
     var devs={};EV.forEach(function(x){if(x.u===pick&&x.d)devs[x.d]=1});
@@ -480,8 +514,8 @@ function vErrors(){
   return h;
 }
 function notice(){
-  if(!denied.events&&!denied.seen&&!denied.stats)return "";
-  return '<div class="card" style="border-color:var(--bad)"><h2>One step in Firebase</h2><p style="margin:0 0 10px">The database does not yet let this account read '+[denied.events?"the event log":"",denied.seen?"player activity":"",denied.stats?"the game counts":""].filter(Boolean).join(", ")+'. In Firebase > Realtime Database > Rules, replace everything with the text below and publish. The live game keeps working.</p><textarea id="rules" readonly rows="7">'+esc(rulesText())+'</textarea><p style="margin:10px 0 0"><button type="button" class="btn gold" id="copy">Copy the rules</button> <span id="copied" style="color:var(--ink2)"></span></p></div>';
+  if(!denied.events&&!denied.seen&&!denied.stats&&!denied.rooms)return "";
+  return '<div class="card" style="border-color:var(--bad)"><h2>One step in Firebase</h2><p style="margin:0 0 10px">The database does not yet let this account read '+[denied.events?"the event log":"",denied.seen?"player activity":"",denied.stats?"the game counts":"",denied.rooms?"which games are live right now":""].filter(Boolean).join(", ")+'. In Firebase > Realtime Database > Rules, replace everything with the text below and publish. The live game keeps working.</p><textarea id="rules" readonly rows="7">'+esc(rulesText())+'</textarea><p style="margin:10px 0 0"><button type="button" class="btn gold" id="copy">Copy the rules</button> <span id="copied" style="color:var(--ink2)"></span></p></div>';
 }
 function builds(){var b={};EV.forEach(function(x){if(x.b)b[x.b]=1});Object.keys(SEEN).forEach(function(k){var v=Math.floor(num((SEEN[k]||{}).b));if(v)b[v]=1});return Object.keys(b).sort(function(a,c){return c-a})}
 function render(){
@@ -515,8 +549,8 @@ function render(){
 function csv(){
   var rows,name="events";
   if(tab==="players"){
-    name="players";rows=[["player","country","platform","build","first_seen_utc","last_seen_utc","sessions","total_seconds","seconds_in_period","days_active_in_period","games","wins"]];
-    players().forEach(function(o){rows.push([o.n,o.cc,o.pf,o.b,o.first?new Date(o.first).toISOString():"",o.last?new Date(o.last).toISOString():"",o.ses,Math.round(o.sec),Math.round(o.in),o.days,o.g,o.w])});
+    name="players";rows=[["player","username","country","platform","build","first_seen_utc","last_seen_utc","sessions","total_seconds","seconds_in_period","days_active_in_period","games","wins"]];
+    players().forEach(function(o){rows.push([o.n,o.u,o.cc,o.pf,o.b,o.first?new Date(o.first).toISOString():"",o.last?new Date(o.last).toISOString():"",o.ses,Math.round(o.sec),Math.round(o.in),o.days,o.g,o.w])});
   }else if(tab==="sponsors"){
     name="sponsors";var Z=sponsorData();
     rows=[["sponsor","banner_views","unique_viewers","clicks","unique_clickers","click_through_rate_percent","sponsor_website_visits","conversions"]];

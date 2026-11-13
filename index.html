@@ -3019,7 +3019,7 @@ function seenFlush(){
   var o=seen.doc,pr=bank.profiles[keyOf(meName())]||{},days=Object.keys(o.d).sort().slice(-35),dd={};
   days.forEach(function(k){dd[k]=Math.round(o.d[k])});
   seenDirty=0;
-  dbx("PUT","/seen/"+seen.u,{n:meName().slice(0,12),cc:String((acct&&acct.cc)||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0,first:o.first,last:o.last,ses:o.ses,sec:Math.round(o.sec),g:pr.games||0,w:pr.wins||0,d:dd})
+  dbx("PUT","/seen/"+seen.u,{n:meName().slice(0,12),u:(acct&&acct.uname)||"",cc:String((acct&&acct.cc)||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0,first:o.first,last:o.last,ses:o.ses,sec:Math.round(o.sec),g:pr.games||0,w:pr.wins||0,d:dd})
     .catch(function(e){if(e&&(e.status===401||e.status===403)){seenOff=true;seen=null}});
 }
 setInterval(seenBeat,5000);
@@ -3868,7 +3868,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="80";
+var BUILD="81";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function checkUpdate(){
   if(NAT)return;
