@@ -621,7 +621,7 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
   friends:"Friends",yourCode:"Your friend code:",share:"Share",addFriend:"Add",fcPh:"Friend code or @username",remove:"Remove",addF:"+ Friend",
   noFriends:"No friends yet. Share your code, type a friend's code here, or tap + Friend next to someone you play with.",
   inviteFriends:"Invite a friend",inviteBtn:"Invite",invitedOk:"Invited",invFrom:function(n){return n+" invites you to a game"},notNow:"Not now",
-  errFc:"A friend code has 8 letters and numbers. Check it and try again.",errRules:"Friends are not switched on yet. The new database rules still need to be published in Firebase.",errSelf:"That is your own code.",shareFc:function(c){return "Add me on Ludo Teranga. My friend code: "+c},
+  errFc:"A friend code has 8 letters and numbers. Check it and try again.",errRules:"Friends are not switched on yet. The new database rules still need to be published in Firebase.",errSignIn:"Sign in to add friends.",errSelf:"That is your own code.",shareFc:function(c){return "Add me on Ludo Teranga. My friend code: "+c},
   startMode:"When the game starts",startManual:"When I tap Start",startAuto:"By itself when full",startEarly:"Start now with the players here",
   autoNoteHost:"The game starts by itself once every seat is taken. You can also start sooner, and empty seats go to the computer.",
   autoNoteGuest:"The game starts once every seat is taken, or sooner if the host starts it.",startingNow:"Everyone is here. Starting…",
@@ -690,7 +690,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
   friends:"Amis",yourCode:"Votre code ami :",share:"Partager",addFriend:"Ajouter",fcPh:"Code ami ou @pseudo",remove:"Retirer",addF:"+ Ami",
   noFriends:"Pas encore d'amis. Partagez votre code, tapez le code d'un ami ici, ou touchez + Ami à côté d'un joueur.",
   inviteFriends:"Inviter un ami",inviteBtn:"Inviter",invitedOk:"Invité",invFrom:function(n){return n+" vous invite à une partie"},notNow:"Plus tard",
-  errFc:"Un code ami a 8 lettres et chiffres. Vérifiez-le et réessayez.",errRules:"Les amis ne sont pas encore activés. Les nouvelles règles de la base doivent être publiées dans Firebase.",errSelf:"C'est votre propre code.",shareFc:function(c){return "Ajoute-moi sur Ludo Teranga. Mon code ami : "+c},
+  errFc:"Un code ami a 8 lettres et chiffres. Vérifiez-le et réessayez.",errRules:"Les amis ne sont pas encore activés. Les nouvelles règles de la base doivent être publiées dans Firebase.",errSignIn:"Connectez-vous pour ajouter des amis.",errSelf:"C'est votre propre code.",shareFc:function(c){return "Ajoute-moi sur Ludo Teranga. Mon code ami : "+c},
   startMode:"Début de la partie",startManual:"Quand je touche Commencer",startAuto:"Tout seul quand c'est complet",startEarly:"Commencer avec les joueurs présents",
   autoNoteHost:"La partie démarre toute seule quand tous les sièges sont pris. Vous pouvez aussi commencer avant ; les sièges vides vont à l'ordinateur.",
   autoNoteGuest:"La partie démarre quand tous les sièges sont pris, ou avant si l'hôte la lance.",startingNow:"Tout le monde est là. C'est parti…",
@@ -764,7 +764,7 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
   friends:"Amici",yourCode:"Il tuo codice amico:",share:"Condividi",addFriend:"Aggiungi",fcPh:"Codice amico o @nomeutente",remove:"Rimuovi",addF:"+ Amico",
   noFriends:"Ancora nessun amico. Condividi il tuo codice, scrivi qui il codice di un amico, o tocca + Amico accanto a chi gioca con te.",
   inviteFriends:"Invita un amico",inviteBtn:"Invita",invitedOk:"Invitato",invFrom:function(n){return n+" ti invita a una partita"},notNow:"Non ora",
-  errFc:"Un codice amico ha 8 lettere e numeri. Controllalo e riprova.",errRules:"Gli amici non sono ancora attivi. Le nuove regole del database devono essere pubblicate in Firebase.",errSelf:"Questo è il tuo codice.",
+  errFc:"Un codice amico ha 8 lettere e numeri. Controllalo e riprova.",errRules:"Gli amici non sono ancora attivi. Le nuove regole del database devono essere pubblicate in Firebase.",errSignIn:"Accedi per aggiungere amici.",errSelf:"Questo è il tuo codice.",
   shareFc:function(c){return "Aggiungimi su Ludo Teranga. Il mio codice amico: "+c},
   startMode:"Quando inizia la partita",startManual:"Quando tocco Inizia",startAuto:"Da sola al completo",startEarly:"Inizia ora con i giocatori presenti",
   autoNoteHost:"La partita inizia da sola quando tutti i posti sono occupati. Puoi anche iniziare prima; i posti vuoti vanno al computer.",
@@ -2387,6 +2387,7 @@ function addByFc(fc){
   if(fc.length!==8){onErr=L().errFc;renderOnline();return}
   if(fc===myFc){onErr=L().errSelf;renderOnline();return}
   if(isFriend(fc)){renderOnline();return}
+  if(EMAIL_ON&&!pAuth){onErr=L().errSignIn;renderOnline();return}
   dbx("GET","/players/"+fc).then(function(p){
     // a friend who has not opened the game since friends were switched on is added by code; the name fills in later
     addFriend(fc,p&&p.name,p&&p.av);friendsAt=0;renderOnline();
@@ -2402,6 +2403,7 @@ function addFriendByCode(raw){
   }
   var u=unameNorm(s);
   if(!unameOk(u)){onErr=L().errFc;renderOnline();return}
+  if(EMAIL_ON&&!pAuth){onErr=L().errSignIn;renderOnline();return}
   dbx("GET","/usernames/"+u).then(function(owner){
     if(!owner){onErr=L().errFc;renderOnline();return}
     addByFc(owner);
@@ -2524,6 +2526,7 @@ function ownerRules(){
   ' "usernames":{"$u":{".read":"auth != null",".write":"auth != null",".validate":"$u.matches(/^[a-z0-9_.]{3,20}$/) && (!newData.exists() || (newData.isString() && newData.val().matches(/^[A-Z0-9]{8}$/)))"}},\n'+
   ' "accounts":{"$id":{".read":"auth != null && ($id.matches(/^[a-f0-9]{40}$/) || auth.uid === $id)",".write":"auth != null && ($id.matches(/^[a-f0-9]{40}$/) || auth.uid === $id)"}},\n'+
   ' "reports":{"$id":{".write":"!data.exists()"}},\n'+
+  ' "history":{".read":"auth != null && '+ou+'","$code":{".write":"!data.exists()",".validate":"$code.matches(/^[A-Z0-9]{6}$/) && newData.hasChildren([\'created\',\'ended\',\'cfg\',\'seats\'])"}},\n'+
   ' "events":{".read":"auth != null && '+ou+'","$d":{".write":"auth != null && '+ou+' && !newData.exists()","$k":{".write":"!data.exists()",".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChildren([\'e\',\'t\']) && newData.child(\'e\').isString() && newData.child(\'e\').val().length <= 24 && (!newData.child(\'r\').exists() || (newData.child(\'r\').isString() && newData.child(\'r\').val().length <= 60))"}}},\n'+
   ' "seen":{".read":"auth != null && '+ou+'","$u":{".read":"auth != null && auth.uid === $u",".write":"auth != null && auth.uid === $u"}},\n'+
   ' "stats":{"days":{".read":"auth != null && '+ou+'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
@@ -2568,8 +2571,10 @@ function ownerStatsHTML(){
   if(ownStatsMsg==="denied")return '<p class="warn" style="margin:0 0 8px">You are signed in, but the database does not let this account read the statistics yet. In Firebase > Realtime Database > Rules, replace everything with the text below and publish.</p>'+rules+'<p class="note"><button type="button" class="mini" id="own-stats">Try again</button> <button type="button" class="mini q" id="oa-out">Sign out</button></p>';
   if(ownStats){
     h+=seenHTML(rules)+'<h3 style="margin-top:14px">Games · all devices</h3>'+statsHTML();
-    if(ownOpen===true)h+='<p class="warn" style="margin:10px 0 8px">Not locked yet: these numbers can still be read without signing in. In Firebase > Realtime Database > Rules, replace everything with the text below and publish.</p>'+rules;
-    else if(ownOpen===false)h+='<p class="note" style="color:var(--accent)">Locked: only your owner account can read these numbers.</p>';
+    h+='<h3 style="margin-top:14px">Database rules</h3>';
+    if(ownOpen===true)h+='<p class="warn" style="margin:0 0 8px">Not locked yet: these numbers can still be read without signing in.</p>';
+    else if(ownOpen===false)h+='<p class="note" style="color:var(--accent);margin:0 0 8px">Locked: only your owner account can read these numbers.</p>';
+    h+='<p class="note" style="margin:0 0 8px">Whenever a build adds something new to save (friends by @username, game history, and so on), paste this again into Firebase &gt; Realtime Database &gt; Rules and publish.</p>'+rules;
   }
   if(ownStatsMsg)h+='<p class="note" style="margin:0 0 8px" role="status">'+esc(ownStatsMsg)+'</p>';
   h+='<p class="note"><button type="button" class="mini" id="own-stats">'+(ownStats?"Refresh":"Show")+'</button> <button type="button" class="mini q" id="oa-out">Sign out of statistics</button></p>';
@@ -3883,7 +3888,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="86";
+var BUILD="87";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
