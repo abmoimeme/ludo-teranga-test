@@ -132,7 +132,7 @@ function rulesText(){
   // Both of AB's owner logins, so generating this while signed in as either one still keeps the other working.
   var ou="(auth.uid === 'w1c591K1oofHlwp5xw37QQmifTy2' || auth.uid === 'QauEiRdy0dZcQ4p9Dhl5MlI9cSt2')";
   return '{"rules":{\n'+
-  ' "rooms":{"$code":{".read":"auth != null",".write":"auth != null",".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
+  ' "rooms":{".read":"auth != null && '+ou+'","$code":{".read":"auth != null",".write":"auth != null",".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
   ' "players":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "inbox":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "usernames":{"$u":{".read":"auth != null",".write":"auth != null",".validate":"$u.matches(/^[a-z0-9_.]{3,20}$/) && (!newData.exists() || (newData.isString() && newData.val().matches(/^[A-Z0-9]{8}$/)))"}},\n'+

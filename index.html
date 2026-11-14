@@ -2520,7 +2520,7 @@ function ownerRules(){
   var ou=ownerUidExpr();
   // logins save, the older live game keeps working, and only the owner accounts read the statistics and the player list
   if(EMAIL_ON)return '{"rules":{\n'+
-  ' "rooms":{"$code":{".read":"auth != null",".write":"auth != null",".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
+  ' "rooms":{".read":"auth != null && '+ou+'","$code":{".read":"auth != null",".write":"auth != null",".validate":"$code.matches(/^[A-Z0-9]{6}$/)"}},\n'+
   ' "players":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "inbox":{"$fc":{".read":"auth != null",".write":"auth != null",".validate":"$fc.matches(/^[A-Z0-9]{8}$/)"}},\n'+
   ' "usernames":{"$u":{".read":"auth != null",".write":"auth != null",".validate":"$u.matches(/^[a-z0-9_.]{3,20}$/) && (!newData.exists() || (newData.isString() && newData.val().matches(/^[A-Z0-9]{8}$/)))"}},\n'+
@@ -3888,7 +3888,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="87";
+var BUILD="88";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
