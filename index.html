@@ -615,7 +615,7 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
   create:"Start a private game",createNote:"Uses the rules, timer and points entry from New game.",createBtn:"Create game",
   lobby:"Private game",codeIs:"Game code",invite:"Invite players",inviteText:function(c){return "Join my Ludo Teranga game. Code: "+c},copied:"Invite copied.",
   waitingSeat:"Waiting for a player…",hostTag:"host",youTag:"you",emptyNote:"Seats still empty when you start are played by the computer.",
-  updateReady:"A newer version of the game is ready.",updateGo:"Update",
+  updateReady:"A newer version of the game is ready.",updateGo:"Update",updating:"Updating to the newest version…",
   toAll:"→ All",toOne:function(n){return "→ "+n},you:"you",everyone:"Everyone",chatTitle:"Say something",chatTo:"Who sees it",chatPh:"Short message",send:"Send",
   phrases:["Got you!","Nice move!","Hurry up!","Good game!","Wait for me!","Thank you!","Bad luck!","I'm coming for you!"],
   friends:"Friends",yourCode:"Your friend code:",share:"Share",addFriend:"Add",fcPh:"Friend code or @username",remove:"Remove",addF:"+ Friend",
@@ -684,7 +684,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
   create:"Lancer une partie privée",createNote:"Reprend les règles, le temps et la mise de Nouvelle partie.",createBtn:"Créer la partie",
   lobby:"Partie privée",codeIs:"Code de la partie",invite:"Inviter des joueurs",inviteText:function(c){return "Rejoins ma partie de Ludo Teranga. Code : "+c},copied:"Invitation copiée.",
   waitingSeat:"En attente d'un joueur…",hostTag:"hôte",youTag:"vous",emptyNote:"Les sièges encore vides au départ sont joués par l'ordinateur.",
-  updateReady:"Une nouvelle version du jeu est prête.",updateGo:"Mettre à jour",
+  updateReady:"Une nouvelle version du jeu est prête.",updateGo:"Mettre à jour",updating:"Mise à jour vers la dernière version…",
   toAll:"→ Tous",toOne:function(n){return "→ "+n},you:"vous",everyone:"Tout le monde",chatTitle:"Dire quelque chose",chatTo:"Qui le voit",chatPh:"Message court",send:"Envoyer",
   phrases:["Je t'ai eu !","Beau coup !","Dépêche-toi !","Belle partie !","Attends-moi !","Merci !","Pas de chance !","J'arrive pour toi !"],
   friends:"Amis",yourCode:"Votre code ami :",share:"Partager",addFriend:"Ajouter",fcPh:"Code ami ou @pseudo",remove:"Retirer",addF:"+ Ami",
@@ -758,7 +758,7 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
   create:"Avvia una partita privata",createNote:"Usa le regole, il tempo e la puntata di Nuova partita.",createBtn:"Crea la partita",
   lobby:"Partita privata",codeIs:"Codice della partita",invite:"Invita giocatori",inviteText:function(c){return "Entra nella mia partita di Ludo Teranga. Codice: "+c},copied:"Invito copiato.",
   waitingSeat:"In attesa di un giocatore…",hostTag:"host",youTag:"tu",emptyNote:"I posti ancora vuoti all'inizio sono giocati dal computer.",
-  updateReady:"È pronta una nuova versione del gioco.",updateGo:"Aggiorna",
+  updateReady:"È pronta una nuova versione del gioco.",updateGo:"Aggiorna",updating:"Aggiornamento alla versione più recente…",
   toAll:"→ Tutti",toOne:function(n){return "→ "+n},you:"te",everyone:"Tutti",chatTitle:"Di' qualcosa",chatTo:"Chi lo vede",chatPh:"Messaggio breve",send:"Invia",
   phrases:["Ti ho preso!","Bella mossa!","Sbrigati!","Bella partita!","Aspettami!","Grazie!","Che sfortuna!","Sto arrivando!"],
   friends:"Amici",yourCode:"Il tuo codice amico:",share:"Condividi",addFriend:"Aggiungi",fcPh:"Codice amico o @nomeutente",remove:"Rimuovi",addF:"+ Amico",
@@ -3883,21 +3883,29 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="85";
+var BUILD="86";
 if($("ver"))$("ver").textContent="· v"+BUILD;
+function applyUpdate(){
+  var bar=$("update-bar");
+  bar.className="invite update open";
+  bar.innerHTML='<span>'+L().updating+'</span>';
+  var go=function(){location.reload()};
+  try{if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)navigator.serviceWorker.getRegistration().then(function(r){return r?r.update():null}).then(go,go);else go()}catch(e){go()}
+}
 function checkUpdate(){
   if(NAT)return;
   if(location.protocol!=="https:"&&location.hostname!=="localhost")return;
   fetch("version.txt?t="+Date.now(),{cache:"no-store"}).then(function(r){return r.ok?r.text():""}).then(function(v){
     v=String(v).trim();
     if(!v||v===BUILD||!/^\d+$/.test(v))return;
+    // Updates are mandatory, but a live online game with other people in it is never interrupted
+    // mid-match for one: it's applied the moment that game ends (or this device leaves it) instead,
+    // via the same periodic/visibility checks below finding it no longer live.
+    if(!live()){applyUpdate();return}
     var bar=$("update-bar");
     bar.className="invite update open";
     bar.innerHTML='<span>'+L().updateReady+'</span><button type="button" id="update-go">'+L().updateGo+'</button>';
-    $("update-go").addEventListener("click",function(){
-      var go=function(){location.reload()};
-      try{if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)navigator.serviceWorker.getRegistration().then(function(r){return r?r.update():null}).then(go,go);else go()}catch(e){go()}
-    });
+    $("update-go").addEventListener("click",applyUpdate);
   }).catch(function(){});
 }
 setTimeout(checkUpdate,4000);setInterval(checkUpdate,180000);
