@@ -2127,8 +2127,8 @@ function rematch(){
     .then(function(){var so={on:1,hum:gs.filter(function(x){return x.kind==="human"}).length};so["n"+gs.length]=1;statAdd(so)})
     .catch(function(){say(L().errNet)});
 }
-// When a game is over its room stays open for 30 seconds (time to tap "Play again"), then closes for everyone.
-var CLOSE_MS=30000,closeTick=null;
+// When a game is over its room stays open for 12 seconds (time to tap "Play again"), then closes for everyone.
+var CLOSE_MS=12000,closeTick=null;
 function armClose(){
   if(!live()||!g.over)return;
   if(!net.closeAt){
@@ -3888,7 +3888,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="88";
+var BUILD="89";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
