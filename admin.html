@@ -707,14 +707,16 @@ function start(){
   });
   armPoll();
 }
-// Keep the numbers current on their own: re-load once a minute while this tab is open and the owner
-// is signed in. Paused while the tab isn't visible, so it doesn't poll in the background forever.
-var pollT=null;
+// Keep the numbers current on their own: re-load every 5 minutes while this tab is open and the owner
+// is signed in. A manual refresh (from the button, or start() running for any other reason) resets
+// this clock, since armPoll() is called again at the end of start(). Paused while the tab isn't
+// visible, so it doesn't poll in the background forever.
+var POLL_MS=300000,pollT=null;
 function armPoll(){
   clearInterval(pollT);
-  pollT=setInterval(function(){if(own&&!document.hidden)start()},60000);
+  pollT=setInterval(function(){if(own&&!document.hidden)start()},POLL_MS);
 }
-document.addEventListener("visibilitychange",function(){if(!document.hidden&&own&&loadedAt&&Date.now()-loadedAt>=60000)start()});
+document.addEventListener("visibilitychange",function(){if(!document.hidden&&own&&loadedAt&&Date.now()-loadedAt>=POLL_MS)start()});
 $("signout").addEventListener("click",function(){own=null;tok=null;saveOwn();EV=[];SEEN={};STATS={};clearInterval(pollT);renderSign("")});
 $("refresh").addEventListener("click",start);
 if(own)start();else renderSign("");
