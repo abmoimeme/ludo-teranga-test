@@ -218,11 +218,13 @@ function players(){
 }
 function count(list,e,r){var n=0;list.forEach(function(x){if(x.e===e&&(r===undefined||x.r===r))n++});return n}
 function login(list){
-  var L={su_ok:count(list,"signup_ok"),su_fail:count(list,"signup_fail"),si_ok:count(list,"signin_ok"),si_fail:count(list,"signin_fail"),reasons:{},dist:[0,0,0,0],never:0,resets:count(list,"reset_request"),conf:count(list,"email_confirmed"),out:count(list,"signed_out"),ref:count(list,"save_refused"),merged:count(list,"save_merged"),moved:count(list,"old_game_moved"),nomove:count(list,"old_game_not_found"),del:count(list,"account_deleted"),opens:count(list,"app_open"),errs:count(list,"js_error")};
+  var L={su_ok:count(list,"signup_ok"),su_fail:count(list,"signup_fail"),si_ok:count(list,"signin_ok")+count(list,"google_ok")+count(list,"apple_ok"),si_fail:count(list,"signin_fail")+count(list,"google_fail")+count(list,"apple_fail")-count(list,"apple_fail","cancelled"),by:{email:count(list,"signin_ok")+count(list,"signup_ok"),google:count(list,"google_ok"),apple:count(list,"apple_ok")},appleCancel:count(list,"apple_fail","cancelled"),revokes:count(list,"apple_revoke"),reasons:{},dist:[0,0,0,0],never:0,resets:count(list,"reset_request"),conf:count(list,"email_confirmed"),out:count(list,"signed_out"),ref:count(list,"save_refused"),merged:count(list,"save_merged"),moved:count(list,"old_game_moved"),nomove:count(list,"old_game_not_found"),del:count(list,"account_deleted"),opens:count(list,"app_open"),errs:count(list,"js_error")};
   var per={};
   list.forEach(function(x){
     var k=x.e.split("_")[0],res=x.e.slice(x.e.indexOf("_")+1);
-    if(k!=="signup"&&k!=="signin")return;
+    if(k!=="signup"&&k!=="signin"&&k!=="google"&&k!=="apple")return;
+    if(k==="apple"&&res==="fail"&&x.r==="cancelled")return;
+    if(k!=="signup")k="signin";
     if(res==="fail"){var key=x.r||"unknown";L.reasons[key]=L.reasons[key]||{su:0,si:0};L.reasons[key][k==="signup"?"su":"si"]++}
     if(!x.d)return;per[x.d]=per[x.d]||{f:0,ok:0};
     if(res==="fail")per[x.d].f++;
@@ -245,9 +247,11 @@ var WHY={
   service_not_ready:["Email sign-in is switched off, or the key is wrong.","Urgent. Check Firebase > Authentication > Sign-in method and config.js."],
   save_refused:["Sign-in worked, but the database refused to save the game.","Urgent. The database rules do not match this build. Republish the rules."],
   network:["No connection, or the service could not be reached.","Normal in small numbers. If high in one country, check hosting from there."],
+  needs_password:["Tried Google or Apple with an email that already has a login made another way.","The player is told to sign in the way they did the first time. If frequent, offer linking Google or Apple to an existing login."],
+  idp_token_refused:["The sign-in service did not accept the Google or Apple answer.","Check Firebase > Authentication > Sign-in method: the Google or Apple settings (Services ID, return link) must match."],
   service_other:["The sign-in service answered with an unexpected error.","Look at the player timeline, then at the Firebase status page."]
 };
-function label(e){return ({signup_ok:"Login created",signup_fail:"Create login failed",signup_try:"Create login tried",signin_ok:"Signed in",signin_fail:"Sign-in failed",signin_try:"Sign-in tried",reset_request:"Password reset asked",email_confirmed:"Email confirmed",signed_out:"Signed out by the game",save_refused:"Save refused",save_merged:"Newer save taken",old_game_moved:"Phone-number game moved",old_game_not_found:"Phone-number game not found",account_deleted:"Account deleted",app_open:"Opened the game",js_error:"Error",name_set:"Typed a name",game_start:"Game started",game_end:"Game finished",game_left:"Game left",miss_warn:"Warned for not playing",kicked:"Removed for not playing",invite_open:"Opened an invitation link",room_create:"Created an online game",room_create_fail:"Could not create a game",room_join:"Joined a game",room_join_fail:"Could not join",room_rejoin:"Came back into a game",room_rejoin_fail:"Could not come back",join_ask:"Asked to join a game under way",join_ask_ok:"Let into a game under way",join_ask_no:"Not let in",out_of_sync:"Game out of step, reloaded",report_sent:"Reported a player",player_blocked:"Blocked a player",rules_check:"Rules check",ad_views:"Sponsor banners shown",ad_tap:"Tapped a sponsor banner"})[e]||e}
+function label(e){return ({signup_ok:"Login created",signup_fail:"Create login failed",signup_try:"Create login tried",signin_ok:"Signed in",signin_fail:"Sign-in failed",signin_try:"Sign-in tried",google_ok:"Signed in with Google",google_fail:"Google sign-in failed",google_try:"Google sign-in tried",apple_ok:"Signed in with Apple",apple_fail:"Apple sign-in failed",apple_try:"Apple sign-in tried",apple_revoke:"Apple link removed (account deleted)",reset_request:"Password reset asked",email_confirmed:"Email confirmed",signed_out:"Signed out by the game",save_refused:"Save refused",save_merged:"Newer save taken",old_game_moved:"Phone-number game moved",old_game_not_found:"Phone-number game not found",account_deleted:"Account deleted",app_open:"Opened the game",js_error:"Error",name_set:"Typed a name",game_start:"Game started",game_end:"Game finished",game_left:"Game left",miss_warn:"Warned for not playing",kicked:"Removed for not playing",invite_open:"Opened an invitation link",room_create:"Created an online game",room_create_fail:"Could not create a game",room_join:"Joined a game",room_join_fail:"Could not join",room_rejoin:"Came back into a game",room_rejoin_fail:"Could not come back",join_ask:"Asked to join a game under way",join_ask_ok:"Let into a game under way",join_ask_no:"Not let in",out_of_sync:"Game out of step, reloaded",report_sent:"Reported a player",player_blocked:"Blocked a player",rules_check:"Rules check",ad_views:"Sponsor banners shown",ad_tap:"Tapped a sponsor banner"})[e]||e}
 function tone(e){return /fail|refused|signed_out|js_error|kicked/.test(e)?"bad":/_ok|confirmed|moved$|game_end|room_join$|room_rejoin$/.test(e)?"good":/not_found|merged|reset|game_left|out_of_sync|_no$|report|blocked|miss_warn/.test(e)?"warn":"info"}
 
 // ---------- charts ----------
@@ -399,7 +403,7 @@ function vOverview(){
   h+='<div class="card"><h2>Needs attention</h2>'+attention(L,P)+'</div>';
   h+=vErrorsTrend();
   var act=days.map(function(d){var n=0;P.forEach(function(o){if(num(o.d[d]))n++});return n});
-  var ok=days.map(function(d){return list.filter(function(x){return x.day===d&&(x.e==="signin_ok"||x.e==="signup_ok")}).length});
+  var ok=days.map(function(d){return list.filter(function(x){return x.day===d&&(x.e==="signin_ok"||x.e==="signup_ok"||x.e==="google_ok"||x.e==="apple_ok")}).length});
   var ko=days.map(function(d){return list.filter(function(x){return x.day===d&&(x.e==="signin_fail"||x.e==="signup_fail")}).length});
   h+='<div class="two"><div class="card"><h2>Active players per day</h2>'+bars(days,[{n:"Signed-in players",c:"#121938",v:act}])+'</div>'+
      '<div class="card"><h2>Getting in, per day</h2>'+bars(days,[{n:"Succeeded",c:"#1f8a55",v:ok},{n:"Failed",c:"#c8402a",v:ko}])+'</div></div>';
@@ -416,11 +420,13 @@ function vLogin(){
     kpi("Create-login tries",fmt(sut),fmt(L.su_ok)+" ok · "+fmt(L.su_fail)+" failed")+kpi("Creation success",pct(L.su_ok,sut),"",sut<5?"":L.su_fail/sut>0.4?"warn":"good")+
     kpi("Got in on the first try",pct(L.dist[0],nd),nd?fmt(L.dist[0])+" of "+fmt(nd)+" successes":"")+kpi("Never got in",fmt(L.never),"devices that tried and gave up",L.never?"warn":"")+
     kpi("Password resets asked",fmt(L.resets),"")+kpi("Emails confirmed",fmt(L.conf),"")+'</div>';
+  var bt=L.by.email+L.by.google+L.by.apple;
+  h+='<div class="card"><h2>How players get in · '+rangeWord()+'</h2><div class="scroll"><table><thead><tr><th style="text-align:left">Way in</th><th>Successes</th><th>Share</th></tr></thead><tbody>'+[["Email and password",L.by.email],["Google",L.by.google],["Apple",L.by.apple]].map(function(r){return '<tr><td style="text-align:left">'+r[0]+'</td><td>'+fmt(r[1])+'</td><td>'+pct(r[1],bt)+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">Apple windows closed without signing in: '+fmt(L.appleCancel)+' (not counted as failures). Apple links removed at account deletion: '+fmt(L.revokes)+'.</p></div>';
   var rk=Object.keys(L.reasons).sort(function(a,b){return (L.reasons[b].su+L.reasons[b].si)-(L.reasons[a].su+L.reasons[a].si)}),ft=L.si_fail+L.su_fail;
   h+='<div class="card"><h2>Why people fail to get in · '+rangeWord()+'</h2>'+(rk.length?'<div class="scroll"><table><thead><tr><th>Reason</th><th>Sign-in</th><th>Create</th><th>Share</th><th style="text-align:left">What it means</th><th style="text-align:left">What to do</th></tr></thead><tbody>'+rk.map(function(k){var w=WHY[k]||["",""],r=L.reasons[k];return '<tr><td><span class="pill '+(/refused|not_ready|disabled/.test(k)?"bad":"warn")+'">'+esc(k.replace(/_/g," "))+'</span></td><td>'+fmt(r.si)+'</td><td>'+fmt(r.su)+'</td><td>'+pct(r.si+r.su,ft)+'</td><td class="wrapc">'+w[0]+'</td><td class="wrapc">'+w[1]+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No failed attempt in this period.</p>')+'</div>';
   h+='<div class="two"><div class="card"><h2>Tries before getting in</h2><div class="scroll"><table><thead><tr><th>Failed tries first</th><th>Times</th><th>Share</th></tr></thead><tbody>'+["None","1","2","3 or more"].map(function(n,i){return '<tr><td>'+n+'</td><td>'+fmt(L.dist[i])+'</td><td>'+pct(L.dist[i],nd)+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">Counted per device, from its failed tries to its next success.</p></div>'+
     '<div class="card"><h2>Account health</h2><div class="scroll"><table><tbody>'+[["Signed out by the game",L.out,"Login no longer valid"],["Saves refused by the database",L.ref,"Points not saved online"],["Saves protected from an older tab or device",L.merged,"Newer save kept"],["Phone-number games moved to a login",L.moved,""],["Phone-number game not found",L.nomove,"Typed a number with no saved game"],["Accounts deleted by players",L.del,""]].map(function(r){return '<tr><td>'+r[0]+(r[2]?'<br><span style="color:var(--ink2);font-size:.8rem">'+r[2]+'</span>':"")+'</td><td>'+fmt(r[1])+'</td></tr>'}).join("")+'</tbody></table></div></div></div>';
-  var recent=list.filter(function(x){return /_fail$|signed_out|save_refused/.test(x.e)}).slice(-40).reverse();
+  var recent=list.filter(function(x){return /_fail$|signed_out|save_refused/.test(x.e)&&x.r!=="cancelled"}).slice(-40).reverse();
   h+='<div class="card"><h2>Latest problems</h2>'+(recent.length?'<div class="scroll"><table><thead><tr><th>When (UTC)</th><th style="text-align:left">Event</th><th style="text-align:left">Reason</th><th>Country</th><th style="text-align:left">Where (sign-in only)</th><th>On</th><th style="text-align:left">Player</th></tr></thead><tbody>'+recent.map(function(x){var nm=x.u&&SEEN[x.u]?esc(String(SEEN[x.u].n||"")):"not signed in",where=(x.gci||x.gco)?esc([x.gci,x.gco].filter(Boolean).join(", ")):"–";return '<tr><td>'+stamp(x.t)+'</td><td style="text-align:left"><span class="pill '+tone(x.e)+'">'+label(x.e)+'</span></td><td style="text-align:left">'+esc(x.r.replace(/_/g," "))+'</td><td>'+flag(x.cc)+'</td><td style="text-align:left">'+where+'</td><td>'+x.pf+" v"+x.b+'</td><td style="text-align:left">'+nm+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">"Where" comes from a public location lookup at the moment of a sign-in or create-login failure — city/country only, never the IP address itself. Not recorded for other kinds of problems.</p>':'<p class="note" style="margin:0">None in this period.</p>')+'</div>';
   return h;
 }
@@ -457,9 +463,9 @@ function vSteps(){
     if((F.cc&&a.cc!==F.cc)||(F.pf&&a.pf!==F.pf)||(F.b&&String(a.b)!==F.b))return;
     var o=st[x.d]=st[x.d]||{};
     o.open=1;
-    if(x.e==="name_set"||/^sign(up|in)_(try|ok)$/.test(x.e)||x.e==="game_start")o.name=1;
-    if(/^sign(up|in)_try$/.test(x.e)||/^sign(up|in)_fail$/.test(x.e))o.tried=1;
-    if(x.e==="signup_ok"||x.e==="signin_ok"||x.u){o.login=1;o.tried=1}
+    if(x.e==="name_set"||/^(sign(up|in)|google|apple)_(try|ok)$/.test(x.e)||x.e==="game_start")o.name=1;
+    if(/^(sign(up|in)|google|apple)_(try|fail)$/.test(x.e))o.tried=1;
+    if(x.e==="signup_ok"||x.e==="signin_ok"||x.e==="google_ok"||x.e==="apple_ok"||x.u){o.login=1;o.tried=1}
     if(x.e==="game_start"){o.game=1;if(/^online/.test(x.r))o.online=1}
     if(x.e==="game_end")o.done=1;
   });
