@@ -332,6 +332,26 @@ h1 span{color:var(--accent);display:block}
   .actions button{font-size:.78rem}
 }
 @media (prefers-reduced-motion:reduce){.tok,.tok.slow{transition:none}.tok.can span,.die.shake,.die.ready{animation:none}}
+/* Build 91 design pass: spacing scale, three radii, flat surfaces with 1px borders, calm sponsor boxes. */
+:root{--s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:24px;--s6:32px;--r-sm:8px;--r-md:12px;--r-lg:16px;--surface-2:#232e66;--border:rgba(255,255,255,.14);--t-fast:150ms ease-out}
+.sheet.gate{background:rgba(8,11,30,.94)}
+.sheet.lobby{background:#0e1330}
+.sheet.gate .panel,.sheet.lobby .panel{border:1px solid var(--border);box-shadow:none;border-radius:var(--r-lg);gap:var(--s3)}
+.gate-banner{background:var(--surface-2);border-radius:15px 15px 0 0;padding:var(--s5) var(--s4) var(--s4);border-bottom:1px solid var(--border)}
+.gate-banner::before{display:none}
+.gw-l{box-shadow:none;border:1px solid rgba(255,255,255,.35);border-radius:var(--r-sm)}
+.gw-word{text-shadow:none}
+.tile,.tile.tile-gold,.tile.tile-blue{box-shadow:none;border-radius:var(--r-md);transition:opacity var(--t-fast)}
+.tile.tile-blue{background:#2a66cf}
+.tile.tile-gold{background:var(--accent)}
+.tile:active,.tile.tile-gold:active,.roll:active,#sheet-gate .cta:active{transform:none;box-shadow:none;opacity:.85}
+.roll,.cta,#sheet-gate .cta{box-shadow:none;border-radius:var(--r-md);transition:opacity var(--t-fast)}
+.roll:disabled{box-shadow:none}
+.ghost,.seg button,.actions button,.lobby-mini button,.fld{border-width:1px;border-radius:var(--r-md)}
+.adtop,.ad{animation:none;border-radius:var(--r-md);border-left-width:3px;border:1px solid var(--border);border-left:3px solid var(--adc,var(--accent))}
+.gate-spons img{animation:none;border-width:1px;border-radius:var(--r-sm)}
+.lobby-bal{background:var(--surface-2);border:1px solid var(--border)}
+.panel{border-radius:var(--r-lg) var(--r-lg) 0 0}
 </style>
 </head>
 <body>
@@ -2198,10 +2218,9 @@ function openOnline(){refreshFriends();renderOnline();$("sheet-online").classLis
 function renderGate(){
   var t=L(),spons=ADS.map(function(a){return '<img src="'+a.img+'" alt="'+esc(a.name)+'" loading="lazy">'}).join("");
   $("panel-gate").innerHTML='<div class="adtop" id="gate-adtop" role="complementary"></div>'+
-    '<div class="gate-banner"><div class="gate-crown">👑</div>'+
+    '<div class="gate-banner">'+
     '<div class="gate-wordmark"><span class="gw-l" style="background:var(--red)">L</span><span class="gw-l" style="background:var(--green)">U</span><span class="gw-l" style="background:var(--blue)">D</span><span class="gw-l" style="background:var(--yellow);color:#1a1500">O</span><b class="gw-word">Teranga</b></div>'+
-    '<div class="gate-pawns"><i style="background:var(--red)"></i><i style="background:var(--green)"></i><span class="gate-die">🎲</span><i style="background:var(--blue)"></i><i style="background:var(--yellow)"></i></div></div>'+
-    '<span class="gate-tag">⭐ '+t.gateTag+'</span>'+
+    '</div>'+
     '<h2>'+t.gateTitle+'</h2><p class="note" style="margin:0">'+t.gateSub+'</p>'+
     '<div class="gate-spons"><span class="gate-spons-label">'+t.gateWith+'</span>'+spons+'</div>'+
     '<div class="ad" id="gate-ad" role="complementary"></div>'+
@@ -2217,9 +2236,9 @@ function renderLobby(){
   // (same reason as the matching buttons on the game screen): a tap here shouldn't abandon that game.
   var mine=myPi(),inPlay=live()&&g&&!g.over&&mine>=0&&(g.out||[]).indexOf(mine)<0;
   $("panel-lobby").innerHTML='<div class="adtop" id="lobby-adtop" role="complementary"></div>'+
-    '<div class="gate-banner"><div class="gate-crown">👑</div>'+
+    '<div class="gate-banner">'+
     '<div class="gate-wordmark"><span class="gw-l" style="background:var(--red)">L</span><span class="gw-l" style="background:var(--green)">U</span><span class="gw-l" style="background:var(--blue)">D</span><span class="gw-l" style="background:var(--yellow);color:#1a1500">O</span><b class="gw-word">Teranga</b></div>'+
-    '<div class="gate-pawns"><i style="background:var(--red)"></i><i style="background:var(--green)"></i><span class="gate-die">🎲</span><i style="background:var(--blue)"></i><i style="background:var(--yellow)"></i></div></div>'+
+    '</div>'+
     '<span class="lobby-bal">★ '+fmt(balanceOf(meName()))+'</span>'+
     (inPlay?'':'<div class="lobby-tiles"><button type="button" class="tile tile-gold" id="lobby-online"><i>🌍</i>'+esc(t.online)+'</button>'+
     '<button type="button" class="tile tile-blue" id="lobby-new"><i>🎮</i>'+(resume?esc(t.resumeGame):esc(t.newGame))+'</button></div>'+
@@ -3996,7 +4015,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="90";
+var BUILD="91";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
