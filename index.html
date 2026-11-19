@@ -735,7 +735,7 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
     timer:function(n){return "Each player has "+n+" seconds to play. If time runs out before the roll, the turn passes. If it runs out after the roll, the game moves a piece for you."}}},
 fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:"Nouvelle partie",rules:"Règles",start:"Commencer",close:"Fermer",again:"Rejouer",
   colors:["Rouge","Vert","Jaune","Bleu"],cpu:"Ordi",player:"Joueur ",
-  yourRoll:function(n){return n+", lance le dé !"},roll1:function(n){return n+" lance le dé"},
+  yourRoll:function(n){return n+", lancez les dés !"},roll1:function(n){return "À "+n+" de lancer"},
   pick:"Touchez un pion qui brille",pickDie:"Touchez un dé, puis un pion qui brille",thinking:function(n){return n+" joue"},
   noMove:"Aucun coup possible",oJail:"Les pions capturés vont dans le kër de celui qui capture",oHomeBonus:"Relancer quand un pion arrive au centre",caughtTo:function(n){return "Capturé ! Direction Kër "+n+"."},freed:"De retour dans son kër. Encore un 6 pour sortir.",captured:"Capturé !",homeIn:"Arrivé !",
   wins:function(n){return n+" gagne !"},winSub:"Les quatre pions sont arrivés.",
@@ -752,7 +752,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
   waitingSeat:"En attente d'un joueur…",hostTag:"hôte",youTag:"vous",emptyNote:"Les sièges encore vides au départ sont joués par l'ordinateur.",
   updateReady:"Une nouvelle version du jeu est prête.",updateGo:"Mettre à jour",updating:"Mise à jour vers la dernière version…",
   toAll:"→ Tous",toOne:function(n){return "→ "+n},you:"vous",everyone:"Tout le monde",chatTitle:"Dire quelque chose",chatTo:"Qui le voit",chatPh:"Message court",send:"Envoyer",
-  phrases:["Je t'ai eu !","Beau coup !","Dépêche-toi !","Belle partie !","Attends-moi !","Merci !","Pas de chance !","J'arrive pour toi !"],
+  phrases:["Je t'ai eu !","Beau coup !","Dépêche-toi !","Belle partie !","Attends-moi !","Merci !","Pas de chance !","Je te rattrape !"],
   friends:"Amis",yourCode:"Votre code ami :",share:"Partager",addFriend:"Ajouter",fcPh:"Code ami ou @pseudo",remove:"Retirer",addF:"+ Ami",
   noFriends:"Pas encore d'amis. Partagez votre code, tapez le code d'un ami ici, ou touchez + Ami à côté d'un joueur.",
   inviteFriends:"Inviter un ami",inviteBtn:"Inviter",invitedOk:"Invité",invFrom:function(n){return n+" vous invite à une partie"},notNow:"Plus tard",
@@ -767,7 +767,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
   acctTitle:"Votre compte",phCc:"Pays",phPh:"Numéro de téléphone",signIn:"Me connecter avec mon numéro",signOut:"Se déconnecter",
   tabPlay:"Jouer avec des amis",tabSettings:"Réglages",blockedTitle:"Joueurs bloqués",blockedNone:"Aucun joueur bloqué.",blockedWho:"Un joueur",unblock:"Débloquer",prefsTitle:"Préférences",
   helpTitle:"Aide",aboutTitle:"À propos",
-  acctNote:"Votre numéro de téléphone est votre identifiant sur n'importe quel téléphone ou ordinateur. Il retrouve votre nom, vos points et vos amis. Les autres joueurs ne le voient jamais.",
+  acctNote:"Votre numéro de téléphone est votre identifiant sur n'importe quel téléphone ou ordinateur. Il permet de retrouver votre nom, vos points et vos amis. Les autres joueurs ne le voient jamais.",
   signedIn:function(h){return "Connecté · numéro finissant par "+h},welcomeBack:function(n){return "Bon retour, "+n+". Vos points et vos amis sont là."},acctMade:"Compte créé. Utilisez le même numéro sur tous vos appareils.",
   errPhone:"Ce numéro ne semble pas correct. Choisissez votre pays et écrivez le numéro.",errLogin:"Connectez-vous d'abord avec votre numéro de téléphone.",
   errNameNew:"Ce numéro est nouveau. Écrivez votre nom au-dessus, puis reconnectez-vous.",errAcctOff:"Les comptes ne sont pas encore activés. Les nouvelles règles de la base doivent être publiées dans Firebase. Vous pouvez jouer sans compte pour l'instant.",
@@ -806,7 +806,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
 // Italian. Any text missing here falls back to English.
 var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova partita",rules:"Regole",start:"Inizia la partita",close:"Chiudi",again:"Gioca ancora",
   colors:["Rosso","Verde","Giallo","Blu"],cpu:"CPU",player:"Giocatore ",
-  yourRoll:function(n){return n+", tira il dado!"},roll1:function(n){return "Tocca a "+n},
+  yourRoll:function(n){return n+", tira i dadi!"},roll1:function(n){return "Tocca a "+n},
   pick:"Tocca una pedina che brilla",pickDie:"Tocca un dado, poi una pedina che brilla",thinking:function(n){return n+" sta giocando"},
   noMove:"Nessuna mossa possibile",oJail:"Le pedine catturate vanno nel kër di chi cattura",oHomeBonus:"Tiro extra quando una pedina arriva al centro",
   caughtTo:function(n){return "Catturata! Va nel Kër "+n+"."},freed:"Di nuovo nel suo kër. Ora serve un 6 per uscire.",captured:"Catturata!",homeIn:"Arrivata!",
@@ -843,7 +843,7 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
   acctTitle:"Il tuo account",phCc:"Paese",phPh:"Numero di telefono",signIn:"Accedi con il mio numero",signOut:"Esci",
   tabPlay:"Gioca con gli amici",tabSettings:"Impostazioni",blockedTitle:"Giocatori bloccati",blockedNone:"Nessun giocatore bloccato.",blockedWho:"Un giocatore",unblock:"Sblocca",prefsTitle:"Preferenze",
   helpTitle:"Aiuto",aboutTitle:"Informazioni",
-  acctNote:"Il tuo numero di telefono è il tuo accesso su qualsiasi telefono o computer. Ritrova il tuo nome, i tuoi punti e i tuoi amici. Gli altri giocatori non lo vedono mai.",
+  acctNote:"Il tuo numero di telefono è il tuo accesso su qualsiasi telefono o computer. Recupera il tuo nome, i tuoi punti e i tuoi amici. Gli altri giocatori non lo vedono mai.",
   signedIn:function(h){return "Accesso fatto · numero che finisce con "+h},welcomeBack:function(n){return "Bentornato, "+n+". I tuoi punti e i tuoi amici sono qui."},acctMade:"Account creato. Usa lo stesso numero su ogni dispositivo.",
   errPhone:"Questo numero non sembra corretto. Scegli il paese e scrivi il numero.",errLogin:"Accedi prima con il tuo numero di telefono.",
   errNameNew:"Questo numero è nuovo. Scrivi il tuo nome qui sopra, poi accedi di nuovo.",errAcctOff:"Gli account non sono ancora attivi. Le nuove regole del database devono essere pubblicate in Firebase. Per ora puoi giocare senza accedere.",
@@ -894,7 +894,7 @@ T.en.closesIn=function(n){return "This room closes in "+n+" s"};T.fr.closesIn=fu
 T.en.roomClosed="This room is closed. Start a new game to play again.";T.fr.roomClosed="Ce salon est fermé. Lancez une nouvelle partie pour rejouer.";T.it.roomClosed="Questa stanza è chiusa. Avvia una nuova partita per giocare ancora.";
 T.en.kicked=function(n){return n+" was removed for not playing."};T.fr.kicked=function(n){return n+" a été exclu pour abandon."};T.it.kicked=function(n){return n+" è stato escluso per abbandono."};
 T.en.youOut="You were removed from this game for not playing.";T.fr.youOut="Vous avez été exclu de cette partie pour abandon.";T.it.youOut="Sei stato escluso da questa partita per abbandono.";
-T.en.missWarn="Play your turn: one more miss and you are out of the game.";T.fr.missWarn="Jouez votre tour : encore un oubli et vous êtes exclu de la partie.";T.it.missWarn="Gioca il tuo turno: ancora una mancanza e sei escluso dalla partita.";
+T.en.missWarn="Play your turn: one more miss and you are out of the game.";T.fr.missWarn="Jouez votre tour : encore un oubli et vous êtes exclu de la partie.";T.it.missWarn="Gioca il tuo turno: ancora un turno saltato e sei escluso dalla partita.";
 T.en.outTag="removed";T.fr.outTag="exclu";T.it.outTag="escluso";
 T.en.daily=function(n){return "Daily bonus: +"+n+" ★"};T.fr.daily=function(n){return "Bonus du jour : +"+n+" ★"};T.it.daily=function(n){return "Bonus del giorno: +"+n+" ★"};
 T.en.streak=function(k,n){return "🔥 "+k+" wins in a row: +"+n+" ★"};T.fr.streak=function(k,n){return "🔥 "+k+" victoires de suite : +"+n+" ★"};T.it.streak=function(k,n){return "🔥 "+k+" vittorie di fila: +"+n+" ★"};
@@ -910,7 +910,7 @@ T.en.accept="Accept";T.fr.accept="Accepter";T.it.accept="Accetta";
 T.en.decline="Decline";T.fr.decline="Refuser";T.it.decline="Rifiuta";
 T.en.joined=function(n){return n+" joined the game"};T.fr.joined=function(n){return n+" a rejoint la partie"};T.it.joined=function(n){return n+" è entrato nella partita"};
 T.en.blockHop="Two or more of your pieces on one square form a block. Opponents cannot capture it or pass it, except by hopping: a piece right behind the block jumps just past it with as many sixes in a row as the block has pieces (double six for two, three sixes for three). The sixes are used up, then the player rolls again.";
-T.fr.blockHop="Deux pions ou plus sur une case forment un barrage. Les adversaires ne peuvent ni le capturer ni le dépasser, sauf en sautant : un pion placé juste derrière le barrage passe de l'autre côté avec autant de 6 à la suite que le barrage compte de pions (double six pour deux, trois 6 pour trois). Les 6 sont consommés, puis le joueur relance.";
+T.fr.blockHop="Deux de vos pions ou plus sur une case forment un barrage. Les adversaires ne peuvent ni le capturer ni le dépasser, sauf en sautant : un pion placé juste derrière le barrage passe de l'autre côté avec autant de 6 à la suite que le barrage compte de pions (double six pour deux, trois 6 pour trois). Les 6 sont consommés, puis le joueur relance.";
 T.it.blockHop="Due o più tue pedine sulla stessa casella formano un blocco. Gli avversari non possono catturarlo né superarlo, tranne con un salto: una pedina subito dietro il blocco lo scavalca con tanti 6 di fila quante sono le pedine del blocco (doppio sei per due, tre 6 per tre). I 6 vengono consumati, poi il giocatore tira di nuovo.";
 T.en.hopped=function(n){return n+" hops the block!"};T.fr.hopped=function(n){return n+" saute le barrage !"};T.it.hopped=function(n){return n+" salta il blocco!"};
 T.en.doorRule="The square where your pieces come out is your door. On your own door you cannot be caught. Anyone standing on another player's door can be caught by anybody, even two pieces together.";
@@ -922,7 +922,7 @@ T.en.pwPh="Password (8 characters or more)";T.fr.pwPh="Mot de passe (8 caractèr
 T.en.emIn="Sign in";T.fr.emIn="Me connecter";T.it.emIn="Accedi";
 T.en.emNew="Create my login";T.fr.emNew="Créer mon compte";T.it.emNew="Crea il mio account";
 T.en.emForgot="Forgot your password?";T.fr.emForgot="Mot de passe oublié ?";T.it.emForgot="Password dimenticata?";
-T.en.acctNote2="Your email and password are your login on any phone or computer. They bring back your name, points and friends. Your email is never shown to other players.";T.fr.acctNote2="Votre e-mail et votre mot de passe sont votre identifiant sur n'importe quel téléphone ou ordinateur. Vous retrouvez votre nom, vos points et vos amis. Votre e-mail n'est jamais montré aux autres joueurs.";T.it.acctNote2="La tua e-mail e la tua password sono il tuo accesso su qualsiasi telefono o computer. Ritrovi il tuo nome, i tuoi punti e i tuoi amici. La tua e-mail non viene mai mostrata agli altri giocatori.";
+T.en.acctNote2="Your email and password are your login on any phone or computer. They bring back your name, points and friends. Your email is never shown to other players.";T.fr.acctNote2="Votre e-mail et votre mot de passe sont votre identifiant sur n'importe quel téléphone ou ordinateur. Vous retrouvez votre nom, vos points et vos amis. Votre e-mail n'est jamais montré aux autres joueurs.";T.it.acctNote2="La tua e-mail e la tua password sono il tuo accesso su qualsiasi telefono o computer. Recuperano il tuo nome, i tuoi punti e i tuoi amici. La tua e-mail non viene mai mostrata agli altri giocatori.";
 T.en.orWord="or";T.fr.orWord="ou";T.it.orWord="o";
 T.en.youTag="YOU";T.fr.youTag="VOUS";T.it.youTag="TU";
 T.en.googleFail="Google sign-in failed. Try again.";T.fr.googleFail="La connexion Google a échoué. Réessayez.";T.it.googleFail="Accesso Google non riuscito. Riprova.";
@@ -944,7 +944,7 @@ T.en.errLogin2="Sign in, or create your login, first.";T.fr.errLogin2="Connectez
 T.en.emInvalid="That email address does not look right.";T.fr.emInvalid="Cette adresse e-mail ne semble pas correcte.";T.it.emInvalid="Questo indirizzo e-mail non sembra corretto.";
 T.en.emNoEmail="Type your email first.";T.fr.emNoEmail="Entrez d'abord votre e-mail.";T.it.emNoEmail="Inserisci prima la tua e-mail.";
 T.en.emNoPw="Type your password.";T.fr.emNoPw="Tapez votre mot de passe.";T.it.emNoPw="Scrivi la tua password.";
-T.en.unameNeed="Choose your name. Friends find you with it, and it cannot be changed later.";T.fr.unameNeed="Choisissez votre nom. Vos amis vous trouvent avec, et il ne pourra plus être changé.";T.it.unameNeed="Scegli il tuo nome. Gli amici ti trovano con quello e non potrà essere cambiato.";
+T.en.unameNeed="Choose your name. Friends find you with it, and it cannot be changed later.";T.fr.unameNeed="Choisissez votre nom. Vos amis peuvent vous trouver grâce à lui, et il ne pourra plus être changé.";T.it.unameNeed="Scegli il tuo nome. Gli amici ti trovano con quello e non potrà essere cambiato.";
 T.en.unamePh="Your name";T.fr.unamePh="Votre nom";T.it.unamePh="Il tuo nome";
 T.en.unameFixed="Your name is permanent and unique.";T.fr.unameFixed="Votre nom est définitif et unique.";T.it.unameFixed="Il tuo nome è definitivo e unico.";
 T.en.bundleTitle="Choose your game";T.fr.bundleTitle="Choisissez votre jeu";T.it.bundleTitle="Scegli il tuo gioco";
@@ -958,7 +958,7 @@ T.fr.bunWestD="2 dés, parties plus rapides. Deux pions font barrage. Pions capt
 T.it.bunWestD="2 dadi, partite più rapide. Due pedine bloccano la strada. Pedine catturate nel kër di chi cattura. Tiro extra all'arrivo.";
 T.en.bunFriendly="Friendly";T.fr.bunFriendly="Amical";T.it.bunFriendly="Amichevole";
 T.en.bunFriendlyD="1 die. Star squares are safe. Caught pieces go back to their own yard. Extra rolls.";
-T.fr.bunFriendlyD="1 dé. Cases étoile protégées. Les pions capturés retournent chez eux. Relances.";
+T.fr.bunFriendlyD="1 dé. Cases étoile protégées. Les pions capturés retournent chez eux. Lancers supplémentaires.";
 T.it.bunFriendlyD="1 dado. Caselle stella sicure. Le pedine catturate tornano a casa. Tiri extra.";
 T.en.modeTitle="How do you play?";T.fr.modeTitle="Comment jouez-vous ?";T.it.modeTitle="Come giochi?";
 T.en.modeCpu="Against the computer";T.fr.modeCpu="Contre l'ordinateur";T.it.modeCpu="Contro il computer";
@@ -979,8 +979,8 @@ T.en.unameIs="Your name (permanent):";T.fr.unameIs="Votre nom (définitif) :";T.
 T.en.unameChange="Change";T.fr.unameChange="Changer";T.it.unameChange="Cambia";
 T.en.unameWait=function(d){return "You can change it again in "+d+" day"+(d===1?"":"s")+"."};
 T.fr.unameWait=function(d){return "Vous pourrez le changer de nouveau dans "+d+" jour"+(d===1?"":"s")+"."};
-T.it.unameWait=function(d){return "Potrai cambiarlo di nuovo in "+d+" giorno"+(d===1?"":"i")+"."};
-T.en.unameBad="3 to 12 letters, numbers, \".\" or \"_\" only.";T.fr.unameBad="3 à 12 lettres, chiffres, « . » ou « _ » seulement.";T.it.unameBad="Da 3 a 12 lettere, numeri, \".\" o \"_\".";
+T.it.unameWait=function(d){return "Potrai cambiarlo di nuovo tra "+d+" giorn"+(d===1?"o":"i")+"."};
+T.en.unameBad="3 to 12 letters, numbers, \".\" or \"_\" only.";T.fr.unameBad="3 à 12 lettres, chiffres, « . » ou « _ » seulement.";T.it.unameBad="Solo da 3 a 12 lettere, numeri, \".\" o \"_\".";
 T.en.unameBad2="Please choose a different name.";T.fr.unameBad2="Choisissez un autre nom.";T.it.unameBad2="Scegli un altro nome.";
 T.en.unameTaken="That name is already taken.";T.fr.unameTaken="Ce nom est déjà pris.";T.it.unameTaken="Questo nome è già in uso.";
 T.en.unameFail="Could not save that right now. Try again.";T.fr.unameFail="Impossible d'enregistrer pour le moment. Réessayez.";T.it.unameFail="Impossibile salvare ora. Riprova.";
@@ -1023,7 +1023,7 @@ T.en.sndOn="On";T.fr.sndOn="Oui";T.it.sndOn="Sì";T.en.sndOff="Off";T.fr.sndOff=
 T.en.lngLbl="Language";T.fr.lngLbl="Langue";T.it.lngLbl="Lingua";
 T.en.lngAuto="Auto";T.fr.lngAuto="Auto";T.it.lngAuto="Auto";
 T.en.lngAutoNote="Auto follows the country you chose above.";T.fr.lngAutoNote="Auto suit le pays choisi plus haut.";T.it.lngAutoNote="Auto segue il paese scelto sopra.";
-T.en.lngFixedNote="Language is fixed. Choose Auto to follow your country.";T.fr.lngFixedNote="Langue fixée. Choisissez Auto pour suivre votre pays.";T.it.lngFixedNote="Lingua fissata. Scegli Auto per seguire il tuo paese.";
+T.en.lngFixedNote="Language is fixed. Choose Auto to follow your country.";T.fr.lngFixedNote="Langue définie manuellement. Choisissez Auto pour suivre votre pays.";T.it.lngFixedNote="Lingua impostata manualmente. Scegli Auto per seguire il tuo paese.";
 T.en.moveNone="No saved game was found for this number.";T.fr.moveNone="Aucune partie enregistrée pour ce numéro.";T.it.moveNone="Nessun gioco salvato per questo numero.";
 T.en.delPartial="Your game data was deleted. To remove your email from the sign-in service as well, sign in once more and delete again.";T.fr.delPartial="Vos données de jeu sont supprimées. Pour retirer aussi votre e-mail du service de connexion, reconnectez-vous une fois et supprimez de nouveau.";T.it.delPartial="I tuoi dati di gioco sono stati eliminati. Per rimuovere anche la tua e-mail dal servizio di accesso, accedi ancora una volta ed elimina di nuovo.";
 T.en.privacy="Privacy";T.fr.privacy="Confidentialité";T.it.privacy="Privacy";
@@ -1103,7 +1103,7 @@ function homeSync(){
   var le=fem?"la":"le",son=fem?"sa":"son";
   F.oJail="Les pions capturés vont dans "+le+" "+w+" de celui qui capture";
   F.caughtTo=function(n){return "Capturé ! Direction "+(ck?cap+" "+n:"la maison "+de(n))+"."};
-  F.freed="De retour dans "+son+" "+w+". Encore un 6 pour sortir.";
+  F.freed="De retour dans "+son+" "+w+". Un 6 le fait maintenant sortir.";
   F.r.jail="Arrivez sur un pion adverse seul pour le capturer. Il va dans votre "+w+". Son propriétaire doit faire un 6 pour le ramener dans "+son+" "+w+", puis un autre 6 pour le sortir.";
   var nel=fem?"nella":"nel",suo=fem?"sua":"suo",tuo=fem?"tua":"tuo";
   I.oJail="Le pedine catturate vanno "+nel+" "+w+" di chi cattura";
@@ -4293,7 +4293,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="120";
+var BUILD="121";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
