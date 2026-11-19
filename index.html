@@ -731,6 +731,7 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
     pts:"Points: +10 ★ for a capture, +25 ★ for each piece home, +100 ★ for 1st place, +50 ★ for 2nd, +25 ★ for 3rd. In a points game with 3 or 4 players, 1st takes 70% of the pot and 2nd takes 30%. With 2 players the winner takes it all.",
     fair:"The dice are plain, unweighted randomness, the same for every player. Points or stake never change the odds.",
     away:"If a player goes quiet in an online game, you'll see \"away\" next to their name while the game plays safely for them, until they return or leave.",
+    bundle:function(n){return "Rule set: "+n+"."},phone:"Same phone: pass the phone to the next player when it is their turn.",uname:"Online, your name is unique to you and cannot be changed.",guest:"Guest: you play for fun or up to 100 ★ and keep no points. Sign in to keep your points, choose a picture and use the turn timer.",
     kickRule:"Miss your roll three turns in a row in an online game and you're removed from that game.",
     timer:function(n){return "Each player has "+n+" seconds to play. If time runs out before the roll, the turn passes. If it runs out after the roll, the game moves a piece for you."}}},
 fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:"Nouvelle partie",rules:"Règles",start:"Commencer",close:"Fermer",again:"Rejouer",
@@ -800,6 +801,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
     pts:"Points : +10 ★ par capture, +25 ★ par pion rentré, +100 ★ pour la 1re place, +50 ★ pour la 2e, +25 ★ pour la 3e. En partie à points à 3 ou 4 joueurs, le 1er prend 70 % de la cagnotte et le 2e 30 %. À 2 joueurs, le gagnant prend tout.",
     fair:"Les dés sont un tirage au sort simple, sans pondération, le même pour tous les joueurs. Les points ou la mise ne changent jamais les chances.",
     away:"Si un joueur ne répond plus dans une partie en ligne, vous verrez \"absent\" à côté de son nom pendant que le jeu joue prudemment pour lui, jusqu'à son retour ou son départ.",
+    bundle:function(n){return "Règles choisies : "+n+"."},phone:"Même téléphone : passez le téléphone au joueur suivant quand c'est son tour.",uname:"En ligne, votre nom est unique et ne peut plus être changé.",guest:"Invité : vous jouez pour le plaisir ou jusqu'à 100 ★, sans garder de points. Connectez-vous pour garder vos points, choisir une photo et utiliser le chronomètre.",
     kickRule:"Si vous ne lancez pas le dé trois tours de suite dans une partie en ligne, vous êtes exclu de cette partie.",
     timer:function(n){return "Chaque joueur a "+n+" secondes pour jouer. Si le temps est écoulé avant le lancer, le tour passe. S'il est écoulé après le lancer, le jeu déplace un pion pour vous."}}}
 };
@@ -875,6 +877,7 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
     pts:"Punti: +10 ★ per una cattura, +25 ★ per ogni pedina arrivata, +100 ★ per il 1º posto, +50 ★ per il 2º, +25 ★ per il 3º. In una partita a punti con 3 o 4 giocatori, il 1º prende il 70% del piatto e il 2º il 30%. In 2, chi vince prende tutto.",
     fair:"I dadi sono un sorteggio semplice, senza pesi, uguale per tutti i giocatori. Punti o posta non cambiano mai le probabilità.",
     away:"Se un giocatore non risponde più in una partita online, vedrai \"assente\" accanto al suo nome mentre il gioco gioca con prudenza per lui, finché non torna o esce.",
+    bundle:function(n){return "Regole scelte: "+n+"."},phone:"Stesso telefono: passa il telefono al giocatore successivo quando tocca a lui.",uname:"Online il tuo nome è unico e non si può più cambiare.",guest:"Ospite: giochi per divertimento o fino a 100 ★ e non conservi i punti. Accedi per tenere i punti, scegliere un'immagine e usare il timer.",
     kickRule:"Se non lanci il dado per tre turni di fila in una partita online, vieni rimosso da quella partita.",
     timer:function(n){return "Ogni giocatore ha "+n+" secondi per giocare. Se il tempo scade prima del tiro, il turno passa. Se scade dopo il tiro, il gioco muove una pedina per te."}}};
 T.it=Object.assign({},T.en,IT);T.it.r=Object.assign({},T.en.r,IT.r);
@@ -2749,7 +2752,7 @@ function ownerRules(){
   ' "accounts":{"$id":{".read":"auth != null && ($id.matches(/^[a-f0-9]{40}$/) || auth.uid === $id)",".write":"auth != null && ($id.matches(/^[a-f0-9]{40}$/) || auth.uid === $id)"}},\n'+
   ' "reports":{"$id":{".write":"!data.exists()"}},\n'+
   ' "history":{".read":"auth != null && '+ou+'","$code":{".write":"!data.exists()",".validate":"$code.matches(/^[A-Z0-9]{6}$/) && newData.hasChildren([\'created\',\'ended\',\'cfg\',\'seats\'])"}},\n'+
-  ' "events":{".read":"auth != null && '+ou+'","$d":{".write":"auth != null && '+ou+' && !newData.exists()","$k":{".write":"!data.exists()",".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChildren([\'e\',\'t\']) && newData.child(\'e\').isString() && newData.child(\'e\').val().length <= 24 && (!newData.child(\'r\').exists() || (newData.child(\'r\').isString() && newData.child(\'r\').val().length <= 60))"}}},\n'+
+  ' "events":{".read":"auth != null && '+ou+'","$d":{".write":"auth != null && '+ou+' && !newData.exists()","$k":{".write":"!data.exists() || (auth != null && '+ou+')",".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChildren([\'e\',\'t\']) && newData.child(\'e\').isString() && newData.child(\'e\').val().length <= 24 && (!newData.child(\'r\').exists() || (newData.child(\'r\').isString() && newData.child(\'r\').val().length <= 60))"}}},\n'+
   ' "seen":{".read":"auth != null && '+ou+'","$u":{".read":"auth != null && auth.uid === $u",".write":"auth != null && auth.uid === $u"}},\n'+
   ' "stats":{"days":{".read":"auth != null && '+ou+'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
   return '{"rules":{\n'+
@@ -3146,17 +3149,6 @@ function statOver(){
 var evCount=0,evErr=0,authKind="";
 // Roughly where a sign-in failure happened (city/country only, never the IP itself), looked up once per visit
 // from a public location service. Best-effort: if it is slow, blocked, or fails, failures just log without it.
-var geoTried=false,geoCache=null;
-function fetchGeo(){
-  if(geoTried||!DB||!EMAIL_ON)return;geoTried=true;
-  try{
-    var ctrl=(typeof AbortController!=="undefined")?new AbortController():null;
-    if(ctrl)setTimeout(function(){try{ctrl.abort()}catch(e){}},3000);
-    fetch("https://ipwho.is/?fields=success,country,city",ctrl?{signal:ctrl.signal}:{}).then(function(r){return r.json()}).then(function(j){
-      if(j&&j.success!==false)geoCache={co:String(j.country||"").slice(0,40),ci:String(j.city||"").slice(0,40)};
-    }).catch(function(){});
-  }catch(e){}
-}
 function evDevice(){
   try{
     var ua=navigator.userAgent||"",touch=(navigator.maxTouchPoints||0)>0,small=Math.min(screen.width,screen.height);
@@ -3165,13 +3157,23 @@ function evDevice(){
   }catch(e){}
   return "desktop";
 }
+function evOs(){
+  try{
+    var ua=navigator.userAgent||"",touch=(navigator.maxTouchPoints||0)>0;
+    if(/iPhone|iPad|iPod/i.test(ua)||(touch&&/Macintosh/.test(ua)))return "ios";
+    if(/Android/i.test(ua))return "android";
+    if(/Windows/i.test(ua))return "windows";
+    if(/Macintosh/i.test(ua))return "mac";
+    if(/Linux|CrOS/i.test(ua))return "linux";
+  }catch(e){}
+  return "other";
+}
 function logEv(e,r,more){
   if(!DB||!EMAIL_ON||evCount>=90)return;
   if(!signedIn()&&more&&(more.sp||more.bn||more.cp))return;
   evCount++;
-  var d={e:String(e).slice(0,24),t:Date.now(),d:statId||"",cc:String((acct&&acct.cc)||guessCc()||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0,l:String(typeof lang==="string"?lang:"").slice(0,2),dv:evDevice()};
+  var d={e:String(e).slice(0,24),t:Date.now(),d:statId||"",cc:String((acct&&acct.cc)||guessCc()||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0,l:String(typeof lang==="string"?lang:"").slice(0,2),dv:evDevice(),os:evOs()};
   if(r)d.r=String(r).slice(0,60);
-  if(/^(signin|signup|google|apple)_fail$/.test(d.e)&&geoCache){d.gco=geoCache.co;d.gci=geoCache.ci}
   if(more)Object.keys(more).forEach(function(k){if(/^(sp|bn|cp|pl|gm|to|bot)$/.test(k)&&more[k]!==""&&more[k]!==0)d[k]=typeof more[k]==="number"?more[k]:String(more[k]).slice(0,120)});
   if(pAuth&&acct)d.u=pAuth.uid;
   try{fetch(DB+"/events/"+statDay()+".json",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(d),keepalive:true}).catch(function(){})}catch(x){}
@@ -3224,7 +3226,8 @@ function evSaveGame(){try{if(evGame)localStorage.setItem("ludo-ev-game",JSON.str
 function evName(){try{if(hasName()&&!localStorage.getItem("ludo-ev-name")){localStorage.setItem("ludo-ev-name","1");logEv("name_set")}}catch(e){}}
 function evGameStart(){
   var h=0;g.players.forEach(function(pl){if(pl.kind==="human")h++});
-  evGame={on:(live()?"online":"local")+";n="+g.players.length+";h="+h,t:Date.now()};evSaveGame();logEv("game_start",evGame.on);
+  var rb=bundleKey(g.opts||{});
+  evGame={on:(live()?"online":"local")+";n="+g.players.length+";h="+h+";rb="+rb.charAt(0)+";sk="+(g.stake||0),t:Date.now()};evSaveGame();logEv("game_start",evGame.on);
   if(net){net.rc=0;net.rs=0}
 }
 function evGameEnd(kind){
@@ -3383,13 +3386,13 @@ function prefsHTML(withSound){
 }
 function bindPrefs(p){
   Array.prototype.slice.call(p.querySelectorAll('[data-psnd]')).forEach(function(b){b.addEventListener("click",function(){
-    if((b.getAttribute("data-psnd")==="1")!==!!soundOn){$("btn-sound").click()}
+    if((b.getAttribute("data-psnd")==="1")!==!!soundOn){$("btn-sound").click()}logEv("pref_sound",b.getAttribute("data-psnd")==="1"?"on":"off");
     renderOnline();
   })});
-  Array.prototype.slice.call(p.querySelectorAll('[data-pflang]')).forEach(function(b){b.addEventListener("click",function(){setLang(b.getAttribute("data-pflang"))})});
+  Array.prototype.slice.call(p.querySelectorAll('[data-pflang]')).forEach(function(b){b.addEventListener("click",function(){logEv("pref_lang",b.getAttribute("data-pflang"));setLang(b.getAttribute("data-pflang"))})});
   var au=p.querySelector('[data-pauto]');
   if(au)au.addEventListener("click",function(){
-    langManual=false;try{localStorage.setItem("ludo-lang-m","0")}catch(e){}
+    logEv("pref_lang","auto");langManual=false;try{localStorage.setItem("ludo-lang-m","0")}catch(e){}
     autoLang(langOfCc(acct&&acct.cc?String(acct.cc):guessCc()));
     renderOnline();renderAll();
   });
@@ -3962,7 +3965,6 @@ function acctHTML(){
   return h;
 }
 function bindAcct(){
-  fetchGeo();
   if($("uname-go"))$("uname-go").addEventListener("click",function(){claimUname($("uname-in").value)});
   if($("uname-in"))$("uname-in").addEventListener("keydown",function(ev){if(ev.key==="Enter")claimUname($("uname-in").value)});
   if($("uname-edit"))$("uname-edit").addEventListener("click",function(){if(unameLocked())return;unameEditing=true;unameErr="";renderOnline()});
@@ -4080,10 +4082,12 @@ function bundleCardsHTML(){
   var t=L(),bk=bundleOf();
   return '<div class="bun" role="group" aria-label="'+t.bundleTitle+'">'+[["classic",t.bunClassic,t.bunClassicD],["west",t.bunWest,t.bunWestD],["friendly",t.bunFriendly,t.bunFriendlyD]].map(function(x){return '<button type="button" data-bun="'+x[0]+'" aria-pressed="'+(bk===x[0])+'"><b>'+x[1]+'</b><span>'+x[2]+'</span></button>'}).join("")+'</div>';
 }
-function bundleOf(){
-  for(var k in BUNDLES){var b=BUNDLES[k],ok=true;for(var o in b)if(!!cfg[o]!==b[o])ok=false;if(ok)return k}
-  return cfg.twoDice?"west":cfg.safe?"friendly":"classic";
+function bundleKey(c){
+  for(var k in BUNDLES){var b=BUNDLES[k],ok=true;for(var o in b)if(!!c[o]!==b[o])ok=false;if(ok)return k}
+  return c.twoDice?"west":c.safe?"friendly":"classic";
 }
+function bundleOf(){return bundleKey(cfg)}
+function bundleName(k){var t=L();return k==="west"?t.bunWest:k==="friendly"?t.bunFriendly:t.bunClassic}
 function applyBundle(k){var b=BUNDLES[k]||BUNDLES.classic;for(var o in b)cfg[o]=b[o];cfg.captureHome=false}
 // Against the computer: only the first seat is a person. Same phone: every seat is a person.
 function setKinds(){
@@ -4146,15 +4150,15 @@ function renderSetup(){
   $("cancel").addEventListener("click",function(){firstVisit=false;closeSheets()});
 }
 function renderRules(){
-  var t=L(),r=t.r,o=g.opts,li=[r.out,o.twoDice?r.two:r.one,o.jail?r.jail:r.cap,o.blockPass?(o.hop?t.blockHop:r.blockPass):r.block];
-  if(o.door)li.push(t.doorRule);if(o.safe)li.push(o.door?t.safeStars:r.safe);if(o.bonus)li.push(r.bonus);if(o.captureHome)li.push(r.home);if(o.homeBonus)li.push(r.homeBonus);li.push(r.end,r.pts,r.fair);if(turnSecs())li.push(r.timer(turnSecs()));if(live())li.push(r.away,r.kickRule);
+  var t=L(),r=t.r,o=g.opts,li=[r.bundle(bundleName(bundleKey(o))),r.out,o.twoDice?r.two:r.one,o.jail?r.jail:r.cap,o.blockPass?(o.hop?t.blockHop:r.blockPass):r.block];
+  if(o.door)li.push(t.doorRule);if(o.safe)li.push(o.door?t.safeStars:r.safe);if(o.bonus)li.push(r.bonus);if(o.captureHome)li.push(r.home);if(o.homeBonus)li.push(r.homeBonus);li.push(r.end,r.pts,r.fair);if(turnSecs())li.push(r.timer(turnSecs()));if(live())li.push(r.away,r.kickRule,r.uname);if(!live()&&g.players.filter(function(pl){return pl.kind==="human"}).length>1)li.push(r.phone);if(!signedIn())li.push(r.guest);
   $("panel-rules").innerHTML='<h2>'+t.rulesTitle+'</h2><ul>'+li.map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul><button type="button" class="ghost" id="rules-close">'+t.close+'</button>';
   $("rules-close").addEventListener("click",closeSheets);
 }
 var guestAsked=false;
 function guestWinCard(first){
   if(signedIn()||guestAsked||!first||first.kind!=="human"||live())return "";
-  guestAsked=true;var t=L();
+  guestAsked=true;logEv("gw_show");var t=L();
   return '<div class="gwin"><b>'+t.guestWinT+'</b><span>'+t.guestWinD+'</span><button type="button" class="cta" id="win-signin">'+t.guestWinB+'</button></div>';
 }
 function showWin(){
@@ -4168,7 +4172,7 @@ function showWin(){
   h+='</ol>'+(live()&&net.closeAt?'<p class="note" id="close-in" style="margin:0">'+t.closesIn(Math.max(1,Math.ceil((net.closeAt-Date.now())/1000)))+'</p>':(g.closed?'<p class="note" style="margin:0">'+t.roomClosed+'</p>':''))+guestWinCard(first)+adCard()+(g.closed?'':live()&&net.room.host!==myId?'<p class="note" style="margin:0">'+t.waitAgain+'</p>':'<button type="button" class="cta" id="again">'+t.again+'</button>')+(g.closed?'<button type="button" class="cta" id="win-online">'+t.online+'</button>':'')+'<button type="button" class="ghost" id="win-scores">'+t.scores+'</button><button type="button" class="ghost" id="win-setup">'+t.newGame+'</button>';
   $("panel-win").innerHTML=h;
   if($("again"))$("again").addEventListener("click",function(){if(live())rematch();else{closeSheets();startGame()}});
-  if($("win-signin"))$("win-signin").addEventListener("click",function(){closeSheets();onErr="";onlineView="settings";openOnline()});
+  if($("win-signin"))$("win-signin").addEventListener("click",function(){logEv("gw_signin");closeSheets();onErr="";onlineView="settings";openOnline()});
   if($("win-online"))$("win-online").addEventListener("click",function(){closeSheets();openOnline()});
   $("win-scores").addEventListener("click",function(){closeSheets();openScores()});
   $("win-setup").addEventListener("click",function(){closeSheets();renderSetup();$("sheet-setup").classList.add("open")});
@@ -4291,7 +4295,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="126";
+var BUILD="127";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");

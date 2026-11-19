@@ -139,7 +139,7 @@ function rulesText(){
   ' "accounts":{"$id":{".read":"auth != null && ($id.matches(/^[a-f0-9]{40}$/) || auth.uid === $id)",".write":"auth != null && ($id.matches(/^[a-f0-9]{40}$/) || auth.uid === $id)"}},\n'+
   ' "reports":{"$id":{".write":"!data.exists()"}},\n'+
   ' "history":{".read":"auth != null && '+ou+'","$code":{".write":"!data.exists()",".validate":"$code.matches(/^[A-Z0-9]{6}$/) && newData.hasChildren([\'created\',\'ended\',\'cfg\',\'seats\'])"}},\n'+
-  ' "events":{".read":"auth != null && '+ou+'","$d":{".write":"auth != null && '+ou+' && !newData.exists()","$k":{".write":"!data.exists()",".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChildren([\'e\',\'t\']) && newData.child(\'e\').isString() && newData.child(\'e\').val().length <= 24 && (!newData.child(\'r\').exists() || (newData.child(\'r\').isString() && newData.child(\'r\').val().length <= 60))"}}},\n'+
+  ' "events":{".read":"auth != null && '+ou+'","$d":{".write":"auth != null && '+ou+' && !newData.exists()","$k":{".write":"!data.exists() || (auth != null && '+ou+')",".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && newData.hasChildren([\'e\',\'t\']) && newData.child(\'e\').isString() && newData.child(\'e\').val().length <= 24 && (!newData.child(\'r\').exists() || (newData.child(\'r\').isString() && newData.child(\'r\').val().length <= 60))"}}},\n'+
   ' "seen":{".read":"auth != null && '+ou+'","$u":{".read":"auth != null && auth.uid === $u",".write":"auth != null && auth.uid === $u"}},\n'+
   ' "stats":{"days":{".read":"auth != null && '+ou+'","$d":{"$s":{".write":true,".validate":"$d.matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/) && $s.matches(/^[a-z0-9]{10}$/)"}}}}}}';
 }
@@ -151,7 +151,7 @@ function load(){
   loadErr="";denied={};
   var from=dayAgo(89);
   var a=get("/events",'orderBy=%22%24key%22&startAt=%22'+from+'%22').then(function(d){
-    EV=[];Object.keys(d||{}).forEach(function(day){var rows=d[day]||{};Object.keys(rows).forEach(function(k){var r=rows[k];if(r&&typeof r==="object"&&typeof r.e==="string")EV.push({e:r.e,t:num(r.t),day:day,d:String(r.d||""),u:String(r.u||""),cc:CN[r.cc]?String(r.cc):"other",pf:r.pf==="app"?"app":"web",b:Math.floor(num(r.b)),r:String(r.r||""),l:String(r.l||""),dv:/^(mobile|tablet|desktop)$/.test(r.dv)?r.dv:"unknown",sp:String(r.sp||""),bn:String(r.bn||""),cp:String(r.cp||""),pl:String(r.pl||""),gm:String(r.gm||""),to:String(r.to||""),bot:r.bot?1:0,gco:String(r.gco||"").slice(0,40),gci:String(r.gci||"").slice(0,40)})})});
+    EV=[];Object.keys(d||{}).forEach(function(day){var rows=d[day]||{};Object.keys(rows).forEach(function(k){var r=rows[k];if(r&&typeof r==="object"&&typeof r.e==="string")EV.push({k:k,os:/^(ios|android|windows|mac|linux|other)$/.test(r.os)?r.os:"unknown",e:r.e,t:num(r.t),day:day,d:String(r.d||""),u:String(r.u||""),cc:CN[r.cc]?String(r.cc):"other",pf:r.pf==="app"?"app":"web",b:Math.floor(num(r.b)),r:String(r.r||""),l:String(r.l||""),dv:/^(mobile|tablet|desktop)$/.test(r.dv)?r.dv:"unknown",sp:String(r.sp||""),bn:String(r.bn||""),cp:String(r.cp||""),pl:String(r.pl||""),gm:String(r.gm||""),to:String(r.to||""),bot:r.bot?1:0,gco:String(r.gco||"").slice(0,40),gci:String(r.gci||"").slice(0,40)})})});
     EV.sort(function(x,y){return x.t-y.t});
   }).catch(function(e){if(e.status===401||e.status===403)denied.events=1;else throw e});
   var b=get("/seen").then(function(d){SEEN=d||{}}).catch(function(e){if(e.status===401||e.status===403)denied.seen=1;else throw e});
@@ -251,7 +251,7 @@ var WHY={
   idp_token_refused:["The sign-in service did not accept the Google or Apple answer.","Check Firebase > Authentication > Sign-in method: the Google or Apple settings (Services ID, return link) must match."],
   service_other:["The sign-in service answered with an unexpected error.","Look at the player timeline, then at the Firebase status page."]
 };
-function label(e){return ({signup_ok:"Login created",signup_fail:"Create login failed",signup_try:"Create login tried",signin_ok:"Signed in",signin_fail:"Sign-in failed",signin_try:"Sign-in tried",google_ok:"Signed in with Google",google_fail:"Google sign-in failed",google_try:"Google sign-in tried",apple_ok:"Signed in with Apple",apple_fail:"Apple sign-in failed",apple_try:"Apple sign-in tried",apple_revoke:"Apple link removed (account deleted)",reset_request:"Password reset asked",email_confirmed:"Email confirmed",signed_out:"Signed out by the game",save_refused:"Save refused",save_merged:"Newer save taken",old_game_moved:"Phone-number game moved",old_game_not_found:"Phone-number game not found",account_deleted:"Account deleted",app_open:"Opened the game",js_error:"Error",name_set:"Typed a name",game_start:"Game started",game_end:"Game finished",game_left:"Game left",miss_warn:"Warned for not playing",kicked:"Removed for not playing",invite_open:"Opened an invitation link",room_create:"Created an online game",room_create_fail:"Could not create a game",room_join:"Joined a game",room_join_fail:"Could not join",room_rejoin:"Came back into a game",room_rejoin_fail:"Could not come back",join_ask:"Asked to join a game under way",join_ask_ok:"Let into a game under way",join_ask_no:"Not let in",out_of_sync:"Game out of step, reloaded",report_sent:"Reported a player",player_blocked:"Blocked a player",rules_check:"Rules check",ad_views:"Sponsor banners shown",ad_tap:"Tapped a sponsor banner"})[e]||e}
+function label(e){return ({signup_ok:"Login created",signup_fail:"Create login failed",signup_try:"Create login tried",signin_ok:"Signed in",signin_fail:"Sign-in failed",signin_try:"Sign-in tried",google_ok:"Signed in with Google",google_fail:"Google sign-in failed",google_try:"Google sign-in tried",apple_ok:"Signed in with Apple",apple_fail:"Apple sign-in failed",apple_try:"Apple sign-in tried",apple_revoke:"Apple link removed (account deleted)",reset_request:"Password reset asked",email_confirmed:"Email confirmed",signed_out:"Signed out by the game",save_refused:"Save refused",save_merged:"Newer save taken",old_game_moved:"Phone-number game moved",old_game_not_found:"Phone-number game not found",account_deleted:"Account deleted",app_open:"Opened the game",js_error:"Error",name_set:"Typed a name",game_start:"Game started",game_end:"Game finished",game_left:"Game left",miss_warn:"Warned for not playing",kicked:"Removed for not playing",invite_open:"Opened an invitation link",room_create:"Created an online game",room_create_fail:"Could not create a game",room_join:"Joined a game",room_join_fail:"Could not join",room_rejoin:"Came back into a game",room_rejoin_fail:"Could not come back",join_ask:"Asked to join a game under way",join_ask_ok:"Let into a game under way",join_ask_no:"Not let in",out_of_sync:"Game out of step, reloaded",report_sent:"Reported a player",player_blocked:"Blocked a player",rules_check:"Rules check",ad_views:"Sponsor banners shown",ad_tap:"Tapped a sponsor banner",gw_show:"Guest shown the sign-in offer after a win",gw_signin:"Guest tapped Sign in from that offer",pref_sound:"Changed sound",pref_lang:"Changed language"})[e]||e}
 function tone(e){return /fail|refused|signed_out|js_error|kicked/.test(e)?"bad":/_ok|confirmed|moved$|game_end|room_join$|room_rejoin$/.test(e)?"good":/not_found|merged|reset|game_left|out_of_sync|_no$|report|blocked|miss_warn/.test(e)?"warn":"info"}
 
 // ---------- charts ----------
@@ -474,6 +474,8 @@ function vSteps(){
   var h='<div class="grid">'+kpi("New devices",fmt(n),rangeWord())+kpi("Got a login",pct(c("login"),n),fmt(c("login"))+" of "+fmt(n),"")+kpi("Started a game",pct(c("game"),n),fmt(c("game"))+" of "+fmt(n),"")+kpi("Finished a game",pct(c("done"),n),fmt(c("done"))+" of "+fmt(n),"")+'</div>';
   h+='<div class="card"><h2>How far new devices get · '+rangeWord()+'</h2>'+(n?'<div class="scroll"><table><thead><tr><th>Step</th><th>Devices</th><th>Of all</th><th style="text-align:left;width:38%">&nbsp;</th><th style="text-align:left">Meaning</th></tr></thead><tbody>'+rows.map(function(r){var w=n?Math.round(r[1]*100/n):0;return '<tr><td><b>'+r[0]+'</b></td><td>'+fmt(r[1])+'</td><td>'+pct(r[1],n)+'</td><td><div style="height:14px;border-radius:7px;background:#ece8db;overflow:hidden"><div style="height:100%;width:'+w+'%;background:#121938;border-radius:7px"></div></div></td><td class="wrapc">'+r[2]+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No new device in this period.</p>')+
     '<p class="note">Counted per device, not per person. Playing against the computer needs no login, so "Started a game" can be higher than "Got in with a login". Devices that already had the game before this was switched on look new the first time they open it.</p></div>';
+  var gs=count(evs(),"gw_show"),gi=count(evs(),"gw_signin");
+  h+='<div class="card"><h2>Guests who win a game</h2><div class="scroll"><table><tbody>'+[["Shown the offer to sign in after winning",gs,"Once per visit, only for guests"],["Tapped Sign in from it",gi,gs?pct(gi,gs)+" of those shown":"No guest has seen it yet"]].map(function(r){return '<tr><td style="text-align:left">'+r[0]+'</td><td>'+fmt(r[1])+'</td><td style="text-align:left;white-space:normal;color:var(--ink2)">'+r[2]+'</td></tr>'}).join("")+'</tbody></table></div><p class="note">Recorded from build 127 on. A guest plays for fun or up to 100 points and keeps nothing, so this shows whether the offer turns guests into players.</p></div>';
   var lost=ks.filter(function(d){return st[d].tried&&!st[d].login}).length,idle=ks.filter(function(d){return !st[d].name}).length,nog=ks.filter(function(d){return st[d].login&&!st[d].game}).length;
   h+='<div class="card"><h2>Where they stop</h2><div class="scroll"><table><tbody>'+[["Opened the game and did nothing else",idle,"Is the first screen clear about what to do?"],["Tried to get a login and did not get in",lost,"See Login health for the reasons."],["Got a login but never started a game",nog,"Is creating or joining a game obvious after sign-in?"],["Started a game and did not finish one",c("game")-c("done"),"See Games for where games are left."]].map(function(r){return '<tr><td>'+r[0]+'<br><span style="color:var(--ink2);font-size:.8rem">'+r[2]+'</span></td><td>'+fmt(Math.max(0,r[1]))+'</td><td>'+pct(Math.max(0,r[1]),n)+'</td></tr>'}).join("")+'</tbody></table></div></div>';
   return h;
@@ -485,7 +487,7 @@ function detail(x){
   if(x.e==="room_join"&&(m=/n=(\d+)/.exec(r)))return m[1]+" seats";
   return r.replace(/_/g," ");
 }
-function gameInfo(r){var q=String(r||"").split(";"),o={mode:q[0]==="online"?"online":"local",n:0,h:0,min:0};q.slice(1).forEach(function(kv){var a=kv.split("=");if(a[0]==="n"||a[0]==="h"||a[0]==="min"||a[0]==="re"||a[0]==="rs")o[a[0]]=parseInt(a[1],10)||0});return o}
+function gameInfo(r){var q=String(r||"").split(";"),o={mode:q[0]==="online"?"online":"local",n:0,h:0,min:0};q.slice(1).forEach(function(kv){var a=kv.split("=");if(a[0]==="n"||a[0]==="h"||a[0]==="min"||a[0]==="re"||a[0]==="rs"||a[0]==="sk")o[a[0]]=parseInt(a[1],10)||0;else if(a[0]==="rb")o.rb=/^[cwf]$/.test(a[1])?a[1]:""});return o}
 function vGames(){
   var list=evs(),G={},tot={s:0,e:0,l:0,min:0};
   list.forEach(function(x){
@@ -501,6 +503,12 @@ function vGames(){
   var h='<div class="grid">'+kpi("Games started",fmt(tot.s),"by signed-in and other players, "+rangeWord())+kpi("Finished",pct(tot.e,tot.s),fmt(tot.e)+" game"+(tot.e===1?"":"s"),tot.s<5?"":tot.e/tot.s<0.5?"warn":"good")+kpi("Left before the end",fmt(tot.l),tot.s?pct(tot.l,tot.s)+" of games":"",tot.l&&tot.s>=5&&tot.l/tot.s>0.3?"warn":"")+kpi("Average finished game",tot.e?Math.round(tot.min/tot.e)+" min":"–","")+kpi("Warned for not playing",fmt(warned),"3 missed turns in a row",warned?"warn":"")+kpi("Removed for not playing",fmt(removed),"local games only, for now",removed?"warn":"")+kpi("Seats filled by people",HG.length?fillPct+" %":"–",HG.length?"rest filled by the computer":"")+kpi("Finished games padded with the computer",fmt(padded),HG.length?pct(padded,HG.length)+" of finished games":"")+'</div>';
   h+='<div class="card"><h2>By kind of game · '+rangeWord()+'</h2>'+(ks.length?'<div class="scroll"><table><thead><tr><th>Game</th><th>Players</th><th>Started</th><th>Finished</th><th>Left</th><th>Finish rate</th><th>Avg length</th><th>Left after</th></tr></thead><tbody>'+ks.map(function(k){var o=G[k];return '<tr><td><b>'+(o.mode==="online"?"Online":"Local")+'</b> · '+o.who+'</td><td>'+o.n+'</td><td>'+fmt(o.s)+'</td><td>'+fmt(o.e)+'</td><td>'+fmt(o.l)+'</td><td>'+pct(o.e,o.s)+'</td><td>'+(o.e?Math.round(o.min/o.e)+" min":"–")+'</td><td>'+(o.l?Math.round(o.lmin/o.l)+" min":"–")+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No game recorded in this period.</p>')+
     '<p class="note">Counted once per device in the game, so an online game with three people counts three times. '+fmt(open)+' started game'+(open===1?" has":"s have")+' no ending recorded: still being played, or the game was closed without leaving.</p></div>';
+  var RB={c:"Senegal classic",w:"West African (2 dice)",f:"Friendly (safe stars)","":"Not recorded (older build)"},R={},K={pts:0,fr:0,old:0,ph:0};
+  list.forEach(function(x){if(x.e!=="game_start")return;var i=gameInfo(x.r),k=i.rb||"",o=R[k]=R[k]||{s:0,pts:0,on:0,ph:0};o.s++;if(i.sk>0)o.pts++;if(i.mode==="online")o.on++;else if(i.h>1)o.ph++;
+    if(/;sk=/.test(x.r)){if(i.sk>0)K.pts++;else K.fr++;if(i.mode==="local"&&i.h>1)K.ph++}else K.old++});
+  var rk=Object.keys(R).sort(function(a,b){return R[b].s-R[a].s});
+  h+='<div class="card"><h2>Rule sets chosen · '+rangeWord()+'</h2>'+(rk.length?'<div class="scroll"><table><thead><tr><th style="text-align:left">Rule set</th><th>Games</th><th>Share</th><th>For points</th><th>Online</th><th>Same phone</th></tr></thead><tbody>'+rk.map(function(k){var o=R[k];return '<tr><td style="text-align:left"><b>'+RB[k]+'</b></td><td>'+fmt(o.s)+'</td><td>'+pct(o.s,tot.s)+'</td><td>'+pct(o.pts,o.s)+'</td><td>'+pct(o.on,o.s)+'</td><td>'+pct(o.ph,o.s)+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No game recorded in this period.</p>')+
+    '<p class="note">Rule set, points and same-phone play are recorded from build 127 on. Earlier games show as "Not recorded". Same phone means more than one person on a local game.</p></div>';
   var days=dayList();
   h+='<div class="card"><h2>Games per day</h2>'+bars(days,[{n:"Finished",c:"#1f8a55",v:days.map(function(d){return list.filter(function(x){return x.day===d&&x.e==="game_end"}).length})},{n:"Left",c:"#c8402a",v:days.map(function(d){return list.filter(function(x){return x.day===d&&x.e==="game_left"}).length})},{n:"Started, no ending yet",c:"#c9c4b3",v:days.map(function(d){var a=0;list.forEach(function(x){if(x.day!==d)return;if(x.e==="game_start")a++;else if(x.e==="game_end"||x.e==="game_left")a--});return Math.max(0,a)})}])+'</div>';
   var recent=list.filter(function(x){return x.e==="game_left"||x.e==="miss_warn"||x.e==="kicked"}).slice(-30).reverse();
@@ -586,6 +594,23 @@ function sponsorData(){
   clicks.sort(function(a,b){return b.t-a.t});
   return {S:S,P:P,C:C,DV:DV,DAY:DAY,all:all,clicks:who?clicks.filter(function(x){return x.mk===who}):clicks,keys:Object.keys(S).sort(function(a,b){return S[b].v-S[a].v})};
 }
+function vDevices(){
+  var list=evs(),opens=list.filter(function(x){return x.e==="app_open"}),D={};
+  list.forEach(function(x){if(!x.d)return;var o=D[x.d]=D[x.d]||{dv:"unknown",os:"unknown",pf:x.pf,l:"",src:"",b:0};if(x.dv!=="unknown")o.dv=x.dv;if(x.os!=="unknown")o.os=x.os;if(x.l)o.l=x.l;if(x.b>o.b)o.b=x.b;if(x.pf==="app")o.pf="app";
+    if(x.e==="app_open"){var m=/src=([^;]+)/.exec(x.r);if(m)o.src=m[1].replace(/^site:.*/,"another site")}});
+  var ids=Object.keys(D),n=ids.length;
+  var tally=function(key,name){var t={};ids.forEach(function(i){var v=name(D[i][key]);t[v]=(t[v]||0)+1});return Object.keys(t).sort(function(a,b){return t[b]-t[a]}).map(function(k){return [k,t[k]]})};
+  var OSN={ios:"iPhone / iPad (iOS)",android:"Android",windows:"Windows",mac:"Mac",linux:"Linux / Chromebook",other:"Other",unknown:"Not recorded (older build)"};
+  var LN={en:"English",fr:"French",it:"Italian"},SRC={store_app:"Store app",home_icon:"Icon on the home screen",invitation:"Invitation link",friend_link:"Friend link",direct:"Typed or bookmarked","another site":"Another website"};
+  var table=function(title,rows,note){return '<div class="card"><h2>'+title+'</h2>'+(rows.length?'<div class="scroll"><table><thead><tr><th style="text-align:left"> </th><th>Devices</th><th>Share</th></tr></thead><tbody>'+rows.map(function(r){return '<tr><td style="text-align:left">'+esc(r[0])+'</td><td>'+fmt(r[1])+'</td><td>'+pct(r[1],n)+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">Nothing recorded in this period.</p>')+(note?'<p class="note">'+note+'</p>':'')+'</div>'};
+  var h='<div class="grid">'+kpi("Devices",fmt(n),rangeWord())+kpi("Openings",fmt(opens.length),"times the game was opened")+kpi("In the store app",pct(ids.filter(function(i){return D[i].pf==="app"}).length,n),"rest use the website")+'</div>';
+  h+='<div class="two">'+table("Type of device",tally("dv",function(v){return DVN[v]||v}))+table("Operating system",tally("os",function(v){return OSN[v]||v}))+'</div>';
+  h+='<div class="two">'+table("App or website",tally("pf",function(v){return v==="app"?"Store app":"Website"}))+table("Language of the game",tally("l",function(v){return LN[v]||"Not recorded"}))+'</div>';
+  h+=table("How they arrived",tally("src",function(v){return v?(SRC[v]||v):"Not recorded"}),"From the last opening in the period.");
+  h+=vBuildAdoption();
+  h+='<div class="card"><h2>What this tab never holds</h2><p class="note" style="margin:0">Only broad classes: phone, tablet or computer; the operating system family; web or store app; the game language; the country chosen by the player (not found from their address); the game version. No device model, no advertising or hardware identifier, no precise location, no IP address, no contacts, no phone number. A device is counted by the random code the game made for it, which cannot be traced to a person.</p></div>';
+  return h;
+}
 function vSponsors(){
   var X=sponsorData(),A=X.all,ks=X.keys,n=function(o){return Object.keys(o).length};
   var noLink=Object.keys(SPN).filter(function(k){return !X.clicks.some(function(c){return c.mk===k&&c.to})});
@@ -625,13 +650,34 @@ function vSponsors(){
   h+='<div class="card"><h2>Busiest hours</h2>'+bars(hours.map(function(v,i){return "    -"+("0"+i).slice(-2)+"h"}),[{n:"Game openings and games started",c:"#121938",v:hours}],110)+'<p class="note">Universal time, which is also Dakar time. Phoenix is 7 hours behind.</p></div>';
   return h;
 }
+var ERR={all:false,busy:"",msg:""};
+function latestBuild(){return Math.floor(+builds()[0]||0)}
 function vErrors(){
-  var list=evs().filter(function(x){return x.e==="js_error"}),g={};
+  var LB=latestBuild(),every=evs().filter(function(x){return x.e==="js_error"}),oldN=EV.filter(function(x){return x.e==="js_error"&&x.k&&x.b<LB}).length;
+  var list=ERR.all?every:every.filter(function(x){return x.b>=LB}),g={};
   list.forEach(function(x){var k=x.r||"(no message)";g[k]=g[k]||{n:0,dev:{},b:{},last:0,pf:{}};g[k].n++;g[k].dev[x.d]=1;g[k].b[x.b]=1;g[k].pf[x.pf]=1;if(x.t>g[k].last)g[k].last=x.t});
   var ks=Object.keys(g).sort(function(a,b){return g[b].n-g[a].n}),opens=count(evs(),"app_open");
-  var h='<div class="grid">'+kpi("Errors reported",fmt(list.length),rangeWord(),list.length?"warn":"good")+kpi("Different errors",fmt(ks.length),"")+kpi("Devices affected",fmt(Object.keys(list.reduce(function(m,x){m[x.d]=1;return m},{})).length),"")+kpi("Game openings",fmt(opens),opens?pct(list.length,opens)+" with an error":"")+'</div>';
+  var h='<div class="card" style="margin-top:0"><p style="margin:0 0 10px">'+(ERR.all?'Showing errors from every build.':'Showing errors from the latest build (v'+LB+') only. '+fmt(every.length-list.length)+' older one'+(every.length-list.length===1?" is":"s are")+' hidden.')+'</p><button type="button" class="btn" id="err-toggle">'+(ERR.all?'Show latest build only':'Show every build')+'</button> <button type="button" class="btn" id="err-clear"'+(oldN&&!ERR.busy?'':' disabled')+'>'+(ERR.busy||('Delete errors from older builds ('+fmt(oldN)+')'))+'</button>'+(ERR.msg?'<p class="note" style="margin:10px 0 0">'+esc(ERR.msg)+'</p>':'<p class="note" style="margin:10px 0 0">Delete removes every error from before v'+LB+' for good, from all 90 days. Errors from the latest build stay.</p>')+'</div>';
+  h+='<div class="grid">'+kpi("Errors reported",fmt(list.length),rangeWord(),list.length?"warn":"good")+kpi("Different errors",fmt(ks.length),"")+kpi("Devices affected",fmt(Object.keys(list.reduce(function(m,x){m[x.d]=1;return m},{})).length),"")+kpi("Game openings",fmt(opens),opens?pct(list.length,opens)+" with an error":"")+'</div>';
   h+='<div class="card"><h2>Errors on players\' devices</h2>'+(ks.length?'<div class="scroll"><table><thead><tr><th>Error</th><th>Times</th><th>Devices</th><th>Builds</th><th>On</th><th>Last seen</th></tr></thead><tbody>'+ks.map(function(k){return '<tr><td style="white-space:normal;font-family:ui-monospace,Menlo,monospace;font-size:.82rem">'+esc(k)+'</td><td>'+fmt(g[k].n)+'</td><td>'+fmt(Object.keys(g[k].dev).length)+'</td><td>'+Object.keys(g[k].b).map(function(b){return "v"+b}).join(", ")+'</td><td>'+Object.keys(g[k].pf).join(", ")+'</td><td>'+ago(g[k].last)+'</td></tr>'}).join("")+'</tbody></table></div>':'<p class="note" style="margin:0">No error reported in this period.</p>')+'<p class="note">Each device reports at most three errors per visit. Network drops are not counted as errors.</p></div>';
   return h;
+}
+function clearOldErrors(){
+  var LB=latestBuild(),old=EV.filter(function(x){return x.e==="js_error"&&x.k&&x.b<LB});
+  if(!old.length||ERR.busy)return;
+  if(!window.confirm("Delete "+old.length+" error record"+(old.length===1?"":"s")+" from builds before v"+LB+"? This cannot be undone."))return;
+  var byDay={};old.forEach(function(x){(byDay[x.day]=byDay[x.day]||{})[x.k]=null});
+  ERR.busy="Deleting…";ERR.msg="";render();
+  var days=Object.keys(byDay),done=0,fail=0;
+  var step=function(i){
+    if(i>=days.length){
+      EV=EV.filter(function(x){return !(x.e==="js_error"&&x.k&&x.b<LB&&!failed[x.day])});
+      ERR.busy="";ERR.msg=fail?("Could not delete errors on "+fail+" day"+(fail===1?"":"s")+". The new database rules need to be published first (see the notice on the Overview tab)."):("Deleted "+done+" old error record"+(done===1?"":"s")+".");render();return;
+    }
+    var d=days[i];
+    token().then(function(t){return fetch(DB+"/events/"+d+".json?auth="+encodeURIComponent(t),{method:"PATCH",headers:{"Content-Type":"application/json"},body:JSON.stringify(byDay[d])})}).then(function(r){if(r.ok)done+=Object.keys(byDay[d]).length;else{fail++;failed[d]=1}}).catch(function(){fail++;failed[d]=1}).then(function(){step(i+1)});
+  };
+  var failed={};step(0);
 }
 function notice(){
   if(!denied.events&&!denied.seen&&!denied.stats&&!denied.rooms&&!denied.history)return "";
@@ -641,7 +687,7 @@ function builds(){var b={};EV.forEach(function(x){if(x.b)b[x.b]=1});Object.keys(
 function render(){
   if(!own){renderSign("");return}
   $("signout").hidden=false;$("refresh").hidden=false;$("when").textContent=loadedAt?"Updated "+new Date(loadedAt).toLocaleTimeString("en-US",{hour:"2-digit",minute:"2-digit"}):"";
-  var T=[["overview","Overview"],["steps","First steps"],["login","Login health"],["games","Games"],["online","Online play"],["sponsors","Sponsors"],["players","Players"],["errors","Errors"]];
+  var T=[["overview","Overview"],["steps","First steps"],["login","Login health"],["games","Games"],["online","Online play"],["devices","Devices"],["sponsors","Sponsors"],["players","Players"],["errors","Errors"]];
   var h='<div class="bar"><div class="tabs" role="tablist">'+T.map(function(t){return '<button type="button" role="tab" data-tab="'+t[0]+'" aria-selected="'+(tab===t[0])+'">'+t[1]+'</button>'}).join("")+'</div><span class="sp"></span>'+
     '<select id="f-range" aria-label="Period">'+[[1,"Today"],[7,"Last 7 days"],[30,"Last 30 days"],[90,"Last 90 days"]].map(function(r){return '<option value="'+r[0]+'"'+(F.range===r[0]?" selected":"")+'>'+r[1]+'</option>'}).join("")+'</select>'+
     '<select id="f-cc" aria-label="Country"><option value="">All countries</option>'+Object.keys(CN).map(function(c){return '<option value="'+c+'"'+(F.cc===c?" selected":"")+'>'+CN[c]+'</option>'}).join("")+'</select>'+
@@ -650,7 +696,7 @@ function render(){
     '<button type="button" class="btn" id="csv">Export '+(tab==="players"?"players":tab==="sponsors"?"sponsors":"events")+' CSV</button></div>';
   if(loadErr)h+='<div class="card" style="margin-top:0;border-color:var(--bad)"><p class="err" style="margin:0">'+esc(loadErr)+'</p></div>';
   h+=notice();
-  h+=tab==="login"?vLogin():tab==="players"?vPlayers():tab==="errors"?vErrors():tab==="steps"?vSteps():tab==="games"?vGames():tab==="online"?vOnline():tab==="sponsors"?vSponsors():vOverview();
+  h+=tab==="login"?vLogin():tab==="players"?vPlayers():tab==="errors"?vErrors():tab==="steps"?vSteps():tab==="games"?vGames():tab==="online"?vOnline():tab==="sponsors"?vSponsors():tab==="devices"?vDevices():vOverview();
   h+='<footer>Times and days follow universal time (UTC). Detailed events are kept 90 days. No email address, password or phone number is stored in this data. &copy; 2026 Nioro Resources LLC</footer>';
   main.innerHTML=h;
   Array.prototype.forEach.call(main.querySelectorAll("[data-tab]"),function(b){b.addEventListener("click",function(){tab=b.getAttribute("data-tab");render()})});
@@ -661,6 +707,8 @@ function render(){
   $("csv").addEventListener("click",csv);
   if($("sp-who"))$("sp-who").addEventListener("change",function(){SP.who=this.value;render()});
   Array.prototype.forEach.call(main.querySelectorAll("[data-by]"),function(b){b.addEventListener("click",function(){SP.by=b.getAttribute("data-by");render()})});
+  if($("err-toggle"))$("err-toggle").addEventListener("click",function(){ERR.all=!ERR.all;render()});
+  if($("err-clear"))$("err-clear").addEventListener("click",clearOldErrors);
   if($("sp-names"))$("sp-names").addEventListener("click",function(){SP.names=!SP.names;render()});
   if($("copy"))$("copy").addEventListener("click",function(){var t=$("rules");t.select();try{navigator.clipboard.writeText(t.value).then(function(){$("copied").textContent="Copied."},function(){document.execCommand("copy");$("copied").textContent="Copied."})}catch(e){try{document.execCommand("copy");$("copied").textContent="Copied."}catch(x){}}});
   if($("find"))$("find").addEventListener("input",function(){find=this.value;var at=this.selectionStart;render();var f=$("find");if(f){f.focus();try{f.setSelectionRange(at,at)}catch(e){}}});
@@ -678,8 +726,8 @@ function csv(){
     rows.push([]);rows.push(["click_time_utc","player_or_visitor_id","sponsor","banner","campaign","placement","game","destination","country","device","status"]);
     Z.clicks.forEach(function(x){rows.push([new Date(x.t).toISOString(),pid(x),SPN[x.mk]||x.mk,x.bn,x.cp,PLN[x.plc]||x.plc,x.gm,x.to,x.cc,x.dv,x.st])});
   }else{
-    rows=[["time_utc","event","reason","country","platform","build","player","device"]];
-    evs().forEach(function(x){rows.push([new Date(x.t).toISOString(),x.e,x.r,x.cc,x.pf,x.b,x.u&&SEEN[x.u]?String(SEEN[x.u].n||""):"",x.d])});
+    rows=[["time_utc","event","reason","country","platform","build","player","device","device_type","os"]];
+    evs().forEach(function(x){rows.push([new Date(x.t).toISOString(),x.e,x.r,x.cc,x.pf,x.b,x.u&&SEEN[x.u]?String(SEEN[x.u].n||""):"",x.d,x.dv,x.os])});
   }
   var txt=rows.map(function(r){return r.map(function(c){c=String(c==null?"":c);if(/^[=+\-@]/.test(c))c="'"+c;return /[",\n]/.test(c)?'"'+c.replace(/"/g,'""')+'"':c}).join(",")}).join("\n");
   var a=document.createElement("a");a.href=URL.createObjectURL(new Blob([txt],{type:"text/csv"}));a.download="ludo-teranga-"+name+"-"+dayAgo(0)+".csv";document.body.appendChild(a);a.click();setTimeout(function(){URL.revokeObjectURL(a.href);a.remove()},500);
