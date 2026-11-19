@@ -3518,7 +3518,7 @@ function idpSign(kind,postBody,cc,extra){
     var c=authCode(e);
     logEv(authKind+"_fail",c);
     authBusy=false;
-    onErr=c==="needs_password"?L().idpExists:c==="service_not_ready"?L().idpSetup:kind==="apple"?L().appleFail+" ("+String((e&&e.message)||"?").slice(0,60)+")":L().googleFail;
+    onErr=c==="needs_password"?L().idpExists:c==="service_not_ready"?L().idpSetup:kind==="apple"?L().appleFail+" ("+String((e&&e.message)||"?").slice(0,220)+")":L().googleFail;
     renderOnline();
   });
 }
@@ -4015,7 +4015,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="94";
+var BUILD="95";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
