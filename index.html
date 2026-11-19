@@ -1630,7 +1630,7 @@ function renderAll(){
 
 // ---------- Messages from our own companies (display only) ----------
 var ADS=[
- {mk:"PAH",url:"https://www.instagram.com/planetautohub/",img:"icons/ad-pah.png",c:"#3c459f",name:"Planet Auto Hub",
+ {mk:"PAH",url:"https://planetautohub.com/",img:"icons/ad-pah.png",c:"#3c459f",name:"Planet Auto Hub",
   en:["Car parts in Dakar","Toyota · Great Wall · Bosch · Bardahl","@planetautohub"],
   fr:["Pièces auto à Dakar","Toyota · Great Wall · Bosch · Bardahl","@planetautohub"],
   it:["Ricambi auto a Dakar","Toyota · Great Wall · Bosch · Bardahl","@planetautohub"]},
@@ -1642,13 +1642,11 @@ var ADS=[
   en:["African potential. A brighter tomorrow.","AI & Tech · Fintech · Energy · Agribusiness · Healthcare · Logistics","invest@jollofventures.com"],
   fr:["Le potentiel africain. Un avenir plus radieux.","IA & Tech · Fintech · Énergie · Agrobusiness · Santé · Logistique","invest@jollofventures.com"],
   it:["Potenziale africano. Un domani più luminoso.","IA & Tech · Fintech · Energia · Agribusiness · Sanità · Logistica","invest@jollofventures.com"]},
- {mk:"FASA",url:"",img:"icons/ad-fasa.png",c:"#f5b21a",name:"Fasa",
-  en:["By Fama","",""],fr:["By Fama","",""],it:["By Fama","",""]},
  {mk:"SUP",url:"",img:"icons/ad-sup.png",c:"#e8201f",name:"SUPERIOR",
   en:["Outboard motor dealer!","",""],fr:["Concessionnaire de moteurs hors-bord !","",""],it:["Concessionario di motori fuoribordo!","",""]},
  {mk:"EGT",url:"https://www.elitegtravel.com/",img:"icons/ad-egt.png",c:"#0aa3e3",name:"EGT",
   en:["Elite Global Travel LLC","",""],fr:["Elite Global Travel LLC","",""],it:["Elite Global Travel LLC","",""]},
- {mk:"NR",url:"",img:"",c:"#7a4fd1",name:"Nioro Resources",
+ {mk:"NR",url:"https://niororesources.com/",img:"icons/ad-nr.png",c:"#7a4fd1",name:"Nioro Resources",
   en:["Consulting and apps, US ↔ Senegal","Business advisory · Apps & games",""],
   fr:["Conseil et applications, États-Unis ↔ Sénégal","Conseil aux entreprises · Apps et jeux",""],
   it:["Consulenza e app, USA ↔ Senegal","Consulenza aziendale · App e giochi",""]}
@@ -4293,7 +4291,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="122";
+var BUILD="123";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
