@@ -942,19 +942,20 @@ T.en.errLogin2="Sign in, or create your login, first.";T.fr.errLogin2="Connectez
 T.en.emInvalid="That email address does not look right.";T.fr.emInvalid="Cette adresse e-mail ne semble pas correcte.";T.it.emInvalid="Questo indirizzo e-mail non sembra corretto.";
 T.en.emNoEmail="Type your email first.";T.fr.emNoEmail="Entrez d'abord votre e-mail.";T.it.emNoEmail="Inserisci prima la tua e-mail.";
 T.en.emNoPw="Type your password.";T.fr.emNoPw="Tapez votre mot de passe.";T.it.emNoPw="Scrivi la tua password.";
-T.en.unameNeed="Pick a @username so friends can find and add you.";T.fr.unameNeed="Choisissez un @pseudo pour que vos amis puissent vous trouver.";T.it.unameNeed="Scegli un @nomeutente per farti trovare dagli amici.";
-T.en.unamePh="username";T.fr.unamePh="pseudo";T.it.unamePh="nomeutente";
+T.en.unameNeed="Choose your name. Friends find you with it, and it cannot be changed later.";T.fr.unameNeed="Choisissez votre nom. Vos amis vous trouvent avec, et il ne pourra plus être changé.";T.it.unameNeed="Scegli il tuo nome. Gli amici ti trovano con quello e non potrà essere cambiato.";
+T.en.unamePh="Your name";T.fr.unamePh="Votre nom";T.it.unamePh="Il tuo nome";
+T.en.unameFixed="Your name is permanent and unique.";T.fr.unameFixed="Votre nom est définitif et unique.";T.it.unameFixed="Il tuo nome è definitivo e unico.";
 T.en.unameSet="Set";T.fr.unameSet="Valider";T.it.unameSet="Conferma";
-T.en.unameIs="Your username:";T.fr.unameIs="Votre pseudo :";T.it.unameIs="Il tuo nome utente:";
+T.en.unameIs="Your name (permanent):";T.fr.unameIs="Votre nom (définitif) :";T.it.unameIs="Il tuo nome (definitivo):";
 T.en.unameChange="Change";T.fr.unameChange="Changer";T.it.unameChange="Cambia";
 T.en.unameWait=function(d){return "You can change it again in "+d+" day"+(d===1?"":"s")+"."};
 T.fr.unameWait=function(d){return "Vous pourrez le changer de nouveau dans "+d+" jour"+(d===1?"":"s")+"."};
 T.it.unameWait=function(d){return "Potrai cambiarlo di nuovo in "+d+" giorno"+(d===1?"":"i")+"."};
-T.en.unameBad="3 to 20 letters, numbers, \".\" or \"_\" only.";T.fr.unameBad="3 à 20 lettres, chiffres, « . » ou « _ » seulement.";T.it.unameBad="Da 3 a 20 lettere, numeri, \".\" o \"_\".";
-T.en.unameBad2="Please choose a different username.";T.fr.unameBad2="Choisissez un autre pseudo.";T.it.unameBad2="Scegli un altro nome utente.";
-T.en.unameTaken="That username is already taken.";T.fr.unameTaken="Ce pseudo est déjà pris.";T.it.unameTaken="Questo nome utente è già in uso.";
+T.en.unameBad="3 to 12 letters, numbers, \".\" or \"_\" only.";T.fr.unameBad="3 à 12 lettres, chiffres, « . » ou « _ » seulement.";T.it.unameBad="Da 3 a 12 lettere, numeri, \".\" o \"_\".";
+T.en.unameBad2="Please choose a different name.";T.fr.unameBad2="Choisissez un autre nom.";T.it.unameBad2="Scegli un altro nome.";
+T.en.unameTaken="That name is already taken.";T.fr.unameTaken="Ce nom est déjà pris.";T.it.unameTaken="Questo nome è già in uso.";
 T.en.unameFail="Could not save that right now. Try again.";T.fr.unameFail="Impossible d'enregistrer pour le moment. Réessayez.";T.it.unameFail="Impossibile salvare ora. Riprova.";
-T.en.errUname="Pick a @username first.";T.fr.errUname="Choisissez d'abord un @pseudo.";T.it.errUname="Scegli prima un @nomeutente.";
+T.en.errUname="Choose your name first.";T.fr.errUname="Choisissez d'abord votre nom.";T.it.errUname="Scegli prima il tuo nome.";
 T.en.emWeak="Choose a password of 8 characters or more.";T.fr.emWeak="Choisissez un mot de passe de 8 caractères ou plus.";T.it.emWeak="Scegli una password di almeno 8 caratteri.";
 T.en.emName="Type your name above first.";T.fr.emName="Écrivez d'abord votre nom ci-dessus.";T.it.emName="Scrivi prima il tuo nome qui sopra.";
 T.en.emExists="This email already has a login. Tap Sign in, or use Forgot your password.";T.fr.emExists="Cet e-mail a déjà un compte. Touchez Me connecter, ou Mot de passe oublié.";T.it.emExists="Questa e-mail ha già un account. Tocca Accedi, oppure Password dimenticata.";
@@ -2204,6 +2205,7 @@ function hasName(){var hs=humanSeats();return !!(((cfg.me&&cfg.me.name)||"").tri
 // A name is optional: a player who has not typed one gets a plain starting name and can change it in Settings.
 function ensureName(){if(hasName())return;if(!cfg.me)cfg.me={};cfg.me.name="Player"+(100+Math.floor(Math.random()*900));saveCfg()}
 function needName(){
+  if(acct&&!acct.uname)return false;
   ensureName();
   if(hasName()&&cleanText(meName())===meName())return false;
   onErr=hasName()?L().errBadName:L().errName;onlineView="settings";renderOnline();
@@ -2421,7 +2423,8 @@ function renderOnline(){
     if(onlineView!=="settings")h+='<p class="note" style="margin:0">'+t.onNote+'</p>';
     h+=seg([["play",t.tabPlay],["settings",t.tabSettings]],onlineView,"onview");
     if(onlineView==="settings"){
-      if(acct||pAuth)h+='<div><h3>'+t.yourName+'</h3><div class="who"><input type="text" id="me-name" maxlength="12" autocomplete="off" placeholder="'+esc(hasName()?meName():t.namePh)+'" value="'+esc((cfg.me&&cfg.me.name)||"")+'" aria-label="'+t.yourName+'"><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div><div class="avs" id="avs-me" style="margin-top:8px"></div>'+kerBgHTML(t)+'<select class="fld" id="me-cc" aria-label="'+t.phCc+'" style="margin-top:10px">'+countryOpts(acct&&acct.cc?String(acct.cc):guessCc())+'</select></div>';
+      if(acct)syncNameFromHandle();
+      if(acct||pAuth)h+='<div><h3>'+t.yourName+'</h3>'+(acct&&acct.uname?'<div class="who"><b style="flex:1;font-size:1.1rem">'+esc(meName())+'</b><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div><p class="note" style="margin:4px 0 0">'+t.unameFixed+'</p>':acct?unameBlockHTML()+'<span class="bal" id="me-bal" style="display:none"></span>':'<div class="who"><input type="text" id="me-name" maxlength="12" autocomplete="off" placeholder="'+esc(hasName()?meName():t.namePh)+'" value="'+esc((cfg.me&&cfg.me.name)||"")+'" aria-label="'+t.yourName+'"><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div>')+'<div class="avs" id="avs-me" style="margin-top:8px"></div>'+kerBgHTML(t)+'<select class="fld" id="me-cc" aria-label="'+t.phCc+'" style="margin-top:10px">'+countryOpts(acct&&acct.cc?String(acct.cc):guessCc())+'</select></div>';
       h+=acctHTML();
       var inNow=!!(acct||pAuth);
       if(inNow)h+=blockedHTML();
@@ -2527,7 +2530,7 @@ function dbx(method,path,body){
 }
 var friendsOff=false,friendsAt=0;
 function netMsg(e){if(e&&(e.status===401||e.status===403)){friendsOff=true;return L().errRules}return L().errNet}
-function publishMe(){
+function publishMe(){syncNameFromHandle();
   if(!DB||!hasName()||(EMAIL_ON&&!pAuth))return;
   dbx("PUT","/players/"+myFc,{name:meName(),av:meAv(),uname:(acct&&acct.uname)||"",t:Date.now()}).then(function(){friendsOff=false}).catch(function(e){netMsg(e)});
 }
@@ -2905,7 +2908,7 @@ function renderInvite(){
 }
 function avHTML(av){av=cleanAv(av,0);return '<span class="av">'+(av.t==="i"?'<img alt="" src="'+esc(av.v)+'">':esc(av.v))+'</span>'}
 function friendsHTML(){
-  var t=L(),h='<div><h3>'+t.friends+'</h3>'+(friendsOff?'<p class="warn" style="margin:0 0 8px">'+t.errRules+'</p>':"")+'<p class="note" style="margin:0 0 8px">'+(acct&&acct.uname?'<b>@'+esc(acct.uname)+'</b> · ':"")+t.yourCode+' <b class="fc">'+fcShow(myFc)+'</b> <button type="button" class="mini" id="fc-share">'+t.share+'</button> <span id="fc-note"></span></p>';
+  var t=L(),h='<div><h3>'+t.friends+'</h3>'+(friendsOff?'<p class="warn" style="margin:0 0 8px">'+t.errRules+'</p>':"")+'<p class="note" style="margin:0 0 8px">'+(acct&&acct.uname?'<b>'+esc(meName())+'</b> · ':"")+t.yourCode+' <b class="fc">'+fcShow(myFc)+'</b> <button type="button" class="mini" id="fc-share">'+t.share+'</button> <span id="fc-note"></span></p>';
   h+='<div class="who"><input type="text" id="fc-add" maxlength="21" autocapitalize="none" autocomplete="off" spellcheck="false" placeholder="'+t.fcPh+'" aria-label="'+t.fcPh+'"><button type="button" class="cta" id="fc-go" style="padding:0 22px">'+t.addFriend+'</button></div>';
   if(!friends.length)h+='<p class="note">'+t.noFriends+'</p>';
   else h+='<ol class="places" style="margin-top:8px">'+friends.map(function(f){
@@ -3366,15 +3369,24 @@ var unameEditing=false,unameErr="",unameBusy=false;
 var UNAME_LOCK_MS=15*24*60*60*1000;
 function unameNorm(s){return String(s||"").trim().replace(/^@+/,"").toLowerCase()}
 function unameOk(u){return /^[a-z0-9_.]{3,20}$/.test(u)&&!/\.\.|^\.|\.$/.test(u)}
-function unameLockedUntil(){return acct&&acct.uname&&acct.unameAt?acct.unameAt+UNAME_LOCK_MS:0}
-function unameLocked(){return !!(acct&&acct.uname)&&Date.now()<unameLockedUntil()}
+function unameLocked(){return !!(acct&&acct.uname)}
+function nameOkNew(u){return /^[a-z0-9_.]{3,12}$/.test(u)&&!/\.\.|^\.|\.$/.test(u)}
+// The unique name is the player's one permanent name. Older accounts keep their handle as the name.
+function renameProfile(a,b){var ka=keyOf(a),kb=keyOf(b);if(ka&&kb&&ka!==kb&&bank.profiles[ka]&&!bank.profiles[kb]){bank.profiles[kb]=bank.profiles[ka];delete bank.profiles[ka];try{localStorage.setItem("ludo-bank",JSON.stringify(bank))}catch(e){}}}
+function syncNameFromHandle(){
+  if(!acct||!acct.uname)return;
+  var cur=(cfg.me&&cfg.me.name)||"";
+  if(cur.toLowerCase()===acct.uname)return;
+  cfg.me=cfg.me||{};renameProfile(meName(),acct.uname);cfg.me.name=acct.uname;saveCfg();
+}
 function needUname(){
   if(!DB||!acct||acct.uname)return false;
   unameEditing=true;onErr=L().errUname;onlineView="settings";renderOnline();focusBad("uname-in");return true;
 }
 function claimUname(raw){
   var u=unameNorm(raw);
-  if(!unameOk(u)){unameErr=L().unameBad;renderOnline();focusBad("uname-in");return}
+  if(acct&&acct.uname)return;
+  if(!nameOkNew(u)){unameErr=L().unameBad;renderOnline();focusBad("uname-in");return}
   if(badWord(u)){unameErr=L().unameBad2;renderOnline();focusBad("uname-in");return}
   if(unameBusy)return;
   var old=acct&&acct.uname?unameNorm(acct.uname):"";
@@ -3384,21 +3396,18 @@ function claimUname(raw){
     unameBusy=false;
     if(owner!==null&&owner!==myFc){unameErr=L().unameTaken;renderOnline();focusBad("uname-in");return}
     dbx("PUT","/usernames/"+u,myFc).then(function(){
-      if(old&&old!==u)dbx("PUT","/usernames/"+old,null).catch(function(){});
       if(!acct)return;
+      var shown=unameNorm(raw)===u?String(raw).trim().replace(/^@+/,""):u;
+      renameProfile(meName(),shown);cfg.me=cfg.me||{};cfg.me.name=shown;saveCfg();
       acct.uname=u;acct.unameAt=Date.now();saveAcct();unameEditing=false;
       publishMe();pushAcct(true);renderOnline();
     }).catch(function(){unameBusy=false;unameErr=L().unameFail;renderOnline()});
   }).catch(function(){unameBusy=false;unameErr=L().unameFail;renderOnline()});
 }
 function unameBlockHTML(){
-  if(!acct)return "";
+  if(!acct||acct.uname)return "";
   var t=L();
-  if(acct.uname&&!unameEditing){
-    var left=Math.max(0,Math.ceil((unameLockedUntil()-Date.now())/86400000));
-    return '<p class="note" style="margin:6px 0 0">'+t.unameIs+' <b>@'+esc(acct.uname)+'</b>'+(left>0?' <span style="color:var(--muted)">'+t.unameWait(left)+'</span>':' <button type="button" class="mini q" id="uname-edit" style="padding-left:0;text-decoration:underline">'+t.unameChange+'</button>')+'</p>';
-  }
-  return '<div style="margin-top:8px"><p class="warn" style="margin:0 0 6px">'+t.unameNeed+'</p><div class="who"><input type="text" id="uname-in" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="'+t.unamePh+'" value="'+esc(acct.uname||"")+'" aria-label="'+t.unamePh+'"><button type="button" class="cta" id="uname-go" style="padding:0 18px"'+(unameBusy?" disabled":"")+'>'+t.unameSet+'</button></div>'+(unameErr?'<p class="err" role="alert">'+esc(unameErr)+'</p>':"")+'</div>';
+  return '<div style="margin-top:8px"><p class="warn" style="margin:0 0 6px">'+t.unameNeed+'</p><div class="who"><input type="text" id="uname-in" maxlength="12" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="'+t.unamePh+'" aria-label="'+t.unamePh+'"><button type="button" class="cta" id="uname-go" style="padding:0 18px"'+(unameBusy?" disabled":"")+'>'+t.unameSet+'</button></div>'+(unameErr?'<p class="err" role="alert">'+esc(unameErr)+'</p>':"")+'</div>';
 }
 try{acct=JSON.parse(localStorage.getItem("ludo-acct")||"null")}catch(e){}
 if(!acct||!/^([a-f0-9]{40}|[A-Za-z0-9]{20,40})$/.test(acct.aid||""))acct=null;
@@ -3861,7 +3870,6 @@ function emailAcctHTML(){
   if(acct){
     h+='<p class="note" style="margin:0">'+t.signedInAs(esc(acct.hint||""))+' <button type="button" class="mini" id="ph-out">'+t.signOut+'</button></p>'+(acctNote?'<p class="note" style="margin:6px 0 0;color:var(--accent)" role="status">'+esc(acctNote)+'</p>':"");
     if(saveOff)h+='<p class="warn" style="margin:8px 0 0">'+t.saveOff+'</p>';
-    h+=unameBlockHTML();
     if(pAuth&&pAuth.ver===false)h+='<p class="note">'+t.emConfirm+' <button type="button" class="mini" id="em-resend">'+t.emAgain+'</button></p>';
     if(delAsk)h+='<p class="warn" style="margin:10px 0 8px">'+t.delAsk+'</p><div class="who"><button type="button" class="mini danger" id="del-yes">'+t.delYes+'</button><button type="button" class="mini" id="del-no">'+t.delNo+'</button></div>';
     else h+='<p class="note"><button type="button" class="mini q" id="del-go" style="padding-left:0;text-decoration:underline">'+t.delAcct+'</button></p>';
@@ -4203,7 +4211,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="113";
+var BUILD="114";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
