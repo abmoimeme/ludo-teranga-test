@@ -384,6 +384,7 @@ h1 span{color:var(--accent);display:block}
 .kb-pick{position:relative;display:inline-flex;align-items:center;gap:var(--s2);min-height:44px;padding:0 var(--s4);border:1.5px solid var(--muted,#8a93c0);border-radius:var(--r-md);font-weight:700;cursor:pointer}
 .kb-pick img{width:28px;height:28px;border-radius:6px;object-fit:cover}
 .kb-pick.on{border-color:var(--accent)}
+.prow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px;font-weight:700}
 </style>
 <style id="ff" media="not all">
 @font-face{font-family:"Baloo 2";font-weight:600;font-display:swap;src:url(fonts/baloo2-600.woff2) format("woff2")}
@@ -986,6 +987,13 @@ T.en.movedOk="Done. Your name, points and friends came with you.";T.fr.movedOk="
 T.en.moveAsk="Played before with your phone number?";T.fr.moveAsk="Vous jouiez avant avec votre numéro ?";T.it.moveAsk="Giocavi prima con il tuo numero?";
 T.en.moveNote="Type the number you used. Your old name, points and friends replace the ones in this new login. This can be done once.";T.fr.moveNote="Tapez le numéro que vous utilisiez. Votre ancien nom, vos points et vos amis remplacent ceux de ce nouveau compte. Possible une seule fois.";T.it.moveNote="Scrivi il numero che usavi. Il vecchio nome, i punti e gli amici sostituiscono quelli di questo nuovo account. Si può fare una sola volta.";
 T.en.moveGo="Bring my points";T.fr.moveGo="Récupérer mes points";T.it.moveGo="Recupera i miei punti";
+
+T.en.sndLbl="Sound";T.fr.sndLbl="Son";T.it.sndLbl="Suono";
+T.en.sndOn="On";T.fr.sndOn="Oui";T.it.sndOn="Sì";T.en.sndOff="Off";T.fr.sndOff="Non";T.it.sndOff="No";
+T.en.lngLbl="Language";T.fr.lngLbl="Langue";T.it.lngLbl="Lingua";
+T.en.lngAuto="Auto";T.fr.lngAuto="Auto";T.it.lngAuto="Auto";
+T.en.lngAutoNote="Auto follows the country you chose above.";T.fr.lngAutoNote="Auto suit le pays choisi plus haut.";T.it.lngAutoNote="Auto segue il paese scelto sopra.";
+T.en.lngFixedNote="Language is fixed. Choose Auto to follow your country.";T.fr.lngFixedNote="Langue fixée. Choisissez Auto pour suivre votre pays.";T.it.lngFixedNote="Lingua fissata. Scegli Auto per seguire il tuo paese.";
 T.en.moveNone="No saved game was found for this number.";T.fr.moveNone="Aucune partie enregistrée pour ce numéro.";T.it.moveNone="Nessun gioco salvato per questo numero.";
 T.en.delPartial="Your game data was deleted. To remove your email from the sign-in service as well, sign in once more and delete again.";T.fr.delPartial="Vos données de jeu sont supprimées. Pour retirer aussi votre e-mail du service de connexion, reconnectez-vous une fois et supprimez de nouveau.";T.it.delPartial="I tuoi dati di gioco sono stati eliminati. Per rimuovere anche la tua e-mail dal servizio di accesso, accedi ancora una volta ed elimina di nuovo.";
 T.en.privacy="Privacy";T.fr.privacy="Confidentialité";T.it.privacy="Privacy";
@@ -3313,13 +3321,25 @@ function bindBlocked(p){
 }
 // Settings: quick access to sound and language, mirroring the icons on the main screen.
 function prefsHTML(withSound){
-  var t=L();
-  return '<div><h3>'+t.prefsTitle+'</h3>'+(withSound?'<p class="note" style="margin:0 0 8px">'+(soundOn?t.soundOn:t.soundOff)+' <button type="button" class="mini" id="pf-sound">'+(soundOn?t.soundOff:t.soundOn)+'</button></p>':'')+
-    '<div class="lang" role="group" aria-label="Language"><button type="button" data-pflang="en" aria-pressed="'+(lang==="en")+'">EN</button><button type="button" data-pflang="fr" aria-pressed="'+(lang==="fr")+'">FR</button><button type="button" data-pflang="it" aria-pressed="'+(lang==="it")+'">IT</button></div></div>';
+  var t=L(),auto=!langManual;
+  var h='<div><h3>'+t.prefsTitle+'</h3>';
+  if(withSound)h+='<div class="prow"><span>'+t.sndLbl+'</span><div class="lang" role="group" aria-label="'+t.sndLbl+'"><button type="button" data-psnd="1" aria-pressed="'+(!!soundOn)+'">'+t.sndOn+'</button><button type="button" data-psnd="0" aria-pressed="'+(!soundOn)+'">'+t.sndOff+'</button></div></div>';
+  h+='<div class="prow"><span>'+t.lngLbl+'</span><div class="lang" role="group" aria-label="'+t.lngLbl+'"><button type="button" data-pauto="1" aria-pressed="'+auto+'">'+t.lngAuto+'</button><button type="button" data-pflang="en" aria-pressed="'+(!auto&&lang==="en")+'">EN</button><button type="button" data-pflang="fr" aria-pressed="'+(!auto&&lang==="fr")+'">FR</button><button type="button" data-pflang="it" aria-pressed="'+(!auto&&lang==="it")+'">IT</button></div></div>';
+  h+='<p class="note" style="margin:6px 0 0">'+(auto?t.lngAutoNote:t.lngFixedNote)+'</p></div>';
+  return h;
 }
 function bindPrefs(p){
-  if($("pf-sound"))$("pf-sound").addEventListener("click",function(){$("btn-sound").click();renderOnline()});
+  Array.prototype.slice.call(p.querySelectorAll('[data-psnd]')).forEach(function(b){b.addEventListener("click",function(){
+    if((b.getAttribute("data-psnd")==="1")!==!!soundOn){$("btn-sound").click()}
+    renderOnline();
+  })});
   Array.prototype.slice.call(p.querySelectorAll('[data-pflang]')).forEach(function(b){b.addEventListener("click",function(){setLang(b.getAttribute("data-pflang"))})});
+  var au=p.querySelector('[data-pauto]');
+  if(au)au.addEventListener("click",function(){
+    langManual=false;try{localStorage.setItem("ludo-lang-m","0")}catch(e){}
+    autoLang(langOfCc(acct&&acct.cc?String(acct.cc):guessCc()));
+    renderOnline();renderAll();
+  });
 }
 // Settings: quick links to support/privacy, plus the version number for bug reports.
 function helpAboutHTML(full){
@@ -3843,7 +3863,6 @@ function emailAcctHTML(){
     if(saveOff)h+='<p class="warn" style="margin:8px 0 0">'+t.saveOff+'</p>';
     h+=unameBlockHTML();
     if(pAuth&&pAuth.ver===false)h+='<p class="note">'+t.emConfirm+' <button type="button" class="mini" id="em-resend">'+t.emAgain+'</button></p>';
-    if(!acct.mig&&!net)h+='<details class="mv"><summary>'+t.moveAsk+'</summary><p class="note" style="margin:8px 0">'+t.moveNote+'</p><div class="who"><select id="mv-cc" aria-label="'+t.phCc+'">'+CCS.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===dialCc(acct.cc||guessCc())?" selected":"")+'>'+c[1]+'</option>'}).join("")+'</select><input type="tel" id="mv-num" inputmode="tel" maxlength="20" placeholder="'+t.phPh+'" aria-label="'+t.phPh+'"></div><button type="button" class="mini" id="mv-go" style="margin-top:8px">'+t.moveGo+'</button></details>';
     if(delAsk)h+='<p class="warn" style="margin:10px 0 8px">'+t.delAsk+'</p><div class="who"><button type="button" class="mini danger" id="del-yes">'+t.delYes+'</button><button type="button" class="mini" id="del-no">'+t.delNo+'</button></div>';
     else h+='<p class="note"><button type="button" class="mini q" id="del-go" style="padding-left:0;text-decoration:underline">'+t.delAcct+'</button></p>';
     return h+'</div>';
@@ -4184,7 +4203,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="112";
+var BUILD="113";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
