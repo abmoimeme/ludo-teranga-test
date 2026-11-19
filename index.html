@@ -373,6 +373,16 @@ h1 span{color:var(--accent);display:block}
 .lobby-stats b{font-family:var(--display);font-size:1.4rem;line-height:1;color:var(--ink)}
 .lobby-stats span{font-size:.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;font-weight:700}
 @media (max-height:700px){.lobby-stats{display:none}}
+/* Settings sheet fills the screen; Apple and Google match the Sign in button */
+#sheet-online{align-items:stretch;background:var(--cloth-2,#1b2452)}
+#sheet-online .panel{max-height:100%;height:100%;border-radius:0;padding-top:max(var(--s4),env(safe-area-inset-top));padding-bottom:max(22px,env(safe-area-inset-bottom));box-sizing:border-box}
+.apple-btn{height:52px;min-height:52px;border-radius:var(--r-md);font-size:1.05rem}
+.apple-btn svg{width:18px;height:22px}
+.g-wrap{position:relative;display:block;min-height:0;height:auto;margin-top:var(--s2)}
+.g-wrap.ready{height:52px;background:#fff;border:1px solid #dadce0;border-radius:var(--r-md);box-sizing:border-box;overflow:hidden;color:#3c4043}
+.g-vis{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:var(--s3);font:600 1.05rem/1 -apple-system,BlinkMacSystemFont,"Roboto",system-ui,sans-serif;pointer-events:none}
+.g-vis svg{width:20px;height:20px;flex:none}
+.g-hit{position:absolute;left:0;top:0;opacity:.01;transform-origin:0 0;z-index:2}
 </style>
 </head>
 <body>
@@ -905,6 +915,7 @@ T.en.orWord="or";T.fr.orWord="ou";T.it.orWord="o";
 T.en.youTag="YOU";T.fr.youTag="VOUS";T.it.youTag="TU";
 T.en.googleFail="Google sign-in failed. Try again.";T.fr.googleFail="La connexion Google a échoué. Réessayez.";T.it.googleFail="Accesso Google non riuscito. Riprova.";
 T.en.appleFail="Apple sign-in failed. Try again.";T.fr.appleFail="La connexion Apple a échoué. Réessayez.";T.it.appleFail="Accesso Apple non riuscito. Riprova.";
+T.en.googleBtn="Continue with Google";T.fr.googleBtn="Continuer avec Google";T.it.googleBtn="Continua con Google";
 T.en.appleBtn="Continue with Apple";T.fr.appleBtn="Continuer avec Apple";T.it.appleBtn="Continua con Apple";
 T.en.idpSetup="This sign-in option is not ready yet. Use your email and password for now.";T.fr.idpSetup="Cette option de connexion n'est pas encore prête. Utilisez votre e-mail et votre mot de passe pour l'instant.";T.it.idpSetup="Questa opzione di accesso non è ancora pronta. Per ora usa e-mail e password.";
 T.en.idpExists="This email already has a Ludo Teranga login. Sign in the way you did the first time (email and password, or Google).";T.fr.idpExists="Cette adresse e-mail a déjà un compte Ludo Teranga. Connectez-vous comme la première fois (e-mail et mot de passe, ou Google).";T.it.idpExists="Questa e-mail ha già un account Ludo Teranga. Accedi come la prima volta (e-mail e password, o Google).";
@@ -3809,7 +3820,15 @@ function mountGoogleButton(){
       google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,callback:onGoogleCred});
       el.innerHTML="";
       var w=Math.round(el.getBoundingClientRect().width)||280;
-      google.accounts.id.renderButton(el,{theme:"outline",size:"large",shape:"rectangular",logo_alignment:"left",text:"continue_with",width:Math.max(220,Math.min(400,w))});
+      var gw=Math.max(220,Math.min(400,w));
+      var hit=document.createElement("div");hit.className="g-hit";el.appendChild(hit);
+      google.accounts.id.renderButton(hit,{theme:"outline",size:"large",shape:"rectangular",logo_alignment:"left",text:"continue_with",width:gw});
+      hit.style.width=gw+"px";hit.style.height="40px";
+      hit.style.transform="scale("+(w/gw)+","+(52/40)+")";
+      var vis=document.createElement("div");vis.className="g-vis";
+      vis.innerHTML='<svg viewBox="0 0 48 48" aria-hidden="true"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.9 2.4 30.4 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.2 5.4-4.7 7.1l7.6 5.9c4.4-4.1 6.9-10.1 6.9-17.5z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.4-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.4 0 20.1 0 24s.9 7.6 2.600 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.500 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.8 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg><span></span>';
+      vis.lastChild.textContent=L().googleBtn||"Continue with Google";
+      el.insertBefore(vis,hit);el.className="g-wrap ready";
       return;
     }
     if(++gBtnTries>40)return;
@@ -4060,7 +4079,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="104";
+var BUILD="105";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
