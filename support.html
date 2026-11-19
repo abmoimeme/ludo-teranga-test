@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-l="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,6 +7,7 @@
 <meta name="author" content="Nioro Resources LLC">
 <meta name="theme-color" content="#121938">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<script>(function(){var q=/[?&]l=(en|fr|it)/.exec(location.search),l=q?q[1]:"";try{if(!l)l=localStorage.getItem("ludo-lang")||""}catch(e){}if(!/^(en|fr|it)$/.test(l))l="en";var d=document.documentElement;d.setAttribute("data-l",l);d.lang=l})();</script>
 <style>
 @font-face{font-family:"Baloo 2";font-weight:800;font-display:swap;src:url(fonts/baloo2-800.woff2) format("woff2")}
 @font-face{font-family:"Figtree";font-weight:400;font-display:swap;src:url(fonts/figtree-400.woff2) format("woff2")}
@@ -24,60 +25,81 @@ ul{padding-left:1.2em;margin:0 0 10px}
 a{color:#f0bf00}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
 .top a{display:inline-block;padding:8px 0;font-weight:700}
+.langs a{padding:8px 6px}
 .meta{color:#aab0cc;font-size:.88rem}
-hr{border:0;border-top:1px solid rgba(255,255,255,.15);margin:36px 0}
 footer{color:#aab0cc;font-size:.8rem;margin-top:36px}
+section[lang]{display:none}
+html[data-l=en] #en,html[data-l=fr] #fr,html[data-l=it] #it{display:block}
+html[data-l=en] a[data-set=en],html[data-l=fr] a[data-set=fr],html[data-l=it] a[data-set=it]{color:#f3f0e6;text-decoration:none;border-bottom:2px solid #f0bf00}
 </style>
 </head>
 <body>
 <main>
-<div class="top"><a href="./">← Ludo Teranga</a><span><a href="#en">English</a> · <a href="#fr">Français</a></span></div>
-
+<div class="top"><a href="./">← Ludo Teranga</a><span class="langs"><a href="#" data-set="en">English</a> · <a href="#" data-set="fr">Français</a> · <a href="#" data-set="it">Italiano</a></span></div>
 <section id="en" lang="en">
 <h1>Ludo <span>Teranga</span>: help</h1>
-<p class="meta">Published by Nioro Resources LLC</p>
-
+<p class="meta">Published by Nioro Resources LLC · Last updated 18 November 2026</p>
 <h2>Contact</h2>
-<p>Write to [contact email to be added]. Tell us the phone or computer you use and what happened. Never send us your password for any service; we will not ask for one.</p>
-
+<p>Write to support@niororesources.com. Tell us the phone or computer you use and what happened. Never send us your password for any service; we will not ask for one.</p>
 <h2>Common questions</h2>
-<p><b>How do I play with people in other places?</b><br>Tap <b>Play online</b>, type your name, then sign in with your email and password (or tap <b>Create my login</b> the first time), or with <b>Google</b> or <b>Apple</b>. Then create a game and share the invite link or the six-character code.</p>
-<p><b>My points are missing on a new phone.</b><br>Sign in the same way as before: the same email and password, or the same Google or Apple account. Your name, points and friends come back.</p>
-<p><b>I forgot my password.</b><br>Type your email under <b>Play online</b> and tap <b>Forgot your password?</b>. A link to choose a new one is sent to you. Check your spam folder too.</p>
-<p><b>I used to sign in with my phone number.</b><br>Create your login once with an email and a password. On the phone you already used, your points follow by themselves. On another phone, open <b>Played before with your phone number?</b> under your account and type the number once.</p>
-<p><b>There is no sound.</b><br>Check the volume and the silent switch, then tap the sound button in the game.</p>
-<p><b>The game says an update is ready.</b><br>Tap the yellow bar, or close the game and open it again.</p>
-<p><b>Someone is being rude.</b><br>During an online game, tap the speech bubble, then <b>Block</b> or <b>Report</b> beside the player's name.</p>
-<p><b>How do I delete my account?</b><br>Open <b>Play online</b>, find <b>Your account</b> and tap <b>Delete my account</b>.</p>
-<p><b>Can I buy or cash out points?</b><br>No. Points are for fun only and have no cash value.</p>
-
-<p>See also: <a href="privacy.html">privacy and rules of conduct</a>.</p>
+<p><b>How do I get started?</b> Open the game and tap Sign in or create an account. Use your email and password (tap Create my login the first time), or Continue with Apple or Continue with Google. You choose your name and picture afterwards, in Settings. You can also tap Play the computer as a guest to play without an account.</p>
+<p><b>How do I play with people in other places?</b> Tap Play with friends, create a game and share the invite link or the six-character code. You need to be signed in to play online.</p>
+<p><b>My points are missing on a new phone.</b> Sign in the same way as before: the same email and password, or the same Google or Apple account. Your name, points and friends come back. Guest points stay on the device where they were won.</p>
+<p><b>I forgot my password.</b> Type your email under Settings and tap Forgot your password?. A link to choose a new one is sent to you. Check your spam folder too.</p>
+<p><b>How do I change my name, picture or country?</b> Open Settings. Your name, picture and country are under your account once you are signed in.</p>
+<p><b>I used to sign in with my phone number.</b> Create your login once with an email and a password. On the phone you already used, your points follow by themselves. On another phone, open Played before with your phone number? under your account and type the number once.</p>
+<p><b>There is no sound.</b> Check the volume and the silent switch, then tap the sound button in the game.</p>
+<p><b>The game says an update is ready.</b> Tap the yellow bar, or close the game and open it again.</p>
+<p><b>Someone is being rude.</b> During an online game, tap the speech bubble, then Block or Report beside the player's name.</p>
+<p><b>How do I delete my account?</b> Open Settings, find Your account and tap Delete my account. If you used Apple, the link with your Apple ID is removed too.</p>
+<p><b>Can I buy or cash out points?</b> No. Points are for fun only and have no cash value.</p>
+<p>See also: <a href="privacy.html" data-pl>privacy and rules of conduct</a>.</p>
 </section>
-
-<hr>
-
 <section id="fr" lang="fr">
 <h1>Ludo <span>Teranga</span> : aide</h1>
-<p class="meta">Publié par Nioro Resources LLC</p>
-
+<p class="meta">Publié par Nioro Resources LLC · Dernière mise à jour : 18 novembre 2026</p>
 <h2>Contact</h2>
-<p>Écrivez à [contact email to be added]. Indiquez le téléphone ou l'ordinateur utilisé et ce qui s'est passé. Ne nous envoyez jamais de mot de passe ; nous n'en demandons pas.</p>
-
+<p>Écrivez à support@niororesources.com. Indiquez le téléphone ou l'ordinateur utilisé et ce qui s'est passé. Ne nous envoyez jamais de mot de passe ; nous n'en demandons pas.</p>
 <h2>Questions fréquentes</h2>
-<p><b>Comment jouer avec des personnes ailleurs ?</b><br>Touchez <b>Jouer en ligne</b>, écrivez votre nom, puis connectez-vous avec votre e-mail et votre mot de passe (ou touchez <b>Créer mon compte</b> la première fois), ou avec <b>Google</b> ou <b>Apple</b>. Créez ensuite une partie et partagez le lien d'invitation ou le code à six caractères.</p>
-<p><b>Mes points ont disparu sur un nouveau téléphone.</b><br>Connectez-vous de la même façon qu'avant : le même e-mail et le même mot de passe, ou le même compte Google ou Apple. Votre nom, vos points et vos amis reviennent.</p>
-<p><b>J'ai oublié mon mot de passe.</b><br>Tapez votre e-mail dans <b>Jouer en ligne</b> et touchez <b>Mot de passe oublié ?</b>. Un lien pour en choisir un nouveau vous est envoyé. Regardez aussi dans vos indésirables.</p>
-<p><b>Je me connectais avec mon numéro de téléphone.</b><br>Créez votre compte une fois avec un e-mail et un mot de passe. Sur le téléphone que vous utilisiez déjà, vos points suivent tout seuls. Sur un autre téléphone, ouvrez <b>Vous jouiez avant avec votre numéro ?</b> sous votre compte et tapez le numéro une fois.</p>
-<p><b>Il n'y a pas de son.</b><br>Vérifiez le volume et le bouton silencieux, puis touchez le bouton du son dans le jeu.</p>
-<p><b>Le jeu annonce une mise à jour.</b><br>Touchez la barre jaune, ou fermez le jeu et rouvrez-le.</p>
-<p><b>Quelqu'un est impoli.</b><br>Pendant une partie en ligne, touchez la bulle, puis <b>Bloquer</b> ou <b>Signaler</b> à côté du nom du joueur.</p>
-<p><b>Comment supprimer mon compte ?</b><br>Ouvrez <b>Jouer en ligne</b>, allez à <b>Votre compte</b> et touchez <b>Supprimer mon compte</b>.</p>
-<p><b>Peut-on acheter des points ou les convertir en argent ?</b><br>Non. Les points servent uniquement à jouer et n'ont aucune valeur en argent.</p>
-
-<p>Voir aussi : <a href="privacy.html">confidentialité et règles de conduite</a>.</p>
+<p><b>Comment commencer ?</b> Ouvrez le jeu et touchez Se connecter ou créer un compte. Utilisez votre e-mail et votre mot de passe (touchez Créer mon compte la première fois), ou Continuer avec Apple ou Continuer avec Google. Vous choisissez ensuite votre nom et votre image dans Réglages. Vous pouvez aussi toucher Jouer contre l'ordinateur en invité pour jouer sans compte.</p>
+<p><b>Comment jouer avec des personnes ailleurs ?</b> Touchez Jouer avec des amis, créez une partie et partagez le lien d'invitation ou le code à six caractères. Il faut être connecté pour jouer en ligne.</p>
+<p><b>Mes points ont disparu sur un nouveau téléphone.</b> Connectez-vous de la même façon qu'avant : le même e-mail et le même mot de passe, ou le même compte Google ou Apple. Votre nom, vos points et vos amis reviennent. Les points gagnés en invité restent sur l'appareil où ils ont été gagnés.</p>
+<p><b>J'ai oublié mon mot de passe.</b> Tapez votre e-mail dans Réglages et touchez Mot de passe oublié ?. Un lien pour en choisir un nouveau vous est envoyé. Regardez aussi dans vos indésirables.</p>
+<p><b>Comment changer mon nom, mon image ou mon pays ?</b> Ouvrez Réglages. Votre nom, votre image et votre pays se trouvent sous votre compte une fois connecté.</p>
+<p><b>Je me connectais avec mon numéro de téléphone.</b> Créez votre compte une fois avec un e-mail et un mot de passe. Sur le téléphone que vous utilisiez déjà, vos points suivent tout seuls. Sur un autre téléphone, ouvrez Vous jouiez avant avec votre numéro ? sous votre compte et tapez le numéro une fois.</p>
+<p><b>Il n'y a pas de son.</b> Vérifiez le volume et le bouton silencieux, puis touchez le bouton du son dans le jeu.</p>
+<p><b>Le jeu annonce une mise à jour.</b> Touchez la barre jaune, ou fermez le jeu et rouvrez-le.</p>
+<p><b>Quelqu'un est impoli.</b> Pendant une partie en ligne, touchez la bulle, puis Bloquer ou Signaler à côté du nom du joueur.</p>
+<p><b>Comment supprimer mon compte ?</b> Ouvrez Réglages, allez à Votre compte et touchez Supprimer mon compte. Si vous avez utilisé Apple, le lien avec votre identifiant Apple est aussi retiré.</p>
+<p><b>Peut-on acheter des points ou les convertir en argent ?</b> Non. Les points servent uniquement à jouer et n'ont aucune valeur en argent.</p>
+<p>Voir aussi : <a href="privacy.html" data-pl>confidentialité et règles de conduite</a>.</p>
+</section>
+<section id="it" lang="it">
+<h1>Ludo <span>Teranga</span>: aiuto</h1>
+<p class="meta">Pubblicato da Nioro Resources LLC · Ultimo aggiornamento: 18 novembre 2026</p>
+<h2>Contatti</h2>
+<p>Scrivi a support@niororesources.com. Indica il telefono o il computer che usi e cosa è successo. Non inviarci mai la tua password per nessun servizio; non la chiediamo.</p>
+<h2>Domande frequenti</h2>
+<p><b>Come comincio?</b> Apri il gioco e tocca Accedi o crea un account. Usa la tua e-mail e la password (tocca Crea il mio account la prima volta), oppure Continua con Apple o Continua con Google. Scegli il tuo nome e la tua immagine dopo, in Impostazioni. Puoi anche toccare Gioca contro il computer come ospite per giocare senza un account.</p>
+<p><b>Come gioco con persone in altri posti?</b> Tocca Gioca con gli amici, crea una partita e condividi il link d'invito o il codice di sei caratteri. Devi aver effettuato l'accesso per giocare online.</p>
+<p><b>I miei punti non ci sono su un nuovo telefono.</b> Accedi nello stesso modo di prima: la stessa e-mail e la stessa password, o lo stesso account Google o Apple. Il tuo nome, i punti e gli amici tornano. I punti guadagnati come ospite restano sul dispositivo dove sono stati guadagnati.</p>
+<p><b>Ho dimenticato la password.</b> Scrivi la tua e-mail in Impostazioni e tocca Password dimenticata?. Ti viene inviato un link per sceglierne una nuova. Controlla anche la cartella dello spam.</p>
+<p><b>Come cambio nome, immagine o paese?</b> Apri Impostazioni. Nome, immagine e paese si trovano sotto il tuo account una volta effettuato l'accesso.</p>
+<p><b>Accedevo con il mio numero di telefono.</b> Crea il tuo account una volta con un'e-mail e una password. Sul telefono che usavi già, i tuoi punti ti seguono da soli. Su un altro telefono, apri Giocavi prima con il tuo numero? sotto il tuo account e scrivi il numero una volta.</p>
+<p><b>Non c'è audio.</b> Controlla il volume e l'interruttore del silenzio, poi tocca il pulsante dell'audio nel gioco.</p>
+<p><b>Il gioco dice che c'è un aggiornamento.</b> Tocca la barra gialla, oppure chiudi il gioco e riaprilo.</p>
+<p><b>Qualcuno è maleducato.</b> Durante una partita online, tocca il fumetto, poi Blocca o Segnala accanto al nome del giocatore.</p>
+<p><b>Come elimino il mio account?</b> Apri Impostazioni, vai a Il tuo account e tocca Elimina il mio account. Se hai usato Apple, viene rimosso anche il collegamento con il tuo ID Apple.</p>
+<p><b>Posso comprare o convertire in denaro i punti?</b> No. I punti servono solo per divertirsi e non hanno valore in denaro.</p>
+<p>Vedi anche: <a href="privacy.html" data-pl>privacy e regole di condotta</a>.</p>
 </section>
 
 <footer>&copy; 2026 Nioro Resources LLC</footer>
 </main>
+<script>
+(function(){var d=document.documentElement;
+Array.prototype.forEach.call(document.querySelectorAll("[data-set]"),function(a){a.addEventListener("click",function(e){e.preventDefault();var l=a.getAttribute("data-set");d.setAttribute("data-l",l);d.lang=l;window.scrollTo(0,0)})});
+var h=location.hash.slice(1),l=d.getAttribute("data-l");if(h&&l!=="en"){var t=document.getElementById(h+"-"+l);if(t)t.scrollIntoView()}})();
+</script>
 </body>
 </html>

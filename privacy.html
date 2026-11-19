@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-l="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
@@ -7,6 +7,7 @@
 <meta name="author" content="Nioro Resources LLC">
 <meta name="theme-color" content="#121938">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
+<script>(function(){var q=/[?&]l=(en|fr|it)/.exec(location.search),l=q?q[1]:"";try{if(!l)l=localStorage.getItem("ludo-lang")||""}catch(e){}if(!/^(en|fr|it)$/.test(l))l="en";var d=document.documentElement;d.setAttribute("data-l",l);d.lang=l})();</script>
 <style>
 @font-face{font-family:"Baloo 2";font-weight:800;font-display:swap;src:url(fonts/baloo2-800.woff2) format("woff2")}
 @font-face{font-family:"Figtree";font-weight:400;font-display:swap;src:url(fonts/figtree-400.woff2) format("woff2")}
@@ -24,132 +25,180 @@ ul{padding-left:1.2em;margin:0 0 10px}
 a{color:#f0bf00}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
 .top a{display:inline-block;padding:8px 0;font-weight:700}
+.langs a{padding:8px 6px}
 .meta{color:#aab0cc;font-size:.88rem}
-hr{border:0;border-top:1px solid rgba(255,255,255,.15);margin:36px 0}
 footer{color:#aab0cc;font-size:.8rem;margin-top:36px}
+section[lang]{display:none}
+html[data-l=en] #en,html[data-l=fr] #fr,html[data-l=it] #it{display:block}
+html[data-l=en] a[data-set=en],html[data-l=fr] a[data-set=fr],html[data-l=it] a[data-set=it]{color:#f3f0e6;text-decoration:none;border-bottom:2px solid #f0bf00}
 </style>
 </head>
 <body>
 <main>
-<div class="top"><a href="./">← Ludo Teranga</a><span><a href="#en">English</a> · <a href="#fr">Français</a></span></div>
-
+<div class="top"><a href="./">← Ludo Teranga</a><span class="langs"><a href="#" data-set="en">English</a> · <a href="#" data-set="fr">Français</a> · <a href="#" data-set="it">Italiano</a></span></div>
 <section id="en" lang="en">
 <h1>Ludo <span>Teranga</span>: privacy and rules of conduct</h1>
-<p class="meta">Published by Nioro Resources LLC · Last updated 12 November 2026</p>
-<p>This page explains what Ludo Teranga keeps about you, why, and how to remove it.</p>
-
+<p class="meta">Published by Nioro Resources LLC · Last updated 18 November 2026</p>
+<p>This page explains what Ludo Teranga keeps about you, why, and how to remove it. It covers the game on the web and in the iPhone app.</p>
 <h2>What the game keeps</h2>
 <ul>
 <li><b>Email address and password.</b> You sign in with an email address and a password. They are handled by Google's sign-in service (Firebase Authentication). Your password is never visible to us, and your email address is never shown to other players. Your email is used only to sign you in, to confirm that the address is yours, and to send a link if you forget your password.</li>
-<li><b>Google or Apple, if you choose.</b> You can also sign in with your Google account or your Apple ID. The game then receives only a sign-in confirmation and your email address from Google or Apple, never their password. With Apple you can choose to hide your email, and Apple gives the game a private relay address instead. If you delete your account, the game also removes its link to your Apple ID.</li>
+<li><b>Google or Apple, if you choose.</b> You can also sign in with your Google account or your Apple ID. The game then receives only a sign-in confirmation and your email address from Google or Apple, never their password. With Apple you can choose to hide your email, and Apple gives the game a private relay address instead. The game uses this information only to sign you in and keep your account. It does not use it for advertising, does not sell it and does not share it with anyone. The game's use of information received from Google follows the Google API Services User Data Policy, including its Limited Use requirements. If you delete your account, the game also removes its link to your Apple ID.</li>
+<li><b>Playing as a guest.</b> You can play against the computer without an account. Your points and games then stay on your device. Only the anonymous daily totals described below are sent.</li>
 <li><b>Phone number, if you played before.</b> Earlier versions used a phone number to sign in. If you bring that saved game into your new login, your device turns the number into a scrambled code to find it. The number itself is never sent or stored, and the old record is deleted once it has been moved.</li>
-<li><b>Country.</b> The country you choose when you create your login, saved with your account.</li>
-<li><b>Name and picture.</b> The name you type and the picture, icon or emoji you choose. A photo is optional.</li>
+<li><b>Name and picture.</b> After you sign in, you choose a name and a picture, icon or emoji. A photo is optional. Until you choose, the game gives you a temporary name such as Player123.</li>
+<li><b>Country.</b> The country in your profile. The game suggests one from your device's time zone when your account is created, and you can change it at any time in Settings. It sets the language of the game and is used for totals by country.</li>
 <li><b>Game data.</b> Your points, results, friends list and friend code.</li>
 <li><b>Online games.</b> While a game is running, the room holds the players' names and pictures, the dice and moves, and the comments and emojis sent. A finished game's room is deleted shortly after the game ends.</li>
-<li><b>Usage totals.</b> To know how much the game is played, each device saves a small daily count: games started and finished, and the country chosen with your login. It is stored under a random code that is not linked to your account, your name or your number.</li>
+<li><b>Usage totals.</b> To know how much the game is played, each device saves a small daily count: games started and finished, and the country in your profile. It is stored under a random code that is not linked to your account, your name or your number.</li>
 <li><b>Play activity, when you are signed in.</b> The days you play, how many times you open the game and for how long, saved with your game name and country. Only the publisher can see it. It helps us understand how the game is used, and it is erased when you delete your account.</li>
 <li><b>Sign-in attempts and errors.</b> When signing in or creating a login succeeds or fails, and when the game meets an error, a short line is saved with the reason, your country, the kind of device (phone, tablet or computer) and the game version, so we can fix problems. When you are signed in, the line is linked to your account, so we can see for example which players tapped a sponsor's banner. It never contains your email, your password or a phone number. The same log counts how the game is used: games started and finished, invitations opened, connection drops, and how often a sponsor's banner was shown or tapped. These lines are kept for 90 days.</li>
 <li><b>Reports.</b> If you report a player, we receive that player's name and last comment, the room code, and the game identities of both players. No phone number is included.</li>
 </ul>
-
 <h2>Who can see what</h2>
 <ul>
 <li>Players in your room and your friends see your name and picture.</li>
 <li>A comment sent to one player is shown only to that player; a comment sent to everyone is shown to the whole room.</li>
 <li>Nobody else sees your email address.</li>
+<li>The game does not give your data to sponsors.</li>
 </ul>
-
 <h2>What the game does not do</h2>
 <ul>
 <li>No advertising networks, no tracking across apps or sites, no outside analytics service.</li>
 <li>No sale or sharing of your data for marketing.</li>
-<li>The sponsor panels show the publisher's own companies. They are display only and collect nothing.</li>
+<li>The sponsor panels show the publisher's companies and partners. Tapping one opens the sponsor's own page or app, which has its own privacy policy.</li>
 <li>Points have no cash value. They cannot be bought, sold or exchanged for money.</li>
 </ul>
-
 <h2>Where data is kept</h2>
 <p>Saved game data and logins are held in Google Firebase, on servers in the United States. The game's web pages are served by GitHub Pages. Like any online service, these providers receive technical data such as your IP address in order to deliver the game.</p>
 <p>Your device also keeps a copy of your settings, points and friends so the game opens quickly and works without a connection.</p>
-
-<h2>Deleting your account</h2>
-<p>Open <b>Play online</b>, find <b>Your account</b> and tap <b>Delete my account</b>. This erases your saved name, picture, points, results, friends and waiting invitations from our servers and from your device, and removes your login (email and password) from the sign-in service. It cannot be undone. You can also ask us to do it for you at [contact email to be added].</p>
-
+<h2>Your choices</h2>
+<p>You can change your name, picture and country in Settings. You can ask for a copy of your data, or ask us to correct or delete it, at support@niororesources.com.</p>
+<h2 id="delete">Deleting your account</h2>
+<p>Open Settings, find Your account and tap Delete my account. This erases your saved name, picture, points, results, friends and waiting invitations from our servers and from your device, and removes your login from the sign-in service. If you signed in with Apple, the game also removes its link to your Apple ID. It cannot be undone. You can also ask us to do it for you at support@niororesources.com.</p>
 <h2>Children</h2>
 <p>Ludo Teranga is made for teenagers and adults. It is not directed at children under 13, and we do not knowingly keep data about them. If you believe a child has created an account, contact us and we will delete it.</p>
-
 <h2 id="conduct">Rules of conduct</h2>
 <ul>
-<li>Be respectful. No insults, threats, harassment, hate speech or sexual content, in comments, names or pictures.</li>
+<li><b>Be respectful.</b> No insults, threats, harassment, hate speech or sexual content, in comments, names or pictures.</li>
 <li>Typed comments pass through a word filter.</li>
 <li>You can block a player from the chat panel. You will no longer see their comments, emojis or invitations.</li>
 <li>You can report a player from the same panel. We review reports within 24 hours and may remove content and exclude players who break these rules.</li>
 </ul>
-
 <h2>Changes and contact</h2>
-<p>If this page changes, the date at the top changes with it. Questions: [contact email to be added].</p>
+<p>If this page changes, the date at the top changes with it. Questions: support@niororesources.com.</p>
 </section>
-
-<hr>
-
 <section id="fr" lang="fr">
 <h1>Ludo <span>Teranga</span> : confidentialité et règles de conduite</h1>
-<p class="meta">Publié par Nioro Resources LLC · Dernière mise à jour : 12 novembre 2026</p>
-<p>Cette page explique ce que Ludo Teranga garde sur vous, pourquoi, et comment le supprimer.</p>
-
+<p class="meta">Publié par Nioro Resources LLC · Dernière mise à jour : 18 novembre 2026</p>
+<p>Cette page explique ce que Ludo Teranga garde sur vous, pourquoi, et comment le supprimer. Elle couvre le jeu sur le web et dans l'application iPhone.</p>
 <h2>Ce que le jeu garde</h2>
 <ul>
 <li><b>Adresse e-mail et mot de passe.</b> Vous vous connectez avec une adresse e-mail et un mot de passe. Ils sont gérés par le service de connexion de Google (Firebase Authentication). Nous ne voyons jamais votre mot de passe, et votre adresse e-mail n'est jamais montrée aux autres joueurs. Votre e-mail sert uniquement à vous connecter, à confirmer que l'adresse est bien la vôtre et à vous envoyer un lien si vous oubliez votre mot de passe.</li>
-<li><b>Google ou Apple, si vous le choisissez.</b> Vous pouvez aussi vous connecter avec votre compte Google ou votre identifiant Apple. Le jeu reçoit alors seulement une confirmation de connexion et votre adresse e-mail de la part de Google ou d'Apple, jamais leur mot de passe. Avec Apple, vous pouvez choisir de masquer votre e-mail : Apple donne alors au jeu une adresse relais privée. Si vous supprimez votre compte, le jeu retire aussi son lien avec votre identifiant Apple.</li>
+<li><b>Google ou Apple, si vous le choisissez.</b> Vous pouvez aussi vous connecter avec votre compte Google ou votre identifiant Apple. Le jeu reçoit alors seulement une confirmation de connexion et votre adresse e-mail de la part de Google ou d'Apple, jamais leur mot de passe. Avec Apple, vous pouvez choisir de masquer votre e-mail : Apple donne alors au jeu une adresse relais privée. Le jeu utilise ces informations uniquement pour vous connecter et garder votre compte. Il ne les utilise pas pour de la publicité, ne les vend pas et ne les partage avec personne. L'utilisation par le jeu des informations reçues de Google respecte la politique de Google sur les données des utilisateurs des services d'API (Google API Services User Data Policy), y compris ses exigences d'utilisation limitée. Si vous supprimez votre compte, le jeu retire aussi son lien avec votre identifiant Apple.</li>
+<li><b>Jouer en invité.</b> Vous pouvez jouer contre l'ordinateur sans compte. Vos points et vos parties restent alors sur votre appareil. Seuls les totaux quotidiens anonymes décrits plus bas sont envoyés.</li>
 <li><b>Numéro de téléphone, si vous jouiez avant.</b> Les versions précédentes utilisaient un numéro de téléphone pour se connecter. Si vous récupérez cette partie enregistrée dans votre nouveau compte, votre appareil transforme le numéro en un code brouillé pour la retrouver. Le numéro lui-même n'est jamais envoyé ni enregistré, et l'ancien enregistrement est supprimé une fois le transfert fait.</li>
-<li><b>Pays.</b> Le pays que vous choisissez en créant votre compte, enregistré avec celui-ci.</li>
-<li><b>Nom et image.</b> Le nom que vous écrivez et l'image, l'icône ou l'emoji que vous choisissez. La photo est facultative.</li>
+<li><b>Nom et image.</b> Après la connexion, vous choisissez un nom et une image, une icône ou un emoji. La photo est facultative. Tant que vous n'avez pas choisi, le jeu vous donne un nom provisoire comme Player123.</li>
+<li><b>Pays.</b> Le pays de votre profil. Le jeu en propose un d'après le fuseau horaire de votre appareil à la création du compte, et vous pouvez le changer à tout moment dans Réglages. Il détermine la langue du jeu et sert aux totaux par pays.</li>
 <li><b>Données de jeu.</b> Vos points, vos résultats, votre liste d'amis et votre code ami.</li>
 <li><b>Parties en ligne.</b> Pendant une partie, le salon contient les noms et images des joueurs, les dés et les coups, ainsi que les commentaires et emojis envoyés. Le salon d'une partie terminée est supprimé peu après la fin.</li>
-<li><b>Totaux d'utilisation.</b> Pour savoir combien le jeu est utilisé, chaque appareil enregistre un petit compte quotidien : parties commencées et terminées, et pays choisi à la connexion. Il est rangé sous un code aléatoire qui n'est lié ni à votre compte, ni à votre nom, ni à votre numéro.</li>
+<li><b>Totaux d'utilisation.</b> Pour savoir combien le jeu est utilisé, chaque appareil enregistre un petit compte quotidien : parties commencées et terminées, et pays de votre profil. Il est rangé sous un code aléatoire qui n'est lié ni à votre compte, ni à votre nom, ni à votre numéro.</li>
 <li><b>Activité de jeu, quand vous êtes connecté.</b> Les jours où vous jouez, le nombre de fois où vous ouvrez le jeu et la durée, enregistrés avec votre nom de jeu et votre pays. Seul l'éditeur peut les voir. Cela nous aide à comprendre comment le jeu est utilisé, et tout est effacé quand vous supprimez votre compte.</li>
 <li><b>Tentatives de connexion et erreurs.</b> Quand une connexion ou la création d'un compte réussit ou échoue, et quand le jeu rencontre une erreur, une courte ligne est enregistrée avec la raison, votre pays, le type d'appareil (téléphone, tablette ou ordinateur) et la version du jeu, pour nous permettre de corriger les problèmes. Quand vous êtes connecté, la ligne est liée à votre compte : nous pouvons voir par exemple quels joueurs ont touché la bannière d'un partenaire. Elle ne contient jamais votre e-mail, votre mot de passe ni un numéro de téléphone. Le même journal compte l'utilisation du jeu : parties commencées et terminées, invitations ouvertes, coupures de connexion, et le nombre de fois où la bannière d'un partenaire a été affichée ou touchée. Ces lignes sont gardées 90 jours.</li>
 <li><b>Signalements.</b> Si vous signalez un joueur, nous recevons son nom et son dernier commentaire, le code du salon et les identités de jeu des deux joueurs. Aucun numéro de téléphone n'est transmis.</li>
 </ul>
-
 <h2>Qui voit quoi</h2>
 <ul>
 <li>Les joueurs de votre salon et vos amis voient votre nom et votre image.</li>
 <li>Un commentaire envoyé à un joueur n'est montré qu'à ce joueur ; un commentaire envoyé à tous est montré à tout le salon.</li>
 <li>Personne d'autre ne voit votre adresse e-mail.</li>
+<li>Le jeu ne transmet pas vos données aux sponsors.</li>
 </ul>
-
 <h2>Ce que le jeu ne fait pas</h2>
 <ul>
 <li>Pas de régie publicitaire, pas de suivi entre applications ou sites, pas de service externe de mesure d'audience.</li>
 <li>Pas de vente ni de partage de vos données à des fins commerciales.</li>
-<li>Les encarts de sponsors présentent les sociétés de l'éditeur. Ils sont purement visuels et ne collectent rien.</li>
+<li>Les encarts de sponsors présentent les sociétés et partenaires de l'éditeur. En toucher un ouvre la page ou l'application du sponsor, qui a sa propre politique de confidentialité.</li>
 <li>Les points n'ont aucune valeur en argent. Ils ne peuvent être ni achetés, ni vendus, ni échangés contre de l'argent.</li>
 </ul>
-
 <h2>Où sont gardées les données</h2>
 <p>Les données de jeu et les comptes sont hébergés chez Google Firebase, sur des serveurs situés aux États-Unis. Les pages du jeu sont servies par GitHub Pages. Comme tout service en ligne, ces prestataires reçoivent des données techniques, dont votre adresse IP, pour vous fournir le jeu.</p>
 <p>Votre appareil garde aussi une copie de vos réglages, de vos points et de vos amis, pour que le jeu s'ouvre vite et fonctionne sans connexion.</p>
-
-<h2>Supprimer votre compte</h2>
-<p>Ouvrez <b>Jouer en ligne</b>, allez à <b>Votre compte</b> et touchez <b>Supprimer mon compte</b>. Cela efface de nos serveurs et de votre appareil votre nom, votre image, vos points, vos résultats, vos amis et les invitations en attente, et retire votre compte (e-mail et mot de passe) du service de connexion. C'est définitif. Vous pouvez aussi nous le demander à [contact email to be added].</p>
-
+<h2>Vos choix</h2>
+<p>Vous pouvez changer votre nom, votre image et votre pays dans Réglages. Vous pouvez demander une copie de vos données, ou leur correction ou leur suppression, à support@niororesources.com.</p>
+<h2 id="delete-fr">Supprimer votre compte</h2>
+<p>Ouvrez Réglages, allez à Votre compte et touchez Supprimer mon compte. Cela efface de nos serveurs et de votre appareil votre nom, votre image, vos points, vos résultats, vos amis et les invitations en attente, et retire votre compte du service de connexion. Si vous vous êtes connecté avec Apple, le jeu retire aussi son lien avec votre identifiant Apple. C'est définitif. Vous pouvez aussi nous le demander à support@niororesources.com.</p>
 <h2>Enfants</h2>
 <p>Ludo Teranga s'adresse aux adolescents et aux adultes. Il n'est pas destiné aux enfants de moins de 13 ans et nous ne gardons pas sciemment de données les concernant. Si vous pensez qu'un enfant a créé un compte, écrivez-nous et nous le supprimerons.</p>
-
-<h2>Règles de conduite</h2>
+<h2 id="conduct-fr">Règles de conduite</h2>
 <ul>
-<li>Restez respectueux. Pas d'insultes, de menaces, de harcèlement, de propos haineux ni de contenu sexuel, dans les commentaires, les noms ou les images.</li>
+<li><b>Restez respectueux.</b> Pas d'insultes, de menaces, de harcèlement, de propos haineux ni de contenu sexuel, dans les commentaires, les noms ou les images.</li>
 <li>Les commentaires écrits passent par un filtre de mots.</li>
 <li>Vous pouvez bloquer un joueur depuis le panneau de discussion. Vous ne verrez plus ses commentaires, ses emojis ni ses invitations.</li>
 <li>Vous pouvez signaler un joueur depuis ce même panneau. Nous examinons les signalements sous 24 heures et pouvons retirer des contenus et exclure les joueurs qui ne respectent pas ces règles.</li>
 </ul>
-
 <h2>Modifications et contact</h2>
-<p>Si cette page change, la date en haut change aussi. Questions : [contact email to be added].</p>
+<p>Si cette page change, la date en haut change aussi. Questions : support@niororesources.com.</p>
+</section>
+<section id="it" lang="it">
+<h1>Ludo <span>Teranga</span>: privacy e regole di condotta</h1>
+<p class="meta">Pubblicato da Nioro Resources LLC · Ultimo aggiornamento: 18 novembre 2026</p>
+<p>Questa pagina spiega cosa conserva Ludo Teranga su di te, perché, e come eliminarlo. Vale per il gioco sul web e per l'app per iPhone.</p>
+<h2>Cosa conserva il gioco</h2>
+<ul>
+<li><b>Indirizzo e-mail e password.</b> Accedi con un indirizzo e-mail e una password. Sono gestiti dal servizio di accesso di Google (Firebase Authentication). Noi non vediamo mai la tua password e il tuo indirizzo e-mail non viene mai mostrato agli altri giocatori. La tua e-mail serve solo per farti accedere, per confermare che l'indirizzo è tuo e per inviarti un link se dimentichi la password.</li>
+<li><b>Google o Apple, se lo scegli.</b> Puoi accedere anche con il tuo account Google o con il tuo ID Apple. Il gioco riceve da Google o da Apple solo una conferma di accesso e il tuo indirizzo e-mail, mai la loro password. Con Apple puoi scegliere di nascondere la tua e-mail: Apple dà al gioco un indirizzo di inoltro privato. Il gioco usa queste informazioni solo per farti accedere e conservare il tuo account. Non le usa per la pubblicità, non le vende e non le condivide con nessuno. L'uso da parte del gioco delle informazioni ricevute da Google rispetta la Google API Services User Data Policy, compresi i suoi requisiti di uso limitato (Limited Use). Se elimini il tuo account, il gioco rimuove anche il collegamento con il tuo ID Apple.</li>
+<li><b>Giocare come ospite.</b> Puoi giocare contro il computer senza un account. I tuoi punti e le tue partite restano allora sul tuo dispositivo. Vengono inviati solo i totali giornalieri anonimi descritti più sotto.</li>
+<li><b>Numero di telefono, se giocavi prima.</b> Le versioni precedenti usavano un numero di telefono per accedere. Se porti quella partita salvata nel tuo nuovo account, il tuo dispositivo trasforma il numero in un codice cifrato per ritrovarla. Il numero stesso non viene mai inviato né conservato e il vecchio record viene eliminato una volta trasferito.</li>
+<li><b>Nome e immagine.</b> Dopo l'accesso scegli un nome e un'immagine, un'icona o un emoji. La foto è facoltativa. Finché non scegli, il gioco ti assegna un nome provvisorio come Player123.</li>
+<li><b>Paese.</b> Il paese del tuo profilo. Il gioco ne propone uno in base al fuso orario del tuo dispositivo quando crei l'account e puoi cambiarlo in qualsiasi momento in Impostazioni. Determina la lingua del gioco e serve per i totali per paese.</li>
+<li><b>Dati di gioco.</b> I tuoi punti, i risultati, l'elenco degli amici e il codice amico.</li>
+<li><b>Partite online.</b> Mentre una partita è in corso, la stanza contiene i nomi e le immagini dei giocatori, i dadi e le mosse, i commenti e gli emoji inviati. La stanza di una partita finita viene eliminata poco dopo la fine.</li>
+<li><b>Totali di utilizzo.</b> Per sapere quanto si gioca, ogni dispositivo salva un piccolo conteggio giornaliero: partite iniziate e finite e il paese del tuo profilo. È salvato con un codice casuale non collegato al tuo account, al tuo nome o al tuo numero.</li>
+<li><b>Attività di gioco, quando hai effettuato l'accesso.</b> I giorni in cui giochi, quante volte apri il gioco e per quanto tempo, salvati con il tuo nome di gioco e il paese. Solo l'editore può vederli. Ci aiutano a capire come viene usato il gioco e vengono cancellati quando elimini il tuo account.</li>
+<li><b>Tentativi di accesso ed errori.</b> Quando un accesso o la creazione di un account riesce o fallisce, e quando il gioco incontra un errore, viene salvata una breve riga con il motivo, il tuo paese, il tipo di dispositivo (telefono, tablet o computer) e la versione del gioco, così possiamo risolvere i problemi. Quando hai effettuato l'accesso, la riga è collegata al tuo account, così possiamo vedere per esempio quali giocatori hanno toccato il banner di uno sponsor. Non contiene mai la tua e-mail, la tua password o un numero di telefono. Lo stesso registro conta come viene usato il gioco: partite iniziate e finite, inviti aperti, cadute di connessione e quante volte il banner di uno sponsor è stato mostrato o toccato. Queste righe sono conservate per 90 giorni.</li>
+<li><b>Segnalazioni.</b> Se segnali un giocatore, riceviamo il suo nome e l'ultimo commento, il codice della stanza e le identità di gioco di entrambi i giocatori. Non viene incluso alcun numero di telefono.</li>
+</ul>
+<h2>Chi vede cosa</h2>
+<ul>
+<li>I giocatori della tua stanza e i tuoi amici vedono il tuo nome e la tua immagine.</li>
+<li>Un commento inviato a un giocatore è mostrato solo a quel giocatore; un commento inviato a tutti è mostrato a tutta la stanza.</li>
+<li>Nessun altro vede il tuo indirizzo e-mail.</li>
+<li>Il gioco non fornisce i tuoi dati agli sponsor.</li>
+</ul>
+<h2>Cosa non fa il gioco</h2>
+<ul>
+<li>Nessuna rete pubblicitaria, nessun tracciamento tra app o siti, nessun servizio di analisi esterno.</li>
+<li>Nessuna vendita né condivisione dei tuoi dati per scopi di marketing.</li>
+<li>I pannelli degli sponsor mostrano le società e i partner dell'editore. Toccarne uno apre la pagina o l'app dello sponsor, che ha una propria informativa sulla privacy.</li>
+<li>I punti non hanno valore in denaro. Non possono essere comprati, venduti o scambiati con denaro.</li>
+</ul>
+<h2>Dove sono conservati i dati</h2>
+<p>I dati di gioco e gli accessi sono conservati in Google Firebase, su server negli Stati Uniti. Le pagine web del gioco sono servite da GitHub Pages. Come ogni servizio online, questi fornitori ricevono dati tecnici, come il tuo indirizzo IP, per fornirti il gioco.</p>
+<p>Il tuo dispositivo conserva anche una copia delle tue impostazioni, dei punti e degli amici, così il gioco si apre in fretta e funziona senza connessione.</p>
+<h2>Le tue scelte</h2>
+<p>Puoi cambiare nome, immagine e paese in Impostazioni. Puoi chiedere una copia dei tuoi dati, o la loro correzione o eliminazione, a support@niororesources.com.</p>
+<h2 id="delete-it">Eliminare il tuo account</h2>
+<p>Apri Impostazioni, vai a Il tuo account e tocca Elimina il mio account. Questo cancella dai nostri server e dal tuo dispositivo il tuo nome, l'immagine, i punti, i risultati, gli amici e gli inviti in attesa, e rimuove il tuo accesso dal servizio di accesso. Se hai effettuato l'accesso con Apple, il gioco rimuove anche il collegamento con il tuo ID Apple. Non si può annullare. Puoi anche chiederci di farlo a support@niororesources.com.</p>
+<h2>Bambini</h2>
+<p>Ludo Teranga è pensato per adolescenti e adulti. Non è rivolto ai bambini sotto i 13 anni e non conserviamo consapevolmente dati che li riguardano. Se pensi che un bambino abbia creato un account, scrivici e lo elimineremo.</p>
+<h2 id="conduct-it">Regole di condotta</h2>
+<ul>
+<li><b>Sii rispettoso.</b> Niente insulti, minacce, molestie, discorsi d'odio o contenuti sessuali, nei commenti, nei nomi o nelle immagini.</li>
+<li>I commenti scritti passano attraverso un filtro di parole.</li>
+<li>Puoi bloccare un giocatore dal pannello della chat. Non vedrai più i suoi commenti, emoji o inviti.</li>
+<li>Puoi segnalare un giocatore dallo stesso pannello. Esaminiamo le segnalazioni entro 24 ore e possiamo rimuovere contenuti ed escludere i giocatori che non rispettano queste regole.</li>
+</ul>
+<h2>Modifiche e contatti</h2>
+<p>Se questa pagina cambia, cambia anche la data in alto. Domande: support@niororesources.com.</p>
 </section>
 
 <footer>&copy; 2026 Nioro Resources LLC</footer>
 </main>
+<script>
+(function(){var d=document.documentElement;
+Array.prototype.forEach.call(document.querySelectorAll("[data-set]"),function(a){a.addEventListener("click",function(e){e.preventDefault();var l=a.getAttribute("data-set");d.setAttribute("data-l",l);d.lang=l;window.scrollTo(0,0)})});
+var h=location.hash.slice(1),l=d.getAttribute("data-l");if(h&&l!=="en"){var t=document.getElementById(h+"-"+l);if(t)t.scrollIntoView()}})();
+</script>
 </body>
 </html>
