@@ -2456,7 +2456,7 @@ function renderOnline(){
       h+=err+'<button type="button" class="ghost" id="on-close">'+t.close+'</button>';
     }else{
       h+='<div><h3>'+t.joinTitle+'</h3><div class="who"><input type="text" id="join-code" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="'+t.codePh+'" value="'+esc(pendingCode)+'" aria-label="'+t.codePh+'"><button type="button" class="cta" id="join-go" style="padding:0 22px">'+t.join+'</button></div></div>';
-      h+='<div><h3>'+t.create+'</h3>'+seg([[2,"2"],[3,"3"],[4,"4"]],cfg.count,"ocount")+'<h3 style="margin-top:12px">'+t.startMode+'</h3>'+seg([["0",t.startManual],["1",t.startAuto]],cfg.autoStart?"1":"0","oauto")+'<p class="note">'+t.createNote+'</p><button type="button" class="cta" id="create-go" style="width:100%;margin-top:10px">'+t.createBtn+'</button></div>';
+      h+='<div><h3>'+t.create+'</h3><h3 style="margin-top:4px">'+t.bundleTitle+'</h3>'+bundleCardsHTML()+'<h3 style="margin-top:12px">'+t.players+'</h3>'+seg([[2,"2"],[3,"3"],[4,"4"]],cfg.count,"ocount")+'<h3 style="margin-top:12px">'+t.startMode+'</h3>'+seg([["0",t.startManual],["1",t.startAuto]],cfg.autoStart?"1":"0","oauto")+'<p class="note">'+t.createNote+'</p><button type="button" class="cta" id="create-go" style="width:100%;margin-top:10px">'+t.createBtn+'</button></div>';
       h+=friendsHTML();
       h+=err+'<button type="button" class="ghost" id="on-close">'+t.close+'</button>';
     }
@@ -2506,6 +2506,11 @@ function renderOnline(){
   Array.prototype.slice.call(p.querySelectorAll('[data-set="oauto"]')).forEach(function(b){b.addEventListener("click",function(){
     cfg.autoStart=b.getAttribute("data-val")==="1";
     Array.prototype.slice.call(p.querySelectorAll('[data-set="oauto"]')).forEach(function(x){x.setAttribute("aria-pressed",x===b)});
+  })});
+  Array.prototype.slice.call(p.querySelectorAll('[data-bun]')).forEach(function(b){b.addEventListener("click",function(){
+    applyBundle(b.getAttribute("data-bun"));
+    Array.prototype.slice.call(p.querySelectorAll('[data-bun]')).forEach(function(x){x.setAttribute("aria-pressed",x===b)});
+    try{localStorage.setItem("ludo-cfg2",JSON.stringify(cfg))}catch(e){}
   })});
   Array.prototype.slice.call(p.querySelectorAll('[data-set="ocount"]')).forEach(function(b){b.addEventListener("click",function(){
     cfg.count=parseInt(b.getAttribute("data-val"),10);
@@ -4049,6 +4054,10 @@ var BUNDLES={
   west:{twoDice:true,safe:false,blockPass:true,bonus:false,jail:true,homeBonus:true},
   friendly:{twoDice:false,safe:true,blockPass:true,bonus:true,jail:false,homeBonus:true}
 };
+function bundleCardsHTML(){
+  var t=L(),bk=bundleOf();
+  return '<div class="bun" role="group" aria-label="'+t.bundleTitle+'">'+[["classic",t.bunClassic,t.bunClassicD],["west",t.bunWest,t.bunWestD],["friendly",t.bunFriendly,t.bunFriendlyD]].map(function(x){return '<button type="button" data-bun="'+x[0]+'" aria-pressed="'+(bk===x[0])+'"><b>'+x[1]+'</b><span>'+x[2]+'</span></button>'}).join("")+'</div>';
+}
 function bundleOf(){
   for(var k in BUNDLES){var b=BUNDLES[k],ok=true;for(var o in b)if(!!cfg[o]!==b[o])ok=false;if(ok)return k}
   return cfg.twoDice?"west":cfg.safe?"friendly":"classic";
@@ -4067,7 +4076,7 @@ function renderSetup(){
   if(firstVisit)h+='<p class="note" style="margin:0">'+t.welcomeNote+'</p>';
   if(g&&!g.over&&g.pot>0)h+='<p class="warn">'+t.forfeit+'</p>';
   var bk=bundleOf();
-  h+='<div><h3>'+t.bundleTitle+'</h3><div class="bun" role="group" aria-label="'+t.bundleTitle+'">'+[["classic",t.bunClassic,t.bunClassicD],["west",t.bunWest,t.bunWestD],["friendly",t.bunFriendly,t.bunFriendlyD]].map(function(x){return '<button type="button" data-bun="'+x[0]+'" aria-pressed="'+(bk===x[0])+'"><b>'+x[1]+'</b><span>'+x[2]+'</span></button>'}).join("")+'</div></div>';
+  h+='<div><h3>'+t.bundleTitle+'</h3>'+bundleCardsHTML()+'</div>';
   h+='<div><h3>'+t.modeTitle+'</h3>'+seg([["cpu",t.modeCpu],["phone",t.modePhone]],cfg.mode,"mode")+'</div>';
   h+='<div><h3>'+t.players+'</h3>'+seg([[2,"2"],[3,"3"],[4,"4"]],cfg.count,"count")+'</div>';
   h+='<div><div class="seats">';
@@ -4250,7 +4259,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="115";
+var BUILD="116";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
