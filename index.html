@@ -363,6 +363,11 @@ h1 span{color:var(--accent);display:block}
 .sheet.gate #gate-go{margin-top:auto}
 .sheet.gate .adtop,.sheet.lobby .adtop{flex:none;max-width:100%;width:100%;box-sizing:border-box}
 .sheet.lobby .lobby-tiles{max-height:180px}
+.sheet.gate .gate-feat{list-style:none;margin:auto 0;padding:0;display:grid;gap:var(--s3);text-align:left;width:100%}
+.sheet.gate .gate-feat li{display:flex;align-items:center;gap:var(--s3);padding:var(--s4);background:var(--surface-2);border:1px solid var(--border);border-radius:var(--r-md);font-weight:600;font-size:1rem;margin:0}
+.sheet.gate .gate-feat svg{flex:none;color:var(--accent)}
+@media (max-height:700px){.sheet.gate .gate-feat li:nth-child(n+3){display:none}.sheet.gate .gate-feat li{padding:var(--s3)}}
+@media (max-height:620px){.sheet.gate .gate-feat{display:none}}
 </style>
 </head>
 <body>
@@ -849,6 +854,9 @@ T.it=Object.assign({},T.en,IT);T.it.r=Object.assign({},T.en.r,IT.r);
 T.en.gateTag="Free to play";T.fr.gateTag="Gratuit";T.it.gateTag="Gratis";
 T.en.gateTitle="Sign up to play Ludo Teranga";T.fr.gateTitle="Inscrivez-vous pour jouer à Ludo Teranga";T.it.gateTitle="Iscriviti per giocare a Ludo Teranga";
 T.en.gateSub="Create a free account to play against friends or the computer, the Senegalese way.";T.fr.gateSub="Créez un compte gratuit pour jouer entre amis ou contre l'ordinateur, à la sénégalaise.";T.it.gateSub="Crea un account gratuito per giocare con gli amici o contro il computer, alla senegalese.";
+T.en.gateF1="Play online with friends, up to 4 players";T.fr.gateF1="Jouez en ligne entre amis, jusqu'à 4 joueurs";T.it.gateF1="Gioca online con gli amici, fino a 4 giocatori";
+T.en.gateF2="Win points and climb the leaderboard";T.fr.gateF2="Gagnez des points et montez au classement";T.it.gateF2="Vinci punti e scala la classifica";
+T.en.gateF3="Play the computer any time";T.fr.gateF3="Jouez contre l'ordinateur à tout moment";T.it.gateF3="Gioca contro il computer quando vuoi";
 T.en.gateCta="Sign in or create an account";T.fr.gateCta="Se connecter ou créer un compte";T.it.gateCta="Accedi o crea un account";
 T.en.gateWith="With our sponsors";T.fr.gateWith="Avec nos sponsors";T.it.gateWith="Con i nostri sponsor";
 T.en.closesIn=function(n){return "This room closes in "+n+" s"};T.fr.closesIn=function(n){return "Ce salon ferme dans "+n+" s"};T.it.closesIn=function(n){return "Questa stanza chiude tra "+n+" s"};
@@ -2228,6 +2236,8 @@ function invite(){
   show("");
 }
 function openOnline(){refreshFriends();renderOnline();$("sheet-online").classList.add("open")}
+var GATE_IC={users:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="9" cy="8" r="3.2"/><path d="M3 19c0-3.3 2.7-5.5 6-5.5s6 2.2 6 5.5"/><circle cx="17" cy="9" r="2.4"/><path d="M17 14c2.4 0 4 1.7 4 4.2"/></svg>',trophy:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0z"/><path d="M8 6H5v1.5A3 3 0 0 0 8 10.5M16 6h3v1.5a3 3 0 0 1-3 3"/><path d="M12 13v4M8.5 20h7M10 17h4"/></svg>',dice:'<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><circle cx="9" cy="9" r=".6"/><circle cx="15" cy="9" r=".6"/><circle cx="12" cy="12" r=".6"/><circle cx="9" cy="15" r=".6"/><circle cx="15" cy="15" r=".6"/></svg>'};
+function gateFeatures(t){return '<ul class="gate-feat">'+[["users",t.gateF1],["trophy",t.gateF2],["dice",t.gateF3]].map(function(r){return '<li>'+GATE_IC[r[0]]+'<span>'+r[1]+'</span></li>'}).join("")+'</ul>'}
 // No gameplay, local or online, for a visitor who has not signed in. Closes once they do.
 function renderGate(){
   var t=L(),spons=ADS.map(function(a){return '<img src="'+a.img+'" alt="'+esc(a.name)+'" loading="lazy">'}).join("");
@@ -2236,6 +2246,7 @@ function renderGate(){
     '<div class="gate-wordmark"><span class="gw-l" style="background:var(--red)">L</span><span class="gw-l" style="background:var(--green)">U</span><span class="gw-l" style="background:var(--blue)">D</span><span class="gw-l" style="background:var(--yellow);color:#1a1500">O</span><b class="gw-word">Teranga</b></div>'+
     '</div>'+
     '<h2>'+t.gateTitle+'</h2><p class="note" style="margin:0">'+t.gateSub+'</p>'+
+    gateFeatures(t)+
     '<div class="gate-spons"><span class="gate-spons-label">'+t.gateWith+'</span>'+spons+'</div>'+
     '<div class="ad" id="gate-ad" role="complementary"></div>'+
     '<button type="button" class="cta" id="gate-go" style="width:100%">'+t.gateCta+'</button>';
@@ -4030,7 +4041,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="100";
+var BUILD="101";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
