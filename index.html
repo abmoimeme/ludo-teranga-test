@@ -2087,7 +2087,10 @@ function enter(code,room){
 }
 // A player must pick a name before creating or joining an online game.
 function hasName(){var hs=humanSeats();return !!(((cfg.me&&cfg.me.name)||"").trim()||(hs.length&&(cfg.names[hs[0]]||"").trim()))}
+// A name is optional: a player who has not typed one gets a plain starting name and can change it in Settings.
+function ensureName(){if(hasName())return;if(!cfg.me)cfg.me={};cfg.me.name="Player"+(100+Math.floor(Math.random()*900));saveCfg()}
 function needName(){
+  ensureName();
   if(hasName()&&cleanText(meName())===meName())return false;
   onErr=hasName()?L().errBadName:L().errName;onlineView="settings";renderOnline();
   var el=$("me-name");if(el){el.focus();el.classList.add("bad")}
@@ -3488,7 +3491,7 @@ function emailSign(email,pw,create,cc){
   if(!emailOk(email)){logEv(authKind+"_fail","bad_email");onErr=L().emInvalid;renderOnline();focusBad("em-mail");return}
   if(!pw){logEv(authKind+"_fail","no_password");onErr=L().emNoPw;renderOnline();focusBad("em-pw");return}
   if(create&&pw.length<8){logEv("signup_fail","weak_password");onErr=L().emWeak;renderOnline();focusBad("em-pw");return}
-  if(create&&!hasName()){logEv("signup_fail","no_name");onErr=L().emName;renderOnline();focusBad("me-name");return}
+  if(create)ensureName();
   logEv(authKind+"_try");
   authBusy=true;renderOnline();
   authCall(create?"accounts:signUp":"accounts:signInWithPassword",{email:email,password:pw,returnSecureToken:true}).then(function(j){
@@ -3615,7 +3618,7 @@ function afterAuth(cc){
           dbx("DELETE","/accounts/"+was).catch(function(){});setLegacy("");logEv(authKind+"_ok","old_game_moved");done();
         },refused);
       }
-      if(!hasName()){logEv(authKind+"_fail","no_name");authBusy=false;onErr=L().emName;renderOnline();focusBad("me-name");return}
+      ensureName();
       acct={aid:uid,hint:hint,t:0,name:meName(),cc:String(cc||guessCc()),mig:0};
       var fd=acctDoc();
       return dbx("PUT","/accounts/"+uid,fd).then(function(){
@@ -4016,7 +4019,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="97";
+var BUILD="98";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
