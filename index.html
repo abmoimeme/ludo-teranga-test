@@ -3499,7 +3499,7 @@ function scramble(s){
     return Array.prototype.map.call(new Uint8Array(b),function(x){return ("0"+x.toString(16)).slice(-2)}).join("").slice(0,40);
   });
 }
-function saveAcct(){try{if(acct)localStorage.setItem("ludo-acct",JSON.stringify(acct));else localStorage.removeItem("ludo-acct")}catch(e){}}
+function saveAcct(){try{if(acct)localStorage.setItem("ludo-acct",JSON.stringify(acct));else localStorage.removeItem("ludo-acct")}catch(e){}if(acct&&typeof checkUpdate==="function")setTimeout(checkUpdate,300)}
 function acctDoc(){
   var nm=meName(),pr=bank.profiles[keyOf(nm)]||{};
   return {id:myId,fc:myFc,name:nm,av:meAv(),pts:typeof pr.pts==="number"?pr.pts:WELCOME,games:pr.games||0,wins:pr.wins||0,caps:pr.caps||0,best:pr.best||0,run:pr.run||0,day:pr.day||"",friends:friends.slice(0,40),cc:(acct&&acct.cc)||"",mig:acct&&acct.mig?1:0,uname:(acct&&acct.uname)||"",unameAt:(acct&&acct.unameAt)||0,t:Date.now()};
@@ -4291,14 +4291,20 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="125";
+var BUILD="126";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
   bar.className="invite update open";
   bar.innerHTML='<span>'+L().updating+'</span>';
+  // loop guard: at most 2 automatic reloads per minute, so a stale CDN copy can never trap a player
+  try{var n=+sessionStorage.getItem("ludo-upd-n")||0,t=+sessionStorage.getItem("ludo-upd-t")||0,now=Date.now();
+    if(now-t>60000){n=0}
+    if(n>=2){bar.className="invite update";bar.innerHTML="";return}
+    sessionStorage.setItem("ludo-upd-n",String(n+1));sessionStorage.setItem("ludo-upd-t",String(now))}catch(e){}
   var go=function(){location.reload()};
-  try{if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)navigator.serviceWorker.getRegistration().then(function(r){return r?r.update():null}).then(go,go);else go()}catch(e){go()}
+  var wipe=function(){return window.caches&&caches.keys?caches.keys().then(function(ks){return Promise.all(ks.map(function(k){return caches.delete(k)}))}):null};
+  try{if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration)navigator.serviceWorker.getRegistration().then(function(r){return r?r.update():null}).then(wipe).then(go,go);else Promise.resolve(wipe()).then(go,go)}catch(e){go()}
 }
 function checkUpdate(){
   if(NAT)return;
@@ -4316,7 +4322,7 @@ function checkUpdate(){
     $("update-go").addEventListener("click",applyUpdate);
   }).catch(function(){});
 }
-setTimeout(checkUpdate,4000);setInterval(checkUpdate,180000);
+setTimeout(checkUpdate,1500);setInterval(checkUpdate,180000);
 document.addEventListener("visibilitychange",function(){if(!document.hidden)checkUpdate()});
 boot({});syncGate();
 if(!NAT&&"serviceWorker" in navigator&&(location.protocol==="https:"||location.hostname==="localhost"))window.addEventListener("load",function(){navigator.serviceWorker.register("sw.js").catch(function(){})});
