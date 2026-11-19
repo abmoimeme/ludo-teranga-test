@@ -352,6 +352,17 @@ h1 span{color:var(--accent);display:block}
 .gate-spons img{animation:none;border-width:1px;border-radius:var(--r-sm)}
 .lobby-bal{background:var(--surface-2);border:1px solid var(--border)}
 .panel{border-radius:var(--r-lg) var(--r-lg) 0 0}
+/* Build 100: home and sign-up cards fill the phone screen instead of floating in the middle. */
+.sheet.gate,.sheet.lobby{align-items:stretch;justify-content:center}
+.sheet.gate .panel,.sheet.lobby .panel{max-width:540px;width:100%;margin:0 auto;height:100%;max-height:100%;border-radius:0;border-left:0;border-right:0;border-top:0;border-bottom:0;padding:max(var(--s4),env(safe-area-inset-top)) var(--s4) max(var(--s4),env(safe-area-inset-bottom));gap:var(--s4);justify-content:space-between;box-sizing:border-box}
+.sheet.gate .gate-banner,.sheet.lobby .gate-banner{border-radius:var(--r-lg);margin:0;width:100%;padding:var(--s5) var(--s4);border:1px solid var(--border)}
+.sheet.lobby .lobby-tiles{flex:1 1 auto;max-height:220px;min-height:112px}
+.sheet.lobby .lobby-tiles .tile{min-height:0;font-size:1.2rem}
+.sheet.lobby .lobby-tiles .tile i{font-size:2.2rem}
+.sheet.lobby .lobby-mini button{min-height:52px;font-size:.85rem}
+.sheet.gate #gate-go{margin-top:auto}
+.sheet.gate .adtop,.sheet.lobby .adtop{flex:none;max-width:100%;width:100%;box-sizing:border-box}
+.sheet.lobby .lobby-tiles{max-height:180px}
 </style>
 </head>
 <body>
@@ -4019,7 +4030,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="99";
+var BUILD="100";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
