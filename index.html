@@ -3078,9 +3078,10 @@ window.addEventListener("pagehide",function(){if(seen&&seenDirty>0)seenFlush()})
 // Switched on when the project's key is present in config.js. The password is sent to the sign-in service
 // only and is never kept; the device keeps a renewal token so the player stays signed in.
 var API_KEY=String(CFG.apiKey||""),EMAIL_ON=!!API_KEY;
-var GOOGLE_CLIENT_ID="263422155646-10h439cj74jmeaqngha5in3a79nkedso.apps.googleusercontent.com";
+// Inside the phone app the web Google and Apple windows cannot open, so only email shows there until native sign-in is added.
+var GOOGLE_CLIENT_ID=NAT?"":"263422155646-10h439cj74jmeaqngha5in3a79nkedso.apps.googleusercontent.com";
 // Sign in with Apple: shown only once the Apple Services ID is in config.js (appleId).
-var APPLE_ID=String(CFG.appleId||""),APPLE_JS="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js";
+var APPLE_ID=(NAT&&!NAT.appleSignIn)?"":String(CFG.appleId||""),APPLE_JS="https://appleid.cdn-apple.com/appleauth/static/jsapi/appleid/1/en_US/appleid.auth.js";
 var pAuth=null,pTok=null,pTokP=null,legacyAid="",authBusy=false;
 try{pAuth=JSON.parse(localStorage.getItem("ludo-auth")||"null")}catch(e){}
 if(!pAuth||typeof pAuth!=="object"||!pAuth.rt||!pAuth.uid)pAuth=null;
@@ -4015,7 +4016,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="96";
+var BUILD="97";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
