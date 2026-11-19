@@ -3565,8 +3565,8 @@ function appleAuthorize(){
     return {idToken:a.id_token,code:a.code||"",nonce:raw};
   },function(e){
     var m=String((e&&(e.error||e.message))||e||"");
-    if(/popup_closed|user_cancel|user_trigger/i.test(m))throw new Error("cancel");
-    throw e instanceof Error?e:new Error(m||"apple");
+    if(/popup_closed|user_cancel/i.test(m))throw new Error("cancel");
+    var er=new Error(m||"apple");er.code=m;throw er;
   });
 }
 function appleSign(cc){
@@ -3577,7 +3577,7 @@ function appleSign(cc){
   },function(e){
     if(e&&e.message==="cancel"){logEv("apple_fail","cancelled");return}
     logEv("apple_fail",e&&e.message==="apple_js"?"network":"service_other");
-    onErr=L().appleFail;renderOnline();
+    onErr=L().appleFail+" ("+String((e&&(e.code||e.message))||"?").slice(0,60)+")";renderOnline();
   });
 }
 // Apple asks apps to cut the link with Apple when an account is deleted.
@@ -4015,7 +4015,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="92";
+var BUILD="93";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
