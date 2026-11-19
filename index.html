@@ -966,6 +966,7 @@ T.en.cpuLine=function(n){return n+" computer"+(n===1?"":"s")+" will play against
 T.fr.cpuLine=function(n){return n+" ordinateur"+(n===1?"":"s")+" jouer"+(n===1?"a":"ont")+" contre vous."};
 T.it.cpuLine=function(n){return n+" computer giocher"+(n===1?"à":"anno")+" contro di te."};
 T.en.phoneLine="Pass the phone around. Each player picks a name and a picture.";T.fr.phoneLine="Passez le téléphone. Chaque joueur choisit un nom et une image.";T.it.phoneLine="Passatevi il telefono. Ogni giocatore sceglie un nome e un'immagine.";
+T.en.guestNote="Playing as a guest: picture chosen for you, points up to 100, no turn timer. Sign in for every option.";T.fr.guestNote="Vous jouez en invité : image choisie pour vous, points jusqu'à 100, pas de minuteur. Connectez-vous pour toutes les options.";T.it.guestNote="Giochi da ospite: immagine scelta per te, punti fino a 100, nessun timer. Accedi per tutte le opzioni.";
 T.en.yourSeat="You";T.fr.yourSeat="Vous";T.it.yourSeat="Tu";
 T.en.unameSet="Set";T.fr.unameSet="Valider";T.it.unameSet="Conferma";
 T.en.unameIs="Your name (permanent):";T.fr.unameIs="Votre nom (définitif) :";T.it.unameIs="Il tuo nome (definitivo):";
@@ -1055,6 +1056,9 @@ var LANGS=["en","fr","it"],LOCALE={en:"en-US",fr:"fr-FR",it:"it-IT"},lang="en",l
 })();
 // Full version: until the in-app purchase exists, everyone has it (preview).
 var FULL_PREVIEW=true;
+function signedIn(){return !!(acct||pAuth)}
+function canTimer(){return signedIn()&&hasFull()}
+var GUEST_STAKES=[0,100];
 function hasFull(){return FULL_PREVIEW||!!(acct&&acct.full)}
 var kerBgUrl="";try{kerBgUrl=localStorage.getItem("ludo-kerbg")||""}catch(e){}
 if(!/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(kerBgUrl)||kerBgUrl.length>90000)kerBgUrl="";
@@ -1393,14 +1397,20 @@ function startGame(){
   if(g&&!g.over&&g.counted&&evGame&&/^local/.test(evGame.on))evGameEnd("game_left");
   if(net)leaveRoom(true);
   epoch++;stopClock();
+  if(!signedIn()){
+    if(cfg.stake>100)cfg.stake=0;
+    var pool=EMOJI.slice().sort(function(){return Math.random()-.5}),pi=0;
+    seatsFor(cfg.count).forEach(function(s){if(cfg.kinds[s]==="human"){cfg.avs[s]={t:"e",v:pool[pi%pool.length]};pi++}});
+  }
   var seats=seatsFor(cfg.count).map(function(s){return {seat:s,kind:cfg.kinds[s]}});
   g=newGame({seats:seats,twoDice:cfg.twoDice,safe:cfg.safe,blockPass:cfg.blockPass,bonus:cfg.bonus,captureHome:false,jail:cfg.jail,homeBonus:cfg.homeBonus,hop:true,door:true});
   g.stake=cfg.stake>minBal()?0:(cfg.stake||0);g.pot=g.stake*g.players.length;g.gains={};g.v=3;
+  var usedAv=humanSeats().map(function(s){var v=avFor(s);return v.t==="e"?v.v:""});
   g.players.forEach(function(pl){
     var s=pl.seat;
     if(pl.kind==="cpu"){var taken=g.players.filter(function(x){return x.kind!=="cpu"}).map(function(x){return keyOf(nameFor(x.seat))});
       var cn=CPU_NAMES[s];if(taken.indexOf(keyOf(cn))>=0){var alt=CPU_NAMES.concat(["Samba","Khady"]).filter(function(x){return taken.indexOf(keyOf(x))<0&&g.players.every(function(y){return y.name!==x})});cn=alt[0]||cn}
-      pl.name=cn;pl.av={t:"e",v:DEF_AV[s]};pl.key=null;return}
+      pl.name=cn;var ev=EMOJI.filter(function(e){return usedAv.indexOf(e)<0})[0]||DEF_AV[s];usedAv.push(ev);pl.av={t:"e",v:ev};pl.key=null;return}
     var nm=nameFor(s),k=keyOf(nm),pr=bank.profiles[k];
     if(!pr)pr=bank.profiles[k]={name:nm,pts:WELCOME,av:null,t:0};
     pr.name=nm;pr.av=avFor(s);
@@ -1891,7 +1901,7 @@ function control(pi){
   if(pl.kind==="human"&&fresh(pl.id))return "remote";
   return actingHost()===myId?"cpu":"remote";
 }
-function turnSecs(){return live()?((net.room.cfg&&net.room.cfg.timer)||30):cfg.timer}
+function turnSecs(){return live()?((net.room.cfg&&net.room.cfg.timer)||30):(canTimer()?cfg.timer:0)}
 function cleanAv(av,seat){
   if(av&&av.t==="i"&&typeof av.v==="string"&&av.v.length<24000&&/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(av.v))return {t:"i",v:av.v};
   if(av&&av.t==="e"&&typeof av.v==="string"&&av.v.length<=8)return {t:"e",v:av.v};
@@ -4005,8 +4015,8 @@ function seg(items,cur,name){
   return '<div class="seg">'+items.map(function(it){return '<button type="button" data-set="'+name+'" data-val="'+it[0]+'" aria-pressed="'+(String(cur)===String(it[0]))+'">'+it[1]+'</button>'}).join("")+'</div>';
 }
 function stakeHTML(){
-  var mb=minBal();if(cfg.stake>mb)cfg.stake=0;
-  return '<div class="seg">'+STAKES.map(function(v){return '<button type="button" data-stake="'+v+'" aria-pressed="'+(cfg.stake===v)+'"'+(v>mb?" disabled":"")+'>'+(v?fmt(v):L().friendlyShort)+'</button>'}).join("")+'</div>';
+  var mb=minBal();if(cfg.stake>mb)cfg.stake=0;if(!signedIn()&&cfg.stake>100)cfg.stake=0;
+  return '<div class="seg">'+(signedIn()?STAKES:GUEST_STAKES).map(function(v){return '<button type="button" data-stake="'+v+'" aria-pressed="'+(cfg.stake===v)+'"'+(v>mb?" disabled":"")+'>'+(v?fmt(v):L().friendlyShort)+'</button>'}).join("")+'</div>';
 }
 function bindStake(){
   Array.prototype.slice.call($("stake-box").querySelectorAll("[data-stake]")).forEach(function(b){b.addEventListener("click",function(){
@@ -4086,11 +4096,12 @@ function renderSetup(){
     h+='<div class="seatbox"><div class="seat"><i style="background:'+CSSC[s]+'"></i><b>'+(cfg.mode==="cpu"?t.yourSeat:t.colors[s])+'</b></div>';
     var av=avFor(s);
     h+='<div class="who"><input type="text" id="name-'+s+'" data-name="'+s+'" maxlength="12" autocomplete="off" list="names" placeholder="'+esc(defName(s))+'" value="'+esc(cfg.names[s]||"")+'" aria-label="'+t.name+'"><span class="bal" id="bal-'+s+'">★ '+fmt(balanceOf(nameFor(s)))+'</span></div>';
-    h+='<div class="avs" id="avs-'+s+'">'+avsHTML(s,av)+'</div></div>';
+    h+=(signedIn()?'<div class="avs" id="avs-'+s+'">'+avsHTML(s,av)+'</div>':'')+'</div>';
   });
   h+='</div>'+(cfg.mode==="cpu"?'<p class="note" style="margin:0">'+t.cpuLine(cpuN)+'</p>':'<p class="note" style="margin:0">'+t.phoneLine+'</p>')+'<datalist id="names">'+Object.keys(bank.profiles).map(function(k){return '<option value="'+esc(bank.profiles[k].name)+'">'}).join("")+'</datalist></div>';
   h+='<div class="stakes"><h3>'+t.stake+'</h3><div id="stake-box">'+stakeHTML()+'</div><p class="note">'+t.stakeNote+'</p></div>';
-  h+='<div><h3>'+t.timer+'</h3>'+seg([[0,t.off],[10,t.sec(10)],[15,t.sec(15)],[30,t.sec(30)]],cfg.timer,"timer")+'</div>';
+  if(canTimer())h+='<div><h3>'+t.timer+'</h3>'+seg([[0,t.off],[10,t.sec(10)],[15,t.sec(15)],[30,t.sec(30)]],cfg.timer,"timer")+'</div>';
+  else h+='<p class="note" style="margin:0">'+t.guestNote+'</p>';
   h+='<p class="err" id="setup-err" role="alert"></p><button type="button" class="cta" id="go">'+t.start+'</button><button type="button" class="ghost" id="cancel">'+t.close+'</button>';
   var p=$("panel-setup"),all=function(q){return Array.prototype.slice.call(p.querySelectorAll(q))};
   p.innerHTML=h;
@@ -4109,7 +4120,7 @@ function renderSetup(){
     });
     inp.addEventListener("change",function(){var pr=profileOf(nameFor(s));if(pr&&pr.av){cfg.avs[s]=null;refreshAvs(s)}});
   });
-  seatsFor(cfg.count).forEach(refreshAvs);
+  if(signedIn())seatsFor(cfg.count).forEach(refreshAvs);
   all("[data-bun]").forEach(function(b){b.addEventListener("click",function(){applyBundle(b.getAttribute("data-bun"));renderSetup()})});
   bindStake();
   $("go").addEventListener("click",function(){
@@ -4259,7 +4270,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="116";
+var BUILD="117";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
