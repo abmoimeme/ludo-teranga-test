@@ -385,6 +385,7 @@ h1 span{color:var(--accent);display:block}
 .kb-pick img{width:28px;height:28px;border-radius:6px;object-fit:cover}
 .kb-pick.on{border-color:var(--accent)}
 .prow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px;font-weight:700}
+.bun{display:grid;gap:8px}.bun button{display:block;width:100%;text-align:left;background:none;border:1.5px solid var(--muted);border-radius:var(--r-md);padding:12px 14px;min-height:56px}.bun button b{display:block;font-size:1rem}.bun button span{display:block;font-size:.8rem;opacity:.85;margin-top:2px;line-height:1.3}.bun button[aria-pressed="true"]{background:var(--ink);color:var(--cloth);border-color:var(--ink)}
 </style>
 <style id="ff" media="not all">
 @font-face{font-family:"Baloo 2";font-weight:600;font-display:swap;src:url(fonts/baloo2-600.woff2) format("woff2")}
@@ -705,7 +706,7 @@ en:{sub:"West African house rules",roll:"Roll",newGame:"New game",rules:"Rules",
   errNet:"Could not reach the game server. Check your connection and try again.",errPoints:function(n){return "You need "+n+" ★ to join this game."},
   onlineTag:"online",awayTag:"away",roomLine:function(c){return "Online · "+c},
   sumLine:function(n,d,st,sec){return n+" players · "+d+(d>1?" dice":" die")+" · "+(st?"entry "+st+" ★":"friendly")+" · "+sec+" s per turn"},
-  welcome:"Who is playing?",welcomeNote:"Type a name and pick a picture for each player. Switch a seat to Player for every person at the table.",
+  welcome:"Who is playing?",welcomeNote:"Choose your game, then how you play.",
   setup:"New game",players:"Players",who:"Who plays",human:"Player",comp:"Computer",ruleset:"Rule set",name:"Name",photo:"Photo",
   stake:"Points to play",stakeNote:"Each player puts in the same points and the winner takes the pot. Computer players match it. New names start with 1,000 ★.",
   forfeit:"A game is in progress. Starting a new one gives up the points already in the pot.",
@@ -774,7 +775,7 @@ fr:{sub:"Règles de la maison, façon Afrique de l'Ouest",roll:"Lancer",newGame:
   errNet:"Impossible de joindre le serveur de jeu. Vérifiez votre connexion et réessayez.",errPoints:function(n){return "Il vous faut "+n+" ★ pour rejoindre cette partie."},
   onlineTag:"en ligne",awayTag:"absent",roomLine:function(c){return "En ligne · "+c},
   sumLine:function(n,d,st,sec){return n+" joueurs · "+d+(d>1?" dés":" dé")+" · "+(st?"mise "+st+" ★":"amicale")+" · "+sec+" s par tour"},
-  welcome:"Qui joue ?",welcomeNote:"Écrivez un nom et choisissez une image pour chaque joueur. Mettez un siège sur Joueur pour chaque personne présente.",
+  welcome:"Qui joue ?",welcomeNote:"Choisissez votre jeu, puis comment vous jouez.",
   setup:"Nouvelle partie",players:"Joueurs",who:"Qui joue",human:"Joueur",comp:"Ordinateur",ruleset:"Règles",name:"Nom",photo:"Photo",
   stake:"Points à miser",stakeNote:"Chaque joueur met les mêmes points et le gagnant prend la cagnotte. Les ordinateurs suivent. Un nouveau nom commence avec 1 000 ★.",
   forfeit:"Une partie est en cours. En commencer une autre fait perdre les points déjà dans la cagnotte.",
@@ -850,7 +851,7 @@ var IT={sub:"Regole di casa dell'Africa occidentale",roll:"Tira",newGame:"Nuova 
   errNet:"Impossibile raggiungere il server di gioco. Controlla la connessione e riprova.",errPoints:function(n){return "Ti servono "+n+" ★ per entrare in questa partita."},
   onlineTag:"online",awayTag:"assente",roomLine:function(c){return "Online · "+c},
   sumLine:function(n,d,st,sec){return n+" giocatori · "+d+(d>1?" dadi":" dado")+" · "+(st?"puntata "+st+" ★":"amichevole")+" · "+sec+" s per turno"},
-  welcome:"Chi gioca?",welcomeNote:"Scrivi un nome e scegli un'immagine per ogni giocatore. Imposta un posto su Giocatore per ogni persona al tavolo.",
+  welcome:"Chi gioca?",welcomeNote:"Scegli il tuo gioco, poi come giocare.",
   setup:"Nuova partita",players:"Giocatori",who:"Chi gioca",human:"Giocatore",comp:"Computer",ruleset:"Regole",name:"Nome",photo:"Foto",
   stake:"Punti da giocare",stakeNote:"Ogni giocatore mette gli stessi punti e chi vince prende il piatto. I computer fanno lo stesso. Un nome nuovo parte con 1.000 ★.",
   forfeit:"C'è una partita in corso. Iniziarne una nuova fa perdere i punti già nel piatto.",
@@ -945,6 +946,27 @@ T.en.emNoPw="Type your password.";T.fr.emNoPw="Tapez votre mot de passe.";T.it.e
 T.en.unameNeed="Choose your name. Friends find you with it, and it cannot be changed later.";T.fr.unameNeed="Choisissez votre nom. Vos amis vous trouvent avec, et il ne pourra plus être changé.";T.it.unameNeed="Scegli il tuo nome. Gli amici ti trovano con quello e non potrà essere cambiato.";
 T.en.unamePh="Your name";T.fr.unamePh="Votre nom";T.it.unamePh="Il tuo nome";
 T.en.unameFixed="Your name is permanent and unique.";T.fr.unameFixed="Votre nom est définitif et unique.";T.it.unameFixed="Il tuo nome è definitivo e unico.";
+T.en.bundleTitle="Choose your game";T.fr.bundleTitle="Choisissez votre jeu";T.it.bundleTitle="Scegli il tuo gioco";
+T.en.bunClassic="Teranga Classic";T.fr.bunClassic="Teranga classique";T.it.bunClassic="Teranga classico";
+T.en.bunClassicD="1 die. A pair blocks the road. Caught pieces go to the catcher's kër. Extra roll after a capture or getting home.";
+T.fr.bunClassicD="1 dé. Deux pions font barrage. Les pions capturés vont dans le kër de celui qui capture. Relance après une capture ou une arrivée.";
+T.it.bunClassicD="1 dado. Due pedine bloccano la strada. Le pedine catturate vanno nel kër di chi cattura. Tiro extra dopo una cattura o un arrivo.";
+T.en.bunWest="West African";T.fr.bunWest="Afrique de l'Ouest";T.it.bunWest="Africa occidentale";
+T.en.bunWestD="2 dice, faster games. A pair blocks the road. Caught pieces go to the catcher's kër. Extra roll when a piece gets home.";
+T.fr.bunWestD="2 dés, parties plus rapides. Deux pions font barrage. Pions capturés dans le kër du capteur. Relance à l'arrivée d'un pion.";
+T.it.bunWestD="2 dadi, partite più rapide. Due pedine bloccano la strada. Pedine catturate nel kër di chi cattura. Tiro extra all'arrivo.";
+T.en.bunFriendly="Friendly";T.fr.bunFriendly="Amical";T.it.bunFriendly="Amichevole";
+T.en.bunFriendlyD="1 die. Star squares are safe. Caught pieces go back to their own yard. Extra rolls.";
+T.fr.bunFriendlyD="1 dé. Cases étoile protégées. Les pions capturés retournent chez eux. Relances.";
+T.it.bunFriendlyD="1 dado. Caselle stella sicure. Le pedine catturate tornano a casa. Tiri extra.";
+T.en.modeTitle="How do you play?";T.fr.modeTitle="Comment jouez-vous ?";T.it.modeTitle="Come giochi?";
+T.en.modeCpu="Against the computer";T.fr.modeCpu="Contre l'ordinateur";T.it.modeCpu="Contro il computer";
+T.en.modePhone="Same phone, friends";T.fr.modePhone="Même téléphone, amis";T.it.modePhone="Stesso telefono, amici";
+T.en.cpuLine=function(n){return n+" computer"+(n===1?"":"s")+" will play against you."};
+T.fr.cpuLine=function(n){return n+" ordinateur"+(n===1?"":"s")+" jouer"+(n===1?"a":"ont")+" contre vous."};
+T.it.cpuLine=function(n){return n+" computer giocher"+(n===1?"à":"anno")+" contro di te."};
+T.en.phoneLine="Pass the phone around. Each player picks a name and a picture.";T.fr.phoneLine="Passez le téléphone. Chaque joueur choisit un nom et une image.";T.it.phoneLine="Passatevi il telefono. Ogni giocatore sceglie un nome e un'immagine.";
+T.en.yourSeat="You";T.fr.yourSeat="Vous";T.it.yourSeat="Tu";
 T.en.unameSet="Set";T.fr.unameSet="Valider";T.it.unameSet="Conferma";
 T.en.unameIs="Your name (permanent):";T.fr.unameIs="Votre nom (définitif) :";T.it.unameIs="Il tuo nome (definitivo):";
 T.en.unameChange="Change";T.fr.unameChange="Changer";T.it.unameChange="Cambia";
@@ -1194,7 +1216,7 @@ function cellOf(seat,ti,p){
 // ---------- State ----------
 var g=null,phase="roll",selDie=0,epoch=0;
 var cfg={count:4,kinds:["human","cpu","cpu","cpu"],names:["","","",""],avs:[null,null,null,null],stake:0,timer:15,
-  twoDice:false,safe:false,blockPass:true,bonus:true,captureHome:false,jail:true,homeBonus:true};
+  twoDice:false,safe:false,blockPass:true,bonus:true,captureHome:false,jail:true,homeBonus:true,mode:"cpu"};
 var reduced=window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 var $=function(id){return document.getElementById(id)};
 function sleep(ms){return new Promise(function(r){setTimeout(r,ms)})}
@@ -1376,7 +1398,9 @@ function startGame(){
   g.stake=cfg.stake>minBal()?0:(cfg.stake||0);g.pot=g.stake*g.players.length;g.gains={};g.v=3;
   g.players.forEach(function(pl){
     var s=pl.seat;
-    if(pl.kind==="cpu"){pl.name=(cfg.names[s]||"").trim()||CPU_NAMES[s];pl.av=cfg.avs[s]||{t:"e",v:DEF_AV[s]};pl.key=null;return}
+    if(pl.kind==="cpu"){var taken=g.players.filter(function(x){return x.kind!=="cpu"}).map(function(x){return keyOf(nameFor(x.seat))});
+      var cn=CPU_NAMES[s];if(taken.indexOf(keyOf(cn))>=0){var alt=CPU_NAMES.concat(["Samba","Khady"]).filter(function(x){return taken.indexOf(keyOf(x))<0&&g.players.every(function(y){return y.name!==x})});cn=alt[0]||cn}
+      pl.name=cn;pl.av={t:"e",v:DEF_AV[s]};pl.key=null;return}
     var nm=nameFor(s),k=keyOf(nm),pr=bank.profiles[k];
     if(!pr)pr=bank.profiles[k]={name:nm,pts:WELCOME,av:null,t:0};
     pr.name=nm;pr.av=avFor(s);
@@ -4020,37 +4044,52 @@ function refreshAvs(s){
     if(f.files&&f.files[0])readPhoto(f.files[0],function(url){if(url){cfg.avs[s]={t:"i",v:url};refreshAvs(s)}});
   });
 }
+var BUNDLES={
+  classic:{twoDice:false,safe:false,blockPass:true,bonus:true,jail:true,homeBonus:true},
+  west:{twoDice:true,safe:false,blockPass:true,bonus:false,jail:true,homeBonus:true},
+  friendly:{twoDice:false,safe:true,blockPass:true,bonus:true,jail:false,homeBonus:true}
+};
+function bundleOf(){
+  for(var k in BUNDLES){var b=BUNDLES[k],ok=true;for(var o in b)if(!!cfg[o]!==b[o])ok=false;if(ok)return k}
+  return cfg.twoDice?"west":cfg.safe?"friendly":"classic";
+}
+function applyBundle(k){var b=BUNDLES[k]||BUNDLES.classic;for(var o in b)cfg[o]=b[o];cfg.captureHome=false}
+// Against the computer: only the first seat is a person. Same phone: every seat is a person.
+function setKinds(){
+  seatsFor(4).forEach(function(s,i){cfg.kinds[s]=cfg.mode==="phone"||s===0?"human":"cpu"});
+}
 function renderSetup(){
+  if(cfg.mode!=="phone")cfg.mode="cpu";
+  setKinds();
+  if(acct&&cfg.me&&cfg.me.name&&!(cfg.names[0]||"").trim()&&cfg.mode==="cpu"){cfg.names[0]=cfg.me.name;if(cfg.me.av&&!cfg.avs[0])cfg.avs[0]=cfg.me.av}
+  applyBundle(bundleOf());
   var t=L(),h='<h2>'+(firstVisit?t.welcome:t.setup)+'</h2>';
   if(firstVisit)h+='<p class="note" style="margin:0">'+t.welcomeNote+'</p>';
   if(g&&!g.over&&g.pot>0)h+='<p class="warn">'+t.forfeit+'</p>';
+  var bk=bundleOf();
+  h+='<div><h3>'+t.bundleTitle+'</h3><div class="bun" role="group" aria-label="'+t.bundleTitle+'">'+[["classic",t.bunClassic,t.bunClassicD],["west",t.bunWest,t.bunWestD],["friendly",t.bunFriendly,t.bunFriendlyD]].map(function(x){return '<button type="button" data-bun="'+x[0]+'" aria-pressed="'+(bk===x[0])+'"><b>'+x[1]+'</b><span>'+x[2]+'</span></button>'}).join("")+'</div></div>';
+  h+='<div><h3>'+t.modeTitle+'</h3>'+seg([["cpu",t.modeCpu],["phone",t.modePhone]],cfg.mode,"mode")+'</div>';
   h+='<div><h3>'+t.players+'</h3>'+seg([[2,"2"],[3,"3"],[4,"4"]],cfg.count,"count")+'</div>';
-  h+='<div><h3>'+t.who+'</h3><div class="seats">';
+  h+='<div><div class="seats">';
+  var cpuN=0;
   seatsFor(cfg.count).forEach(function(s){
-    h+='<div class="seatbox"><div class="seat"><i style="background:'+CSSC[s]+'"></i><b>'+t.colors[s]+'</b>'+seg([["human",t.human],["cpu",t.comp]],cfg.kinds[s],"kind"+s)+'</div>';
-    {
-      var hum=cfg.kinds[s]==="human",av=hum?avFor(s):(cfg.avs[s]||{t:"e",v:DEF_AV[s]});
-      h+='<div class="who"><input type="text" id="name-'+s+'" data-name="'+s+'" maxlength="12" autocomplete="off" list="names" placeholder="'+esc(hum?defName(s):CPU_NAMES[s])+'" value="'+esc(cfg.names[s]||"")+'" aria-label="'+t.name+'"><span class="bal" id="bal-'+s+'">'+(hum?"★ "+fmt(balanceOf(nameFor(s))):"")+'</span></div>';
-      h+='<div class="avs" id="avs-'+s+'">'+avsHTML(s,av)+'</div>';
-    }
-    h+='</div>';
+    if(cfg.kinds[s]!=="human"){cpuN++;return}
+    h+='<div class="seatbox"><div class="seat"><i style="background:'+CSSC[s]+'"></i><b>'+(cfg.mode==="cpu"?t.yourSeat:t.colors[s])+'</b></div>';
+    var av=avFor(s);
+    h+='<div class="who"><input type="text" id="name-'+s+'" data-name="'+s+'" maxlength="12" autocomplete="off" list="names" placeholder="'+esc(defName(s))+'" value="'+esc(cfg.names[s]||"")+'" aria-label="'+t.name+'"><span class="bal" id="bal-'+s+'">★ '+fmt(balanceOf(nameFor(s)))+'</span></div>';
+    h+='<div class="avs" id="avs-'+s+'">'+avsHTML(s,av)+'</div></div>';
   });
-  h+='</div><datalist id="names">'+Object.keys(bank.profiles).map(function(k){return '<option value="'+esc(bank.profiles[k].name)+'">'}).join("")+'</datalist></div>';
+  h+='</div>'+(cfg.mode==="cpu"?'<p class="note" style="margin:0">'+t.cpuLine(cpuN)+'</p>':'<p class="note" style="margin:0">'+t.phoneLine+'</p>')+'<datalist id="names">'+Object.keys(bank.profiles).map(function(k){return '<option value="'+esc(bank.profiles[k].name)+'">'}).join("")+'</datalist></div>';
   h+='<div class="stakes"><h3>'+t.stake+'</h3><div id="stake-box">'+stakeHTML()+'</div><p class="note">'+t.stakeNote+'</p></div>';
   h+='<div><h3>'+t.timer+'</h3>'+seg([[0,t.off],[10,t.sec(10)],[15,t.sec(15)],[30,t.sec(30)]],cfg.timer,"timer")+'</div>';
-  h+='<div><h3>'+t.ruleset+'</h3>'+seg([["1",t.p1],["2",t.p2]],cfg.twoDice?"2":"1","preset")+'</div><div>';
-  [["safe",t.oSafe],["blockPass",t.oBlock],["bonus",t.oBonus],["jail",t.oJail],["homeBonus",t.oHomeBonus]].forEach(function(o){
-    h+='<label class="check" for="opt-'+o[0]+'"><input type="checkbox" id="opt-'+o[0]+'" data-opt="'+o[0]+'"'+(cfg[o[0]]?" checked":"")+'>'+o[1]+'</label>';
-  });
-  h+='</div><p class="err" id="setup-err" role="alert"></p><button type="button" class="cta" id="go">'+t.start+'</button><button type="button" class="ghost" id="cancel">'+t.close+'</button>';
+  h+='<p class="err" id="setup-err" role="alert"></p><button type="button" class="cta" id="go">'+t.start+'</button><button type="button" class="ghost" id="cancel">'+t.close+'</button>';
   var p=$("panel-setup"),all=function(q){return Array.prototype.slice.call(p.querySelectorAll(q))};
   p.innerHTML=h;
   all("[data-set]").forEach(function(b){b.addEventListener("click",function(){
     var k=b.getAttribute("data-set"),v=b.getAttribute("data-val");
     if(k==="count")cfg.count=parseInt(v,10);
     else if(k==="timer")cfg.timer=parseInt(v,10);
-    else if(k==="preset"){cfg.twoDice=v==="2";cfg.bonus=!cfg.twoDice;cfg.captureHome=false}
-    else cfg.kinds[parseInt(k.slice(4),10)]=v;
+    else if(k==="mode"){cfg.mode=v==="phone"?"phone":"cpu";setKinds()}
     renderSetup();
   })});
   all("[data-name]").forEach(function(inp){
@@ -4062,7 +4101,7 @@ function renderSetup(){
     inp.addEventListener("change",function(){var pr=profileOf(nameFor(s));if(pr&&pr.av){cfg.avs[s]=null;refreshAvs(s)}});
   });
   seatsFor(cfg.count).forEach(refreshAvs);
-  all("[data-opt]").forEach(function(c){c.addEventListener("change",function(){cfg[c.getAttribute("data-opt")]=c.checked})});
+  all("[data-bun]").forEach(function(b){b.addEventListener("click",function(){applyBundle(b.getAttribute("data-bun"));renderSetup()})});
   bindStake();
   $("go").addEventListener("click",function(){
     var er=setupError();
@@ -4165,7 +4204,7 @@ function validGame(x){return x&&x.v===3&&x.rank&&x.players&&x.players.length>=2&
 var firstVisit=false;
 function boot(data){
   try{firstVisit=!localStorage.getItem("ludo-cfg2")}catch(e){}
-  try{var c=localStorage.getItem("ludo-cfg2");if(c){var cj=JSON.parse(c);if(cj&&cj.kinds&&cj.names&&cj.avs)cfg=cj}}catch(e){}
+  try{var c=localStorage.getItem("ludo-cfg2");if(c){var cj=JSON.parse(c);if(cj&&cj.kinds&&cj.names&&cj.avs){cfg=cj;if(cfg.mode!=="phone"&&cfg.mode!=="cpu")cfg.mode=cfg.kinds.filter(function(k){return k==="human"}).length>1?"phone":"cpu"}}}catch(e){}
   // a signed-in player keeps their name on this phone even if they have not played yet
   try{if(acct&&acct.name&&!((cfg.me&&cfg.me.name)||"").trim()){cfg.me=cfg.me||{};cfg.me.name=String(acct.name).slice(0,12)}}catch(e){}
   if(typeof cfg.timer!=="number")cfg.timer=15;
@@ -4211,7 +4250,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="114";
+var BUILD="115";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
