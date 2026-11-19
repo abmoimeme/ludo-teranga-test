@@ -383,6 +383,12 @@ h1 span{color:var(--accent);display:block}
 .g-vis{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;gap:var(--s3);font:600 1.05rem/1 -apple-system,BlinkMacSystemFont,"Roboto",system-ui,sans-serif;pointer-events:none}
 .g-vis svg{width:20px;height:20px;flex:none}
 .g-hit{position:absolute;left:0;top:0;opacity:.01;transform-origin:0 0;z-index:2}
+#sheet-online .kerbg{display:flex;align-items:center;gap:var(--s2);flex-wrap:wrap;margin-top:10px}
+.kb-t{font-weight:700;flex:1 1 100%}
+.kb-note,.kb-lock{font-size:.82rem;color:var(--muted,#aab0cc);flex:1 1 100%}
+.kb-pick{position:relative;display:inline-flex;align-items:center;gap:var(--s2);min-height:44px;padding:0 var(--s4);border:1.5px solid var(--muted,#8a93c0);border-radius:var(--r-md);font-weight:700;cursor:pointer}
+.kb-pick img{width:28px;height:28px;border-radius:6px;object-fit:cover}
+.kb-pick.on{border-color:var(--accent)}
 </style>
 </head>
 <body>
@@ -915,6 +921,12 @@ T.en.orWord="or";T.fr.orWord="ou";T.it.orWord="o";
 T.en.youTag="YOU";T.fr.youTag="VOUS";T.it.youTag="TU";
 T.en.googleFail="Google sign-in failed. Try again.";T.fr.googleFail="La connexion Google a échoué. Réessayez.";T.it.googleFail="Accesso Google non riuscito. Riprova.";
 T.en.appleFail="Apple sign-in failed. Try again.";T.fr.appleFail="La connexion Apple a échoué. Réessayez.";T.it.appleFail="Accesso Apple non riuscito. Riprova.";
+T.en.kbTitle=function(w){return "Picture for your "+w};T.fr.kbTitle=function(w){return "Photo pour votre "+w};T.it.kbTitle=function(w){return "Immagine per la tua "+w};
+T.en.kbChoose="Choose a picture";T.fr.kbChoose="Choisir une photo";T.it.kbChoose="Scegli un'immagine";
+T.en.kbChange="Change picture";T.fr.kbChange="Changer la photo";T.it.kbChange="Cambia immagine";
+T.en.kbRemove="Remove";T.fr.kbRemove="Retirer";T.it.kbRemove="Rimuovi";
+T.en.kbNote="Full version. Shown on your device.";T.fr.kbNote="Version complète. Visible sur votre appareil.";T.it.kbNote="Versione completa. Visibile sul tuo dispositivo.";
+T.en.kbLocked="Included in the Full version";T.fr.kbLocked="Inclus dans la version complète";T.it.kbLocked="Incluso nella versione completa";
 T.en.googleBtn="Continue with Google";T.fr.googleBtn="Continuer avec Google";T.it.googleBtn="Continua con Google";
 T.en.appleBtn="Continue with Apple";T.fr.appleBtn="Continuer avec Apple";T.it.appleBtn="Continua con Apple";
 T.en.idpSetup="This sign-in option is not ready yet. Use your email and password for now.";T.fr.idpSetup="Cette option de connexion n'est pas encore prête. Utilisez votre e-mail et votre mot de passe pour l'instant.";T.it.idpSetup="Questa opzione di accesso non è ancora pronta. Per ora usa e-mail e password.";
@@ -1007,7 +1019,55 @@ var LANGS=["en","fr","it"],LOCALE={en:"en-US",fr:"fr-FR",it:"it-IT"},lang="en",l
     try{localStorage.setItem("ludo-lang",lang);localStorage.setItem("ludo-lang-m","0")}catch(e){}
   }
 })();
-function L(){return T[lang]}
+// Full version: until the in-app purchase exists, everyone has it (preview).
+var FULL_PREVIEW=true;
+function hasFull(){return FULL_PREVIEW||!!(acct&&acct.full)}
+var kerBgUrl="";try{kerBgUrl=localStorage.getItem("ludo-kerbg")||""}catch(e){}
+if(!/^data:image\/jpeg;base64,[A-Za-z0-9+\/=]+$/.test(kerBgUrl)||kerBgUrl.length>90000)kerBgUrl="";
+function setKerBg(u){kerBgUrl=u||"";try{if(kerBgUrl)localStorage.setItem("ludo-kerbg",kerBgUrl);else localStorage.removeItem("ludo-kerbg")}catch(e){}}
+function isMePlayer(pl){return !!pl&&((pl.id&&pl.id===myId)||(pl.key&&pl.key===keyOf(meName())))}
+// What a player's house is called depends on the country: kër in Senegal and Gambia, kay in Haiti, maison, casa, home.
+var HOME_KEY="",HOME_GC="";
+var HOME_STYLE_CC={"221":"ker","gm":"ker","ht":"kay","39":"casa","es":"casa","pt":"casa","br":"casa","do":"casa"};
+function homeStyle(){
+  var c=(typeof acct!=="undefined"&&acct&&acct.cc)?String(acct.cc):"";
+  if(!c){if(!HOME_GC){try{HOME_GC=guessCc()}catch(e){HOME_GC=""}}c=HOME_GC||"221"}
+  if(HOME_STYLE_CC[c])return HOME_STYLE_CC[c];
+  if(typeof FR_CC!=="undefined"&&FR_CC.test(c))return "maison";
+  return "home";
+}
+function homeNoun(){
+  var st=homeStyle();
+  if(st==="ker")return "kër";if(st==="kay")return "kay";
+  if(lang==="fr")return "maison";if(lang==="it")return "casa";
+  return st==="maison"?"maison":st==="casa"?"casa":"home";
+}
+function homeCap(){var w=homeNoun();return w.charAt(0).toUpperCase()+w.slice(1)}
+function homeBoard(n){return homeCap()+" "+n}
+function homeSync(){
+  var st=homeStyle(),w=homeNoun(),key=st+"|"+lang;
+  if(key===HOME_KEY||typeof T==="undefined")return;
+  HOME_KEY=key;
+  var ck=(w==="kër"||w==="kay"),fem=(w==="maison"||w==="casa"),cap=homeCap();
+  var vow=function(n){return /^[aeiouyàâäéèêëîïôöùûüh]/i.test(n)};
+  var de=function(n){return vow(n)?"d'"+n:"de "+n};
+  var E=T.en,F=T.fr,I=T.it;
+  E.oJail="Caught pieces go to the catcher's "+w;
+  E.caughtTo=function(n){return "Caught! Off to "+(w==="home"?n+"'s home":cap+" "+n)+"."};
+  E.freed="Back in its own "+w+". Now a 6 brings it out.";
+  E.r.jail="Land on a lone opponent to catch it. The piece goes to your "+w+". Its owner needs a 6 to take it back to their own "+w+", then another 6 to bring it out.";
+  var le=fem?"la":"le",son=fem?"sa":"son";
+  F.oJail="Les pions capturés vont dans "+le+" "+w+" de celui qui capture";
+  F.caughtTo=function(n){return "Capturé ! Direction "+(ck?cap+" "+n:"la maison "+de(n))+"."};
+  F.freed="De retour dans "+son+" "+w+". Encore un 6 pour sortir.";
+  F.r.jail="Arrivez sur un pion adverse seul pour le capturer. Il va dans votre "+w+". Son propriétaire doit faire un 6 pour le ramener dans "+son+" "+w+", puis un autre 6 pour le sortir.";
+  var nel=fem?"nella":"nel",suo=fem?"sua":"suo",tuo=fem?"tua":"tuo";
+  I.oJail="Le pedine catturate vanno "+nel+" "+w+" di chi cattura";
+  I.caughtTo=function(n){return "Catturata! Va "+(ck?"nel "+cap+" "+n:"a casa di "+n)+"."};
+  I.freed="Di nuovo "+nel+" "+suo+" "+w+". Ora serve un 6 per uscire.";
+  I.r.jail="Arriva su una pedina avversaria sola per catturarla. La pedina va "+nel+" "+tuo+" "+w+". Il proprietario deve fare 6 per riportarla "+nel+" "+suo+" "+w+", poi un altro 6 per farla uscire.";
+}
+function L(){homeSync();return T[lang]}
 function fmt(n){return Number(n).toLocaleString(LOCALE[lang])}
 function langOfPhone(num){return num.indexOf("+221")===0||num.indexOf("+33")===0?"fr":num.indexOf("+39")===0?"it":num.indexOf("+1")===0?"en":""}
 // Sets the language automatically, unless the player has already chosen one.
@@ -1359,6 +1419,10 @@ function drawBoard(){
   YARD.forEach(function(y,si){
     var pl=bySeat[si],x=y[1],r=y[0],box='x="'+(x+0.9)+'" y="'+(r+0.75)+'" width="4.2" height="4.2"',pic=pl&&pl.av;
     s+='<g opacity="'+(pl?1:0.3)+'"><rect x="'+x+'" y="'+r+'" width="6" height="6" fill="'+CSSC[si]+'" '+LN+'/>';
+    if(pl&&kerBgUrl&&hasFull()&&isMePlayer(pl)){
+      s+='<clipPath id="kbg'+si+'"><rect x="'+x+'" y="'+r+'" width="6" height="6"/></clipPath>';
+      s+='<image href="'+kerBgUrl+'" x="'+x+'" y="'+r+'" width="6" height="6" preserveAspectRatio="xMidYMid slice" clip-path="url(#kbg'+si+')" opacity=".55"/>';
+    }
     s+='<rect '+box+' rx=".55" fill="var(--board)" '+LN+'/>';
     if(pic&&pl.av.t==="i"&&/^data:image\//.test(pl.av.v)){
       s+='<clipPath id="clip'+si+'"><rect '+box+' rx=".55"/></clipPath>';
@@ -1370,7 +1434,7 @@ function drawBoard(){
     [[2,1.85],[4,1.85],[2,3.85],[4,3.85]].forEach(function(c){
       s+='<circle cx="'+(x+c[0])+'" cy="'+(r+c[1])+'" r=".5" fill="'+(pic?"#fff":CSSC[si])+'" fill-opacity="'+(pic?".5":".28")+'" '+LN+'/>';
     });
-    if(pl)s+='<text x="'+(x+3)+'" y="'+(r+5.5)+'" font-size=".52" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="'+(si===2?"#1a1500":"#fff")+'" style="font-family:var(--body)">'+esc("Kër "+pl.name)+'</text>';
+    if(pl)s+='<text x="'+(x+3)+'" y="'+(r+5.5)+'" font-size=".52" font-weight="700" text-anchor="middle" dominant-baseline="central" fill="'+(si===2?"#1a1500":"#fff")+'" style="font-family:var(--body)">'+esc(homeBoard(pl.name))+'</text>';
     var rk=pl?g.rank.indexOf(seatIdx[si]):-1;
     if(rk>=0){
       s+='<circle cx="'+(x+3)+'" cy="'+(r+2.85)+'" r="1.4" fill="'+(rk===0?"#f0bf00":"#f4f0e3")+'" stroke="var(--line)" stroke-width=".1"/>';
@@ -2346,7 +2410,7 @@ function renderOnline(){
     if(onlineView!=="settings")h+='<p class="note" style="margin:0">'+t.onNote+'</p>';
     h+=seg([["play",t.tabPlay],["settings",t.tabSettings]],onlineView,"onview");
     if(onlineView==="settings"){
-      if(acct||pAuth)h+='<div><h3>'+t.yourName+'</h3><div class="who"><input type="text" id="me-name" maxlength="12" autocomplete="off" placeholder="'+esc(hasName()?meName():t.namePh)+'" value="'+esc((cfg.me&&cfg.me.name)||"")+'" aria-label="'+t.yourName+'"><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div><div class="avs" id="avs-me" style="margin-top:8px"></div><select class="fld" id="me-cc" aria-label="'+t.phCc+'" style="margin-top:10px">'+countryOpts(acct&&acct.cc?String(acct.cc):guessCc())+'</select></div>';
+      if(acct||pAuth)h+='<div><h3>'+t.yourName+'</h3><div class="who"><input type="text" id="me-name" maxlength="12" autocomplete="off" placeholder="'+esc(hasName()?meName():t.namePh)+'" value="'+esc((cfg.me&&cfg.me.name)||"")+'" aria-label="'+t.yourName+'"><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div><div class="avs" id="avs-me" style="margin-top:8px"></div>'+kerBgHTML(t)+'<select class="fld" id="me-cc" aria-label="'+t.phCc+'" style="margin-top:10px">'+countryOpts(acct&&acct.cc?String(acct.cc):guessCc())+'</select></div>';
       h+=acctHTML();
       h+=blockedHTML();
       h+=prefsHTML();
@@ -2419,6 +2483,12 @@ function renderOnline(){
     nm.addEventListener("change",function(){var pr=profileOf(meName());if(pr&&pr.av&&cfg.me){cfg.me.av=null;refreshMyAvs()}});
     refreshMyAvs();
   }
+  var kf=$("kb-file");
+  if(kf)kf.addEventListener("change",function(){
+    if(kf.files&&kf.files[0])readPhoto(kf.files[0],function(u){if(u&&u.length<90000){setKerBg(u);renderOnline();if(g)drawBoard()}},240,0.6);
+  });
+  var kd=$("kb-del");
+  if(kd)kd.addEventListener("click",function(){setKerBg("");renderOnline();if(g)drawBoard()});
   var mc=$("me-cc");
   if(mc)mc.addEventListener("change",function(){
     if(!acct)return;
@@ -3528,6 +3598,13 @@ var COUNTRIES=[
 function flagOf(iso){iso=iso.toUpperCase();return String.fromCodePoint(127397+iso.charCodeAt(0),127397+iso.charCodeAt(1))}
 var CFLAG={};COUNTRIES.forEach(function(c){CFLAG[c[0]]=flagOf(c[1])});
 function ccName(c,fr){return fr?c[3]:c[2]}
+function kerBgHTML(t){
+  var w=homeNoun(),h='<div class="kerbg"><span class="kb-t">'+esc(t.kbTitle(w))+'</span>';
+  if(!hasFull())return h+'<span class="kb-lock">🔒 '+esc(t.kbLocked)+'</span></div>';
+  h+='<label class="kb-pick'+(kerBgUrl?" on":"")+'" for="kb-file">'+(kerBgUrl?'<img alt="" src="'+kerBgUrl+'">':"")+esc(kerBgUrl?t.kbChange:t.kbChoose)+'<input class="vh" type="file" accept="image/*" id="kb-file"></label>';
+  if(kerBgUrl)h+='<button type="button" class="mini" id="kb-del">'+esc(t.kbRemove)+'</button>';
+  return h+'<span class="kb-note">'+esc(t.kbNote)+'</span></div>';
+}
 function countryOpts(cc){return COUNTRIES.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===cc?" selected":"")+'>'+flagOf(c[1])+" "+ccName(c,lang==="fr")+'</option>'}).join("")+'<option value="other"'+(cc==="other"?" selected":"")+'>🌍 …</option>'}
 var CCN=COUNTRIES.map(function(c){return [c[0],flagOf(c[1])+" "+c[2]]}).concat([["other","🌍 …"]]);
 function emailOk(e){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)&&e.length<=120}
@@ -3875,13 +3952,13 @@ function bindStake(){
     cfg.stake=parseInt(b.getAttribute("data-stake"),10);$("stake-box").innerHTML=stakeHTML();bindStake();
   })});
 }
-function readPhoto(file,cb){
+function readPhoto(file,cb,S,Q){
   var fr=new FileReader();
   fr.onload=function(){
     var im=new Image();
     im.onload=function(){
-      var c=document.createElement("canvas"),S=128,m=Math.min(im.width,im.height);c.width=c.height=S;
-      try{c.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);cb(c.toDataURL("image/jpeg",0.72))}catch(e){cb(null)}
+      var c=document.createElement("canvas"),m=Math.min(im.width,im.height);S=S||128;c.width=c.height=S;
+      try{c.getContext("2d").drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,S,S);cb(c.toDataURL("image/jpeg",Q||0.72))}catch(e){cb(null)}
     };
     im.onerror=function(){cb(null)};im.src=fr.result;
   };
@@ -4102,7 +4179,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="108";
+var BUILD="109";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
