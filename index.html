@@ -386,6 +386,7 @@ h1 span{color:var(--accent);display:block}
 .kb-pick.on{border-color:var(--accent)}
 .prow{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:0 0 8px;font-weight:700}
 .bun{display:grid;gap:8px}.bun button{display:block;width:100%;text-align:left;background:none;border:1.5px solid var(--muted);border-radius:var(--r-md);padding:12px 14px;min-height:56px}.bun button b{display:block;font-size:1rem}.bun button span{display:block;font-size:.8rem;opacity:.85;margin-top:2px;line-height:1.3}.bun button[aria-pressed="true"]{background:var(--ink);color:var(--cloth);border-color:var(--ink)}
+.gwin{display:grid;gap:6px;border:1px solid var(--muted);border-radius:var(--r-md);padding:12px 14px}.gwin span{font-size:.85rem;opacity:.85}
 </style>
 <style id="ff" media="not all">
 @font-face{font-family:"Baloo 2";font-weight:600;font-display:swap;src:url(fonts/baloo2-600.woff2) format("woff2")}
@@ -967,6 +968,11 @@ T.fr.cpuLine=function(n){return n+" ordinateur"+(n===1?"":"s")+" jouer"+(n===1?"
 T.it.cpuLine=function(n){return n+" computer giocher"+(n===1?"à":"anno")+" contro di te."};
 T.en.phoneLine="Pass the phone around. Each player picks a name and a picture.";T.fr.phoneLine="Passez le téléphone. Chaque joueur choisit un nom et une image.";T.it.phoneLine="Passatevi il telefono. Ogni giocatore sceglie un nome e un'immagine.";
 T.en.guestNote="Playing as a guest: picture chosen for you, points up to 100, no turn timer. Sign in for every option.";T.fr.guestNote="Vous jouez en invité : image choisie pour vous, points jusqu'à 100, pas de minuteur. Connectez-vous pour toutes les options.";T.it.guestNote="Giochi da ospite: immagine scelta per te, punti fino a 100, nessun timer. Accedi per tutte le opzioni.";
+T.en.lbGuest="Sign in to appear on the leaderboard. Guest points are not kept.";T.fr.lbGuest="Connectez-vous pour figurer au classement. Les points d'invité ne sont pas gardés.";T.it.lbGuest="Accedi per comparire in classifica. I punti da ospite non vengono conservati.";
+T.en.guestWinT="Keep your win";T.fr.guestWinT="Gardez votre victoire";T.it.guestWinT="Conserva la tua vittoria";
+T.en.guestWinD="Guest points disappear when you close the game. Sign in to keep them.";T.fr.guestWinD="Les points d'invité disparaissent à la fermeture. Connectez-vous pour les garder.";T.it.guestWinD="I punti da ospite spariscono alla chiusura. Accedi per conservarli.";
+T.en.guestWinB="Sign in";T.fr.guestWinB="Se connecter";T.it.guestWinB="Accedi";
+T.en.guestName="Guest";T.fr.guestName="Invité";T.it.guestName="Ospite";
 T.en.yourSeat="You";T.fr.yourSeat="Vous";T.it.yourSeat="Tu";
 T.en.unameSet="Set";T.fr.unameSet="Valider";T.it.unameSet="Conferma";
 T.en.unameIs="Your name (permanent):";T.fr.unameIs="Votre nom (définitif) :";T.it.unameIs="Il tuo nome (definitivo):";
@@ -1126,6 +1132,8 @@ var EMOJI=["🦁","🐘","🦒","🐢"];
 var DEF_AV=["🦁","🐘","🦒","🐢"],CPU_NAMES=["Ibou","Awa","Moussa","Fatou"];
 var bank={profiles:{}};
 try{var bs=localStorage.getItem("ludo-bank");if(bs){var bj=JSON.parse(bs);if(bj&&bj.profiles)bank=bj}}catch(e){}
+// Points won as a guest last for one visit only: they are cleared the next time the game opens.
+try{Object.keys(bank.profiles).forEach(function(k){if(bank.profiles[k].g)delete bank.profiles[k]})}catch(e){}
 function keyOf(n){return String(n||"").trim().toLowerCase()}
 function profileOf(n){return bank.profiles[keyOf(n)]||null}
 function balanceOf(n){var p=profileOf(n);return p?p.pts:WELCOME}
@@ -1150,7 +1158,7 @@ function recordGame(){
     if(i===0){
       pr.wins=(pr.wins||0)+1;pr.run=(pr.run||0)+1;pr.best=Math.max(pr.best||0,pr.run);
       var sb=streakBonus(pr.run);
-      if(sb){pr.pts+=sb;g.streaks=g.streaks||{};g.streaks[pi]={k:pr.run,n:sb}}
+      if(sb&&signedIn()){pr.pts+=sb;g.streaks=g.streaks||{};g.streaks[pi]={k:pr.run,n:sb}}
     }else pr.run=0;
     pr.t=Date.now();
   });
@@ -1183,6 +1191,7 @@ function myProfile(make){
   return bank.profiles[k]||null;
 }
 function dailyBonus(){
+  if(!signedIn())return;
   var pr=myProfile(true),d=today();
   if(!pr||pr.day===d)return;
   var first=!pr.day;pr.day=d;
@@ -1413,6 +1422,7 @@ function startGame(){
       pl.name=cn;var ev=EMOJI.filter(function(e){return usedAv.indexOf(e)<0})[0]||DEF_AV[s];usedAv.push(ev);pl.av={t:"e",v:ev};pl.key=null;return}
     var nm=nameFor(s),k=keyOf(nm),pr=bank.profiles[k];
     if(!pr)pr=bank.profiles[k]={name:nm,pts:WELCOME,av:null,t:0};
+    if(!signedIn())pr.g=1;else delete pr.g;
     pr.name=nm;pr.av=avFor(s);
     if(g.stake){pr.pts-=g.stake;pr.t=Date.now()}
     pl.name=nm;pl.av=pr.av;pl.key=k;
@@ -3157,7 +3167,9 @@ function evDevice(){
   return "desktop";
 }
 function logEv(e,r,more){
-  if(!DB||!EMAIL_ON||evCount>=90)return;evCount++;
+  if(!DB||!EMAIL_ON||evCount>=90)return;
+  if(!signedIn()&&more&&(more.sp||more.bn||more.cp))return;
+  evCount++;
   var d={e:String(e).slice(0,24),t:Date.now(),d:statId||"",cc:String((acct&&acct.cc)||guessCc()||""),pf:NAT?"app":"web",b:parseInt(BUILD,10)||0,l:String(typeof lang==="string"?lang:"").slice(0,2),dv:evDevice()};
   if(r)d.r=String(r).slice(0,60);
   if(/^(signin|signup|google|apple)_fail$/.test(d.e)&&geoCache){d.gco=geoCache.co;d.gci=geoCache.ci}
@@ -4080,6 +4092,7 @@ function setKinds(){
 function renderSetup(){
   if(cfg.mode!=="phone")cfg.mode="cpu";
   setKinds();
+  if(!signedIn()&&cfg.mode==="cpu")cfg.names[0]=L().guestName;
   if(acct&&cfg.me&&cfg.me.name&&!(cfg.names[0]||"").trim()&&cfg.mode==="cpu"){cfg.names[0]=cfg.me.name;if(cfg.me.av&&!cfg.avs[0])cfg.avs[0]=cfg.me.av}
   applyBundle(bundleOf());
   var t=L(),h='<h2>'+(firstVisit?t.welcome:t.setup)+'</h2>';
@@ -4095,7 +4108,8 @@ function renderSetup(){
     if(cfg.kinds[s]!=="human"){cpuN++;return}
     h+='<div class="seatbox"><div class="seat"><i style="background:'+CSSC[s]+'"></i><b>'+(cfg.mode==="cpu"?t.yourSeat:t.colors[s])+'</b></div>';
     var av=avFor(s);
-    h+='<div class="who"><input type="text" id="name-'+s+'" data-name="'+s+'" maxlength="12" autocomplete="off" list="names" placeholder="'+esc(defName(s))+'" value="'+esc(cfg.names[s]||"")+'" aria-label="'+t.name+'"><span class="bal" id="bal-'+s+'">★ '+fmt(balanceOf(nameFor(s)))+'</span></div>';
+    if(!signedIn()&&cfg.mode==="cpu")h+='<div class="who"><b style="flex:1;font-size:1.05rem">'+esc(t.guestName)+'</b><span class="bal" id="bal-'+s+'">★ '+fmt(balanceOf(nameFor(s)))+'</span></div>';
+    else h+='<div class="who"><input type="text" id="name-'+s+'" data-name="'+s+'" maxlength="12" autocomplete="off" list="names" placeholder="'+esc(defName(s))+'" value="'+esc(cfg.names[s]||"")+'" aria-label="'+t.name+'"><span class="bal" id="bal-'+s+'">★ '+fmt(balanceOf(nameFor(s)))+'</span></div>';
     h+=(signedIn()?'<div class="avs" id="avs-'+s+'">'+avsHTML(s,av)+'</div>':'')+'</div>';
   });
   h+='</div>'+(cfg.mode==="cpu"?'<p class="note" style="margin:0">'+t.cpuLine(cpuN)+'</p>':'<p class="note" style="margin:0">'+t.phoneLine+'</p>')+'<datalist id="names">'+Object.keys(bank.profiles).map(function(k){return '<option value="'+esc(bank.profiles[k].name)+'">'}).join("")+'</datalist></div>';
@@ -4137,6 +4151,12 @@ function renderRules(){
   $("panel-rules").innerHTML='<h2>'+t.rulesTitle+'</h2><ul>'+li.map(function(x){return "<li>"+x+"</li>"}).join("")+'</ul><button type="button" class="ghost" id="rules-close">'+t.close+'</button>';
   $("rules-close").addEventListener("click",closeSheets);
 }
+var guestAsked=false;
+function guestWinCard(first){
+  if(signedIn()||guestAsked||!first||first.kind!=="human"||live())return "";
+  guestAsked=true;var t=L();
+  return '<div class="gwin"><b>'+t.guestWinT+'</b><span>'+t.guestWinD+'</span><button type="button" class="cta" id="win-signin">'+t.guestWinB+'</button></div>';
+}
 function showWin(){
   var t=L(),order=g.order||g.rank.concat(g.players.map(function(x,i){return i}).filter(function(i){return g.rank.indexOf(i)<0})),first=g.players[order[0]],h='<div class="dot" style="background:'+CSSC[visSeat(first.seat)]+'"></div><h2>'+esc(t.wins(first.name))+'</h2><ol class="places">';
   order.forEach(function(pi,i){
@@ -4145,9 +4165,10 @@ function showWin(){
   });
   g.players.forEach(function(pl,pi){var sk=pl.key&&g.streaks&&g.streaks[pi];if(sk)h+='</ol><p class="streak">'+esc(t.streak(sk.k,fmt(sk.n)))+'</p><ol class="places" style="display:none">'});
   armClose();
-  h+='</ol>'+(live()&&net.closeAt?'<p class="note" id="close-in" style="margin:0">'+t.closesIn(Math.max(1,Math.ceil((net.closeAt-Date.now())/1000)))+'</p>':(g.closed?'<p class="note" style="margin:0">'+t.roomClosed+'</p>':''))+adCard()+(g.closed?'':live()&&net.room.host!==myId?'<p class="note" style="margin:0">'+t.waitAgain+'</p>':'<button type="button" class="cta" id="again">'+t.again+'</button>')+(g.closed?'<button type="button" class="cta" id="win-online">'+t.online+'</button>':'')+'<button type="button" class="ghost" id="win-scores">'+t.scores+'</button><button type="button" class="ghost" id="win-setup">'+t.newGame+'</button>';
+  h+='</ol>'+(live()&&net.closeAt?'<p class="note" id="close-in" style="margin:0">'+t.closesIn(Math.max(1,Math.ceil((net.closeAt-Date.now())/1000)))+'</p>':(g.closed?'<p class="note" style="margin:0">'+t.roomClosed+'</p>':''))+guestWinCard(first)+adCard()+(g.closed?'':live()&&net.room.host!==myId?'<p class="note" style="margin:0">'+t.waitAgain+'</p>':'<button type="button" class="cta" id="again">'+t.again+'</button>')+(g.closed?'<button type="button" class="cta" id="win-online">'+t.online+'</button>':'')+'<button type="button" class="ghost" id="win-scores">'+t.scores+'</button><button type="button" class="ghost" id="win-setup">'+t.newGame+'</button>';
   $("panel-win").innerHTML=h;
   if($("again"))$("again").addEventListener("click",function(){if(live())rematch();else{closeSheets();startGame()}});
+  if($("win-signin"))$("win-signin").addEventListener("click",function(){closeSheets();onErr="";onlineView="settings";openOnline()});
   if($("win-online"))$("win-online").addEventListener("click",function(){closeSheets();openOnline()});
   $("win-scores").addEventListener("click",function(){closeSheets();openScores()});
   $("win-setup").addEventListener("click",function(){closeSheets();renderSetup();$("sheet-setup").classList.add("open")});
@@ -4172,14 +4193,14 @@ function myStatsHTML(){
 function openScores(){
   var t=L(),inGame={},rows=[];
   g.players.forEach(function(pl){if(pl.key)inGame[pl.key]=1});
-  Object.keys(bank.profiles).forEach(function(k){var pr=bank.profiles[k];if(pr.games||inGame[k])rows.push(pr)});
+  Object.keys(bank.profiles).forEach(function(k){var pr=bank.profiles[k];if(pr.g)return;if(pr.games||inGame[k])rows.push(pr)});
   rows.sort(function(a,b){return b.pts-a.pts||(b.wins||0)-(a.wins||0)});
   var mine=myStatsHTML(),h=(mine?'<h2>'+t.myStats+'</h2>'+mine:"")+'<h2>'+t.lbTitle+'</h2><div class="lbwrap"><table class="lb"><thead><tr>'+t.cols.map(function(c){return "<th>"+c+"</th>"}).join("")+'</tr></thead><tbody>';
   rows.forEach(function(pr){
     var av=pr.av||{t:"e",v:"🙂"},pic=av.t==="i"&&/^data:image\//.test(av.v)?'<img alt="" src="'+esc(av.v)+'">':esc(av.v);
     h+='<tr><td><span class="av">'+pic+'</span>'+esc(pr.name)+'</td><td>'+fmt(pr.pts)+'</td><td>'+(pr.wins||0)+'</td><td>'+(pr.games||0)+'</td><td>'+(pr.caps||0)+'</td><td>'+(pr.best||0)+'</td></tr>';
   });
-  h+='</tbody></table></div><div><h3>'+t.recent+'</h3>';
+  h+='</tbody></table></div>'+(signedIn()?'':'<p class="note" style="margin:0">'+t.lbGuest+'</p>')+'<div><h3>'+t.recent+'</h3>';
   var hs=bank.history||[];
   if(!hs.length)h+='<p class="note" style="margin:0">'+t.noGames+'</p>';
   else h+='<ol class="hist">'+hs.map(function(x){
@@ -4270,7 +4291,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="117";
+var BUILD="118";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
