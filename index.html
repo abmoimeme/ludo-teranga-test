@@ -20,11 +20,6 @@
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <style>
-@font-face{font-family:"Baloo 2";font-weight:600;font-display:swap;src:url(fonts/baloo2-600.woff2) format("woff2")}
-@font-face{font-family:"Baloo 2";font-weight:800;font-display:swap;src:url(fonts/baloo2-800.woff2) format("woff2")}
-@font-face{font-family:"Figtree";font-weight:400;font-display:swap;src:url(fonts/figtree-400.woff2) format("woff2")}
-@font-face{font-family:"Figtree";font-weight:600;font-display:swap;src:url(fonts/figtree-600.woff2) format("woff2")}
-@font-face{font-family:"Figtree";font-weight:700;font-display:swap;src:url(fonts/figtree-700.woff2) format("woff2")}
 :root{
   /* Layout: one phone column. Score chips, the painted board, then the dice tray.
      World: a hand-painted Ludo board laid on indigo-dyed cloth. Single theme by choice. */
@@ -390,6 +385,14 @@ h1 span{color:var(--accent);display:block}
 .kb-pick img{width:28px;height:28px;border-radius:6px;object-fit:cover}
 .kb-pick.on{border-color:var(--accent)}
 </style>
+<style id="ff" media="not all">
+@font-face{font-family:"Baloo 2";font-weight:600;font-display:swap;src:url(fonts/baloo2-600.woff2) format("woff2")}
+@font-face{font-family:"Baloo 2";font-weight:800;font-display:swap;src:url(fonts/baloo2-800.woff2) format("woff2")}
+@font-face{font-family:"Figtree";font-weight:400;font-display:swap;src:url(fonts/figtree-400.woff2) format("woff2")}
+@font-face{font-family:"Figtree";font-weight:600;font-display:swap;src:url(fonts/figtree-600.woff2) format("woff2")}
+@font-face{font-family:"Figtree";font-weight:700;font-display:swap;src:url(fonts/figtree-700.woff2) format("woff2")}
+</style>
+<script>document.addEventListener("DOMContentLoaded",function(){var f=document.getElementById("ff");if(f)f.media="all"});</script>
 </head>
 <body>
 <div class="app">
@@ -4180,7 +4183,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="110";
+var BUILD="111";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
