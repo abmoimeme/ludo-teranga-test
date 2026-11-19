@@ -318,8 +318,8 @@ h1 span{color:var(--accent);display:block}
 .ghost{background:none;border:1.5px solid var(--muted);border-radius:14px;min-height:48px;font-weight:700}
 .or-div{display:flex;align-items:center;gap:10px;margin:10px 0;color:var(--muted);font-size:.85rem}
 .or-div::before,.or-div::after{content:"";flex:1;height:1px;background:var(--muted);opacity:.4}
-.g-wrap{min-height:48px}
-.apple-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:360px;margin:8px auto 0;min-height:44px;padding:0 16px;border:0;border-radius:4px;background:#000;color:#fff;font:600 1rem/1 -apple-system,system-ui,"Segoe UI",sans-serif;cursor:pointer}
+.g-wrap{min-height:48px;display:flex;justify-content:center}
+.apple-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;max-width:none;box-sizing:border-box;margin:8px 0 0;min-height:44px;padding:0 16px;border:0;border-radius:var(--r-md,12px);background:#000;color:#fff;font:600 1rem/1 -apple-system,system-ui,"Segoe UI",sans-serif;cursor:pointer}
 .apple-btn:disabled{opacity:.5;cursor:default}
 .apple-btn svg{flex:none;margin-top:-2px}
 .win{align-items:center}
@@ -3518,7 +3518,7 @@ function idpSign(kind,postBody,cc,extra){
     var c=authCode(e);
     logEv(authKind+"_fail",c);
     authBusy=false;
-    onErr=c==="needs_password"?L().idpExists:c==="service_not_ready"?L().idpSetup:kind==="apple"?L().appleFail:L().googleFail;
+    onErr=c==="needs_password"?L().idpExists:c==="service_not_ready"?L().idpSetup:kind==="apple"?L().appleFail+" ("+String((e&&e.message)||"?").slice(0,60)+")":L().googleFail;
     renderOnline();
   });
 }
@@ -4015,7 +4015,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="93";
+var BUILD="94";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
