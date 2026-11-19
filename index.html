@@ -4102,6 +4102,7 @@ function renderSetup(){
   h+='<div><h3>'+t.bundleTitle+'</h3>'+bundleCardsHTML()+'</div>';
   h+='<div><h3>'+t.modeTitle+'</h3>'+seg([["cpu",t.modeCpu],["phone",t.modePhone]],cfg.mode,"mode")+'</div>';
   h+='<div><h3>'+t.players+'</h3>'+seg([[2,"2"],[3,"3"],[4,"4"]],cfg.count,"count")+'</div>';
+  h+='<div class="stakes"><h3>'+t.stake+'</h3><div id="stake-box">'+stakeHTML()+'</div><p class="note">'+t.stakeNote+'</p></div>';
   h+='<div><div class="seats">';
   var cpuN=0;
   seatsFor(cfg.count).forEach(function(s){
@@ -4113,7 +4114,6 @@ function renderSetup(){
     h+=(signedIn()?'<div class="avs" id="avs-'+s+'">'+avsHTML(s,av)+'</div>':'')+'</div>';
   });
   h+='</div>'+(cfg.mode==="cpu"?'<p class="note" style="margin:0">'+t.cpuLine(cpuN)+'</p>':'<p class="note" style="margin:0">'+t.phoneLine+'</p>')+'<datalist id="names">'+Object.keys(bank.profiles).map(function(k){return '<option value="'+esc(bank.profiles[k].name)+'">'}).join("")+'</datalist></div>';
-  h+='<div class="stakes"><h3>'+t.stake+'</h3><div id="stake-box">'+stakeHTML()+'</div><p class="note">'+t.stakeNote+'</p></div>';
   if(canTimer())h+='<div><h3>'+t.timer+'</h3>'+seg([[0,t.off],[10,t.sec(10)],[15,t.sec(15)],[30,t.sec(30)]],cfg.timer,"timer")+'</div>';
   else h+='<p class="note" style="margin:0">'+t.guestNote+'</p>';
   h+='<p class="err" id="setup-err" role="alert"></p><button type="button" class="cta" id="go">'+t.start+'</button><button type="button" class="ghost" id="cancel">'+t.close+'</button>';
@@ -4291,7 +4291,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="118";
+var BUILD="119";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
