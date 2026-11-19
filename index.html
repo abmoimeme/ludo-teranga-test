@@ -3622,7 +3622,7 @@ function afterAuth(cc){
       acct={aid:uid,hint:hint,t:0,name:meName(),cc:String(cc||guessCc()),mig:0};
       var fd=acctDoc();
       return dbx("PUT","/accounts/"+uid,fd).then(function(){
-        acct.t=fd.t;acct.b=baseOf(fd);saveAcct();acctNote=L().acctMade2;statAdd({"new":1});setLegacy("");logEv(authKind+"_ok","new_game");done();
+        acct.t=fd.t;acct.b=baseOf(fd);saveAcct();acctNote=L().acctMade2;statAdd({"new":1});setLegacy("");logEv(authKind+"_ok","new_game");done();setTimeout(function(){var el=$("me-name");if(el){el.scrollIntoView&&el.scrollIntoView({block:"center"});el.focus()}},400);
       },refused);
     });
   });
@@ -4019,7 +4019,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="98";
+var BUILD="99";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
