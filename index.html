@@ -2346,7 +2346,7 @@ function renderOnline(){
     if(onlineView!=="settings")h+='<p class="note" style="margin:0">'+t.onNote+'</p>';
     h+=seg([["play",t.tabPlay],["settings",t.tabSettings]],onlineView,"onview");
     if(onlineView==="settings"){
-      if(acct||pAuth)h+='<div><h3>'+t.yourName+'</h3><div class="who"><input type="text" id="me-name" maxlength="12" autocomplete="off" placeholder="'+esc(hasName()?meName():t.namePh)+'" value="'+esc((cfg.me&&cfg.me.name)||"")+'" aria-label="'+t.yourName+'"><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div><div class="avs" id="avs-me" style="margin-top:8px"></div></div>';
+      if(acct||pAuth)h+='<div><h3>'+t.yourName+'</h3><div class="who"><input type="text" id="me-name" maxlength="12" autocomplete="off" placeholder="'+esc(hasName()?meName():t.namePh)+'" value="'+esc((cfg.me&&cfg.me.name)||"")+'" aria-label="'+t.yourName+'"><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div><div class="avs" id="avs-me" style="margin-top:8px"></div><select class="fld" id="me-cc" aria-label="'+t.phCc+'" style="margin-top:10px">'+countryOpts(acct&&acct.cc?String(acct.cc):guessCc())+'</select></div>';
       h+=acctHTML();
       h+=blockedHTML();
       h+=prefsHTML();
@@ -2419,6 +2419,14 @@ function renderOnline(){
     nm.addEventListener("change",function(){var pr=profileOf(meName());if(pr&&pr.av&&cfg.me){cfg.me.av=null;refreshMyAvs()}});
     refreshMyAvs();
   }
+  var mc=$("me-cc");
+  if(mc)mc.addEventListener("change",function(){
+    if(!acct)return;
+    acct.cc=mc.value;saveAcct();
+    try{if(statBox&&statBox.doc)statBox.doc.cc=statCc()}catch(e){}
+    autoLang(langOfCc(acct.cc));
+    pushAcct(true);publishMe();renderOnline();
+  });
 }
 
 // ---------- Friends and invitations ----------
@@ -3520,6 +3528,7 @@ var COUNTRIES=[
 function flagOf(iso){iso=iso.toUpperCase();return String.fromCodePoint(127397+iso.charCodeAt(0),127397+iso.charCodeAt(1))}
 var CFLAG={};COUNTRIES.forEach(function(c){CFLAG[c[0]]=flagOf(c[1])});
 function ccName(c,fr){return fr?c[3]:c[2]}
+function countryOpts(cc){return COUNTRIES.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===cc?" selected":"")+'>'+flagOf(c[1])+" "+ccName(c,lang==="fr")+'</option>'}).join("")+'<option value="other"'+(cc==="other"?" selected":"")+'>🌍 …</option>'}
 var CCN=COUNTRIES.map(function(c){return [c[0],flagOf(c[1])+" "+c[2]]}).concat([["other","🌍 …"]]);
 function emailOk(e){return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e)&&e.length<=120}
 var MAIL_FIX={"gmial.com":"gmail.com","gmai.com":"gmail.com","gmail.co":"gmail.com","gmail.con":"gmail.com","gnail.com":"gmail.com","gmil.com":"gmail.com","gmail.cm":"gmail.com",
@@ -3761,7 +3770,6 @@ function emailAcctHTML(){
   if(legacyAid)h+='<p class="warn" style="margin:0 0 10px">'+t.loginMoved+'</p>';
   h+='<div style="display:grid;gap:8px"><input type="email" class="fld" id="em-mail" inputmode="email" autocomplete="username" autocapitalize="off" spellcheck="false" maxlength="120" placeholder="'+t.emPh+'" aria-label="'+t.emPh+'">';
   h+='<input type="password" class="fld" id="em-pw" autocomplete="current-password" maxlength="100" placeholder="'+t.pwPh+'" aria-label="'+t.pwPh+'">';
-  h+='<select class="fld" id="em-cc" aria-label="'+t.phCc+'">'+COUNTRIES.map(function(c){return '<option value="'+c[0]+'"'+(c[0]===cc?" selected":"")+'>'+flagOf(c[1])+" "+ccName(c,lang==="fr")+'</option>'}).join("")+'<option value="other"'+(cc==="other"?" selected":"")+'>🌍 …</option></select>';
   h+='<button type="button" class="cta" id="em-in"'+(authBusy?" disabled":"")+'>'+t.emIn+'</button><button type="button" class="ghost" id="em-new" style="margin:0"'+(authBusy?" disabled":"")+'>'+t.emNew+'</button></div>';
   if(GOOGLE_CLIENT_ID||APPLE_ID)h+='<div class="or-div">'+t.orWord+'</div>';
   if(APPLE_ID)h+='<button type="button" class="apple-btn" id="ap-in"'+(authBusy?" disabled":"")+'><svg viewBox="0 0 20 24" width="16" height="19" aria-hidden="true"><path fill="currentColor" d="M16.4 12.7c0-2.6 2.1-3.8 2.2-3.9-1.2-1.8-3.1-2-3.7-2-1.6-.2-3.1.9-3.9.9-.8 0-2-.9-3.4-.9-1.7 0-3.3 1-4.2 2.6-1.8 3.1-.5 7.7 1.3 10.2.9 1.2 1.9 2.6 3.2 2.6 1.3-.1 1.8-.8 3.3-.8 1.6 0 2 .8 3.4.8 1.4 0 2.3-1.3 3.1-2.5 1-1.4 1.4-2.8 1.4-2.9 0 0-2.7-1-2.7-4.1zM13.9 5c.7-.9 1.2-2 1-3.2-1 0-2.3.7-3 1.6-.7.8-1.2 2-1.1 3.1 1.2.1 2.3-.6 3.1-1.5z"/></svg><span>'+t.appleBtn+'</span></button>';
@@ -3800,8 +3808,8 @@ function bindAcct(){
   if($("uname-in"))$("uname-in").addEventListener("keydown",function(ev){if(ev.key==="Enter")claimUname($("uname-in").value)});
   if($("uname-edit"))$("uname-edit").addEventListener("click",function(){if(unameLocked())return;unameEditing=true;unameErr="";renderOnline()});
   if($("ph-go"))$("ph-go").addEventListener("click",function(){signIn($("ph-cc").value,$("ph-num").value)});
-  if($("em-in"))$("em-in").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,false,$("em-cc").value)});
-  if($("em-new"))$("em-new").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,true,$("em-cc").value)});
+  if($("em-in"))$("em-in").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,false,ccVal())});
+  if($("em-new"))$("em-new").addEventListener("click",function(){emailSign($("em-mail").value,$("em-pw").value,true,ccVal())});
   if($("em-reset"))$("em-reset").addEventListener("click",function(){resetPassword($("em-mail").value)});
   if($("em-mail")&&$("em-pw")){
     var emGate=function(){
@@ -3821,9 +3829,10 @@ function bindAcct(){
   if($("del-no"))$("del-no").addEventListener("click",function(){delAsk=false;renderOnline()});
   if($("del-yes"))$("del-yes").addEventListener("click",deleteAcct);
   if($("g-wrap"))mountGoogleButton();
-  if($("ap-in"))$("ap-in").addEventListener("click",function(){appleSign($("em-cc")?$("em-cc").value:"")});
+  if($("ap-in"))$("ap-in").addEventListener("click",function(){appleSign(ccVal())});
   if($("ap-in")||($("del-yes")&&pAuth&&pAuth.p==="apple"))prepApple();
 }
+function ccVal(){return acct&&acct.cc?String(acct.cc):guessCc()}
 var gBtnTries=0;
 function mountGoogleButton(){
   var el=$("g-wrap");if(!el||!GOOGLE_CLIENT_ID)return;
@@ -3850,7 +3859,7 @@ function mountGoogleButton(){
   })();
 }
 window.onGoogleCred=function(resp){
-  googleSign(resp&&resp.credential,$("em-cc")?$("em-cc").value:"");
+  googleSign(resp&&resp.credential,ccVal());
 };
 
 // ---------- Sheets ----------
@@ -4093,7 +4102,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="106";
+var BUILD="107";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
