@@ -2476,7 +2476,7 @@ function renderOnline(){
       h+=err+'<button type="button" class="ghost" id="on-close">'+t.close+'</button>';
     }else{
       h+='<div><h3>'+t.joinTitle+'</h3><div class="who"><input type="text" id="join-code" maxlength="6" autocapitalize="characters" autocomplete="off" spellcheck="false" placeholder="'+t.codePh+'" value="'+esc(pendingCode)+'" aria-label="'+t.codePh+'"><button type="button" class="cta" id="join-go" style="padding:0 22px">'+t.join+'</button></div></div>';
-      h+='<div><h3>'+t.create+'</h3><h3 style="margin-top:4px">'+t.bundleTitle+'</h3>'+bundleCardsHTML()+'<h3 style="margin-top:12px">'+t.players+'</h3>'+seg([[2,"2"],[3,"3"],[4,"4"]],cfg.count,"ocount")+'<h3 style="margin-top:12px">'+t.startMode+'</h3>'+seg([["0",t.startManual],["1",t.startAuto]],cfg.autoStart?"1":"0","oauto")+'<p class="note">'+t.createNote+'</p><button type="button" class="cta" id="create-go" style="width:100%;margin-top:10px">'+t.createBtn+'</button></div>';
+      h+='<div><h3>'+t.create+'</h3><h3 style="margin-top:4px">'+t.bundleTitle+'</h3>'+bundleCardsHTML()+'<h3 style="margin-top:12px">'+t.players+'</h3>'+seg([[2,"2"],[3,"3"],[4,"4"]],cfg.count,"ocount")+'<h3 style="margin-top:12px">'+t.stake+'</h3><div id="ostake-box">'+stakeHTML()+'</div><p class="note">'+t.stakeNote+'</p>'+'<h3 style="margin-top:12px">'+t.startMode+'</h3>'+seg([["0",t.startManual],["1",t.startAuto]],cfg.autoStart?"1":"0","oauto")+'<p class="note">'+t.createNote+'</p><button type="button" class="cta" id="create-go" style="width:100%;margin-top:10px">'+t.createBtn+'</button></div>';
       h+=friendsHTML();
       h+=err+'<button type="button" class="ghost" id="on-close">'+t.close+'</button>';
     }
@@ -2527,6 +2527,7 @@ function renderOnline(){
     cfg.autoStart=b.getAttribute("data-val")==="1";
     Array.prototype.slice.call(p.querySelectorAll('[data-set="oauto"]')).forEach(function(x){x.setAttribute("aria-pressed",x===b)});
   })});
+  if($("ostake-box"))bindStake("ostake-box");
   Array.prototype.slice.call(p.querySelectorAll('[data-bun]')).forEach(function(b){b.addEventListener("click",function(){
     applyBundle(b.getAttribute("data-bun"));
     Array.prototype.slice.call(p.querySelectorAll('[data-bun]')).forEach(function(x){x.setAttribute("aria-pressed",x===b)});
@@ -4030,9 +4031,10 @@ function stakeHTML(){
   var mb=minBal();if(cfg.stake>mb)cfg.stake=0;if(!signedIn()&&cfg.stake>100)cfg.stake=0;
   return '<div class="seg">'+(signedIn()?STAKES:GUEST_STAKES).map(function(v){return '<button type="button" data-stake="'+v+'" aria-pressed="'+(cfg.stake===v)+'"'+(v>mb?" disabled":"")+'>'+(v?fmt(v):L().friendlyShort)+'</button>'}).join("")+'</div>';
 }
-function bindStake(){
-  Array.prototype.slice.call($("stake-box").querySelectorAll("[data-stake]")).forEach(function(b){b.addEventListener("click",function(){
-    cfg.stake=parseInt(b.getAttribute("data-stake"),10);$("stake-box").innerHTML=stakeHTML();bindStake();
+function bindStake(id){
+  id=id||"stake-box";
+  Array.prototype.slice.call($(id).querySelectorAll("[data-stake]")).forEach(function(b){b.addEventListener("click",function(){
+    cfg.stake=parseInt(b.getAttribute("data-stake"),10);$(id).innerHTML=stakeHTML();bindStake(id);
   })});
 }
 function readPhoto(file,cb,S,Q){
@@ -4291,7 +4293,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="119";
+var BUILD="120";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
