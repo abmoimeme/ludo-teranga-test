@@ -2412,8 +2412,9 @@ function renderOnline(){
     if(onlineView==="settings"){
       if(acct||pAuth)h+='<div><h3>'+t.yourName+'</h3><div class="who"><input type="text" id="me-name" maxlength="12" autocomplete="off" placeholder="'+esc(hasName()?meName():t.namePh)+'" value="'+esc((cfg.me&&cfg.me.name)||"")+'" aria-label="'+t.yourName+'"><span class="bal" id="me-bal">★ '+fmt(balanceOf(meName()))+'</span></div><div class="avs" id="avs-me" style="margin-top:8px"></div>'+kerBgHTML(t)+'<select class="fld" id="me-cc" aria-label="'+t.phCc+'" style="margin-top:10px">'+countryOpts(acct&&acct.cc?String(acct.cc):guessCc())+'</select></div>';
       h+=acctHTML();
-      h+=blockedHTML();
-      h+=prefsHTML();
+      var inNow=!!(acct||pAuth);
+      if(inNow)h+=blockedHTML();
+      h+=prefsHTML(inNow);
       h+=helpAboutHTML();
       h+=err+'<button type="button" class="ghost" id="on-close">'+t.close+'</button>';
     }else{
@@ -3309,9 +3310,9 @@ function bindBlocked(p){
   })});
 }
 // Settings: quick access to sound and language, mirroring the icons on the main screen.
-function prefsHTML(){
+function prefsHTML(withSound){
   var t=L();
-  return '<div><h3>'+t.prefsTitle+'</h3><p class="note" style="margin:0 0 8px">'+(soundOn?t.soundOn:t.soundOff)+' <button type="button" class="mini" id="pf-sound">'+(soundOn?t.soundOff:t.soundOn)+'</button></p>'+
+  return '<div><h3>'+t.prefsTitle+'</h3>'+(withSound?'<p class="note" style="margin:0 0 8px">'+(soundOn?t.soundOn:t.soundOff)+' <button type="button" class="mini" id="pf-sound">'+(soundOn?t.soundOff:t.soundOn)+'</button></p>':'')+
     '<div class="lang" role="group" aria-label="Language"><button type="button" data-pflang="en" aria-pressed="'+(lang==="en")+'">EN</button><button type="button" data-pflang="fr" aria-pressed="'+(lang==="fr")+'">FR</button><button type="button" data-pflang="it" aria-pressed="'+(lang==="it")+'">IT</button></div></div>';
 }
 function bindPrefs(p){
@@ -4179,7 +4180,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="109";
+var BUILD="110";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
