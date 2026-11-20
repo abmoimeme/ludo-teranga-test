@@ -2994,7 +2994,18 @@ function bindFriends(p){
 // player's phone and the sender's, and nowhere else.
 var aim=-1,aimT=null,lastSentAt=0,REACT=["😂","👏","😮","🔥","👋","🏃🏿‍♂️","🏃🏾‍♀️","🤷🏾‍♂️","🤷🏾‍♀️","⏳","🇸🇳","😜","💀","🙏🏾","🤲🏾","😭","🎲","👀","🤦🏾‍♂️","👨🏿‍🦯‍➡️","🩴","👑","⚽️","🥇","🥈","🥉","🏥","💵"];
 var REACT_SFX={"😂":"e-laugh","👏":"e-clap","😮":"e-wow","🔥":"e-fire","👋":"e-wave","🏃🏿‍♂️":"e-run","🏃🏾‍♀️":"e-run","🤷🏾‍♂️":"e-shrug","🤷🏾‍♀️":"e-shrug","⏳":"e-tick","🇸🇳":"e-drum","😜":"e-boing","💀":"e-skull","🙏🏾":"e-chime","🤲🏾":"e-chime","😭":"e-wow","🎲":"e-boing","👀":"e-wow","🤦🏾‍♂️":"e-shrug","👨🏿‍🦯‍➡️":"e-run","🩴":"e-clap","👑":"e-chime","⚽️":"e-boing","🥇":"e-chime","🥈":"e-chime","🥉":"e-chime","🏥":"e-tick","💵":"e-chime"};
-function chatSfx(m){sfx(REACT_SFX[m]||"pop")}
+function chatSfx(m){sfx(REACT_SFX[m]||(isFlag(m)?"e-drum":"pop"))}
+// Flags: Senegal for everyone, plus the flag of the country in the player's profile.
+function isFlag(m){return /^\uD83C[\uDDE6-\uDDFF]\uD83C[\uDDE6-\uDDFF]$/.test(String(m||""))}
+function myFlag(){
+  var c=(acct&&acct.cc)?String(acct.cc):"";
+  if(!c){try{c=guessCc()}catch(e){c=""}}
+  var row=null;COUNTRIES.forEach(function(r){if(r[0]===c)row=r});
+  var iso=row?String(row[1]).toUpperCase():"";
+  if(!/^[A-Z]{2}$/.test(iso))return "";
+  return String.fromCodePoint(0x1F1E6+iso.charCodeAt(0)-65,0x1F1E6+iso.charCodeAt(1)-65);
+}
+function reactList(){var r=REACT.slice(),f=myFlag();if(f&&r.indexOf(f)<0)r.splice(r.indexOf("🇸🇳")+1,0,f);return r}
 // Where a player's kër sits on the board, as a percentage of the board's width and height.
 function kerSpot(pi){var s=visSeat(g.players[pi].seat);return {x:(s===0||s===3)?20:80,y:s<2?20:80}}
 // An emoji travels across the board from the sender's kër to the player it is meant for.
@@ -3024,7 +3035,7 @@ function renderReact(){
   var t=L(),h='<button type="button" class="to'+(aim>=0?" aim":"")+'" id="react-to">'+esc(aim>=0?t.toOne(g.players[aim].name):t.toAll)+'</button>';
   var old=bar.querySelector(".strip"),sx=old?old.scrollLeft:0;
   h+='<div class="strip">';
-  REACT.forEach(function(e){h+='<button type="button" data-react="'+e+'" aria-label="'+e+'">'+e+'</button>'});
+  reactList().forEach(function(e){h+='<button type="button" data-react="'+e+'" aria-label="'+e+'">'+e+'</button>'});
   h+='</div><button type="button" id="react-more" aria-label="'+t.chatTitle+'">💬</button>';
   bar.innerHTML=h;bar.querySelector(".strip").scrollLeft=sx;
   $("react-to").addEventListener("click",cycleAim);
@@ -3078,11 +3089,11 @@ function bubble(v){
   setTimeout(function(){if(b.parentNode)b.remove()},4500);
 }
 function openChat(){
-  var t=L(),o=others(),p=$("panel-chat");
+  var t=L(),o=others(),p=$("panel-chat"),RL=reactList();
   var h='<h2>'+t.chatTitle+'</h2><div><h3>'+t.chatTo+'</h3><div class="seg">'+[[-1,t.everyone]].concat(o.map(function(i){return [i,esc(g.players[i].name)]})).map(function(it){
     return '<button type="button" data-aim="'+it[0]+'" aria-pressed="'+(aim===it[0])+'">'+it[1]+'</button>';
   }).join("")+'</div></div>';
-  h+='<div class="emos">'+REACT.map(function(e,i){return '<button type="button" data-em="'+i+'" aria-label="'+e+'">'+e+'</button>'}).join("")+'</div>';
+  h+='<div class="emos">'+RL.map(function(e,i){return '<button type="button" data-em="'+i+'" aria-label="'+e+'">'+e+'</button>'}).join("")+'</div>';
   h+='<div class="phrases">'+t.phrases.map(function(x,i){return '<button type="button" data-ph="'+i+'">'+esc(x)+'</button>'}).join("")+'</div>';
   h+='<div class="who"><input type="text" id="chat-text" maxlength="40" autocomplete="off" placeholder="'+t.chatPh+'" aria-label="'+t.chatPh+'"><button type="button" class="cta" id="chat-send" style="padding:0 20px">'+t.send+'</button></div>';
   if(o.length){
@@ -3099,7 +3110,7 @@ function openChat(){
     aim=parseInt(b.getAttribute("data-aim"),10);clearTimeout(aimT);
     all("[data-aim]").forEach(function(x){x.setAttribute("aria-pressed",x===b)});renderReact();
   })});
-  all("[data-em]").forEach(function(b){b.addEventListener("click",function(){if(sendChat(REACT[parseInt(b.getAttribute("data-em"),10)]))closeSheets()})});
+  all("[data-em]").forEach(function(b){b.addEventListener("click",function(){if(sendChat(RL[parseInt(b.getAttribute("data-em"),10)]))closeSheets()})});
   all("[data-ph]").forEach(function(b){b.addEventListener("click",function(){if(sendChat(t.phrases[parseInt(b.getAttribute("data-ph"),10)]))closeSheets()})});
   $("chat-send").addEventListener("click",function(){if(sendChat($("chat-text").value))closeSheets()});
   $("chat-text").addEventListener("keydown",function(e){if(e.key==="Enter"&&sendChat($("chat-text").value))closeSheets()});
@@ -4295,7 +4306,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="130";
+var BUILD="131";
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
