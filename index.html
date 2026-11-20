@@ -52,7 +52,7 @@ body{
 }
 button{font:inherit;color:inherit;cursor:pointer}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.app{max-width:540px;margin:0 auto;padding:max(14px,env(safe-area-inset-top)) max(16px,env(safe-area-inset-right)) max(28px,env(safe-area-inset-bottom)) max(16px,env(safe-area-inset-left));display:flex;flex-direction:column;gap:12px}
+.app{max-width:540px;margin:0 auto;padding:max(14px,var(--safe-area-inset-top,env(safe-area-inset-top))) max(16px,var(--safe-area-inset-right,env(safe-area-inset-right))) max(28px,var(--safe-area-inset-bottom,env(safe-area-inset-bottom))) max(16px,var(--safe-area-inset-left,env(safe-area-inset-left)));display:flex;flex-direction:column;gap:12px}
 header{display:flex;align-items:center;justify-content:space-between;gap:12px}
 h1{font-family:var(--display);font-weight:800;font-size:1.5rem;line-height:1;margin:0;letter-spacing:.01em}
 h1 span{color:var(--accent);display:block}
@@ -130,10 +130,10 @@ h1 span{color:var(--accent);display:block}
 .tile.tile-gold:active{box-shadow:0 1px 0 #8a6a00}
 #btn-new,#btn-online{flex:1 1 44%}
 #btn-rules,#btn-scores,#btn-sound,#btn-settings{flex:1 1 20%}
-.invite{position:fixed;top:max(10px,env(safe-area-inset-top));left:12px;right:12px;max-width:516px;margin:0 auto;z-index:40;display:none;align-items:center;gap:8px;background:var(--ink);color:var(--cloth);border-radius:14px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-weight:700}
+.invite{position:fixed;top:max(10px,var(--safe-area-inset-top,env(safe-area-inset-top)));left:12px;right:12px;max-width:516px;margin:0 auto;z-index:40;display:none;align-items:center;gap:8px;background:var(--ink);color:var(--cloth);border-radius:14px;padding:10px 12px;box-shadow:0 10px 30px rgba(0,0,0,.5);font-weight:700}
 .invite.open{display:flex}
-.invite.ask{top:calc(max(10px,env(safe-area-inset-top)) + 72px)}
-.invite.update{top:auto;bottom:max(12px,env(safe-area-inset-bottom));background:var(--accent);color:#1a1500}
+.invite.ask{top:calc(max(10px,var(--safe-area-inset-top,env(safe-area-inset-top))) + 72px)}
+.invite.update{top:auto;bottom:max(12px,var(--safe-area-inset-bottom,env(safe-area-inset-bottom)));background:var(--accent);color:#1a1500}
 .invite.update button{background:#1a1500;color:var(--accent)}
 .invite span{flex:1;min-width:0}
 .invite button{flex:none;border:0;border-radius:10px;min-height:42px;padding:0 14px;font-weight:800;background:var(--accent);color:#1a1500}
@@ -349,7 +349,7 @@ h1 span{color:var(--accent);display:block}
 .panel{border-radius:var(--r-lg) var(--r-lg) 0 0}
 /* Build 100: home and sign-up cards fill the phone screen instead of floating in the middle. */
 .sheet.gate,.sheet.lobby{align-items:stretch;justify-content:center}
-.sheet.gate .panel,.sheet.lobby .panel{max-width:540px;width:100%;margin:0 auto;height:100%;max-height:100%;border-radius:0;border-left:0;border-right:0;border-top:0;border-bottom:0;padding:max(var(--s4),env(safe-area-inset-top)) var(--s4) max(var(--s4),env(safe-area-inset-bottom));gap:var(--s4);justify-content:space-between;box-sizing:border-box}
+.sheet.gate .panel,.sheet.lobby .panel{max-width:540px;width:100%;margin:0 auto;height:100%;max-height:100%;border-radius:0;border-left:0;border-right:0;border-top:0;border-bottom:0;padding:max(var(--s4),var(--safe-area-inset-top,env(safe-area-inset-top))) var(--s4) max(var(--s4),var(--safe-area-inset-bottom,env(safe-area-inset-bottom)));gap:var(--s4);justify-content:space-between;box-sizing:border-box}
 .sheet.gate .gate-banner,.sheet.lobby .gate-banner{border-radius:var(--r-lg);margin:0;width:100%;padding:var(--s5) var(--s4);border:1px solid var(--border)}
 .sheet.lobby .lobby-tiles{flex:1 1 auto;max-height:220px;min-height:112px}
 .sheet.lobby .lobby-tiles .tile{min-height:0;font-size:1.2rem}
@@ -370,7 +370,7 @@ h1 span{color:var(--accent);display:block}
 @media (max-height:700px){.lobby-stats{display:none}}
 /* Settings sheet fills the screen; Apple and Google match the Sign in button */
 #sheet-online{align-items:stretch;background:var(--cloth-2,#1b2452)}
-#sheet-online .panel{max-height:100%;height:100%;border-radius:0;padding-top:max(var(--s4),env(safe-area-inset-top));padding-bottom:max(22px,env(safe-area-inset-bottom));box-sizing:border-box}
+#sheet-online .panel{max-height:100%;height:100%;border-radius:0;padding-top:max(var(--s4),var(--safe-area-inset-top,env(safe-area-inset-top)));padding-bottom:max(22px,var(--safe-area-inset-bottom,env(safe-area-inset-bottom)));box-sizing:border-box}
 .apple-btn{height:52px;min-height:52px;border-radius:var(--r-md);font-size:1.05rem}
 .apple-btn svg{width:18px;height:22px}
 .g-wrap{position:relative;display:block;min-height:0;height:auto;margin-top:var(--s2)}
@@ -4306,7 +4306,7 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="133";
+var BUILD="134";
 // Tablets: the game is laid out for a phone-sized column. On a large screen the whole
 // interface is scaled up so the board fills the space, upright or sideways.
 function fitScreen(){
