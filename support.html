@@ -6,55 +6,456 @@
 <title>Help · Ludo Teranga</title>
 <meta name="author" content="Nioro Resources LLC">
 <meta name="theme-color" content="#121938">
+<meta name="description" content="How to play Ludo Teranga: sign-in, rule sets, online games, friends, chat, points and settings.">
 <link rel="icon" type="image/png" sizes="32x32" href="icons/favicon-32.png">
 <script>(function(){var q=/[?&]l=(en|fr|it)/.exec(location.search),l=q?q[1]:"";try{if(!l)l=localStorage.getItem("ludo-lang")||""}catch(e){}if(!/^(en|fr|it)$/.test(l))l="en";var d=document.documentElement;d.setAttribute("data-l",l);d.lang=l})();</script>
 <style>
-@font-face{font-family:"Baloo 2";font-weight:800;font-display:swap;src:url(fonts/baloo2-800.woff2) format("woff2")}
 @font-face{font-family:"Figtree";font-weight:400;font-display:swap;src:url(fonts/figtree-400.woff2) format("woff2")}
+@font-face{font-family:"Figtree";font-weight:600;font-display:swap;src:url(fonts/figtree-600.woff2) format("woff2")}
 @font-face{font-family:"Figtree";font-weight:700;font-display:swap;src:url(fonts/figtree-700.woff2) format("woff2")}
+:root{--bg:#121938;--s1:#19204a;--s2:#212a58;--bd:#2c3668;--ink:#f3f0e6;--mu:#aab0cc;--ac:#f0bf00}
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:#121938;color:#f3f0e6;font:400 1rem/1.6 Figtree,system-ui,sans-serif}
-main{max-width:680px;margin:0 auto;padding:24px 20px 56px}
-h1,h2{font-family:"Baloo 2",Figtree,sans-serif;font-weight:800;line-height:1.2;text-wrap:balance}
-h1{font-size:1.9rem;margin:0 0 4px}
-h1 span{color:#f0bf00}
-h2{font-size:1.2rem;margin:28px 0 6px;color:#f0bf00}
-p,li{margin:0 0 10px}
-ul{padding-left:1.2em;margin:0 0 10px}
-a{color:#f0bf00}
-.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:18px}
-.top a{display:inline-block;padding:8px 0;font-weight:700}
-.langs a{padding:8px 6px}
-.meta{color:#aab0cc;font-size:.88rem}
-footer{color:#aab0cc;font-size:.8rem;margin-top:36px}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth;scroll-padding-top:64px}
+body{margin:0;background:var(--bg);color:var(--ink);font:400 16px/1.5 Figtree,system-ui,sans-serif}
+main{max-width:960px;margin:0 auto;padding:0 16px 64px}
+h1,h2,h3{font-weight:700;margin:0}
+h1{font-size:32px;line-height:40px}
+h2{font-size:24px;line-height:32px;margin-bottom:16px}
+h3{font-size:16px;line-height:24px;margin:24px 0 8px}
+p,li,dd{margin:0 0 8px}
+ul,ol{padding-left:20px;margin:0 0 8px}
+li>ul{margin-top:4px}
+a{color:var(--ac)}
+b{font-weight:600}
+.top{position:sticky;top:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap;height:56px;background:var(--bg);border-bottom:1px solid var(--bd);margin:0 -16px;padding:0 16px}
+.top a{font-weight:600;text-decoration:none;padding:8px 0}
+.langs a{padding:8px 4px;color:var(--mu)}
+.meta{color:var(--mu);font-size:14px;line-height:20px;margin:4px 0 0}
+footer{color:var(--mu);font-size:13px;margin-top:40px}
 section[lang]{display:none}
 html[data-l=en] #en,html[data-l=fr] #fr,html[data-l=it] #it{display:block}
-html[data-l=en] a[data-set=en],html[data-l=fr] a[data-set=fr],html[data-l=it] a[data-set=it]{color:#f3f0e6;text-decoration:none;border-bottom:2px solid #f0bf00}
+html[data-l=en] a[data-set=en],html[data-l=fr] a[data-set=fr],html[data-l=it] a[data-set=it]{color:var(--ink);border-bottom:2px solid var(--ac)}
+#fr,#it{max-width:680px;padding-top:24px}
+#fr h1,#it h1{margin-bottom:4px}#fr h2,#it h2{font-size:20px;margin:28px 0 8px;color:var(--ac)}
+.hd{padding:32px 0 24px}
+.find{display:block;margin-top:24px}
+.find input{width:100%;height:48px;padding:0 16px;font:inherit;color:var(--ink);background:var(--s1);border:1px solid var(--bd);border-radius:8px;outline:none;transition:border-color .15s}
+.find input:focus{border-color:var(--ac)}
+.find input::placeholder{color:var(--mu)}
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.none{color:var(--mu);margin-top:16px}
+.toc{display:grid;grid-template-columns:1fr 1fr;column-gap:16px;border-top:1px solid var(--bd)}
+.toc a{display:block;padding:12px 0;border-bottom:1px solid var(--bd);color:var(--ink);text-decoration:none;font-weight:600;font-size:15px;transition:color .15s}
+.toc a:hover{color:var(--ac)}
+.topic{padding-top:48px}
+.topic+.topic{border-top:1px solid var(--bd);margin-top:48px}
+.lead{color:var(--mu);max-width:640px}
+.row{display:grid;grid-template-columns:1fr;gap:24px}
+.row+.row{margin-top:40px}
+.ph{margin:0 auto;width:100%;max-width:240px}
+.ph.sm{max-width:360px}
+.ph img{display:block;width:100%;height:auto;border:1px solid var(--bd);border-radius:16px;background:var(--s1)}
+.ph.sm img{border-radius:8px}
+figcaption{color:var(--mu);font-size:13px;line-height:20px;margin-top:8px;text-align:center}
+.tx{min-width:0;max-width:640px}
+.keys{display:grid;grid-template-columns:1fr;gap:0;margin:0}
+.keys dt{font-weight:600}
+.keys dd{margin:0 0 12px;color:var(--mu)}
+table.cmp{width:100%;border-collapse:collapse;font-size:14px;line-height:20px;margin:8px 0 16px;font-variant-numeric:tabular-nums}
+.cmp th,.cmp td{text-align:left;padding:8px;border-bottom:1px solid var(--bd);vertical-align:top}
+.cmp th{color:var(--mu);font-weight:600;font-size:13px}
+.cmp td:first-child{color:var(--mu);padding-left:0}
+.cmp tbody td+td{font-weight:600}
+.dia{display:grid;grid-template-columns:1fr;gap:16px;margin:0 0 40px}
+.dia figure,.dia1{margin:0;padding:16px;background:var(--s1);border:1px solid var(--bd);border-radius:12px}
+.dia svg,.dia1 svg{display:block;width:100%;height:auto}
+.dia figcaption,.dia1 figcaption{text-align:left;font-size:14px;line-height:20px;margin-top:12px;color:var(--mu)}
+.dia figcaption b{color:var(--ink)}
+.dia1{max-width:480px;margin:8px 0 16px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:16px 0}
+.stats div{background:var(--s1);border:1px solid var(--bd);border-radius:8px;padding:12px}
+.stats b{display:block;color:var(--ac);font-size:18px;line-height:24px;font-variant-numeric:tabular-nums}
+.stats span{color:var(--mu);font-size:13px;line-height:16px}
+.faq details{border-bottom:1px solid var(--bd)}
+.faq details:first-child{border-top:1px solid var(--bd)}
+.faq summary{cursor:pointer;padding:12px 0;font-weight:600;list-style-position:inside}
+.faq details p{color:var(--mu);padding-bottom:8px}
+.hide{display:none!important}
+@media (min-width:720px){
+ main{padding:0 32px 80px}.top{margin:0 -32px;padding:0 32px}
+ .toc{grid-template-columns:repeat(3,1fr);column-gap:32px}
+ .row{grid-template-columns:240px 1fr;gap:40px;align-items:start}
+ .ph{margin:0}
+ .ph.sm{max-width:240px}
+ .dia{grid-template-columns:1fr 1fr}
+ .keys{grid-template-columns:max-content 1fr;gap:8px 24px}.keys dd{margin:0}
+}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
 </style>
 </head>
 <body>
 <main>
 <div class="top"><a href="./">← Ludo Teranga</a><span class="langs"><a href="#" data-set="en">English</a> · <a href="#" data-set="fr">Français</a> · <a href="#" data-set="it">Italiano</a></span></div>
 <section id="en" lang="en">
-<h1>Ludo <span>Teranga</span>: help</h1>
-<p class="meta">Published by Nioro Resources LLC · Last updated 18 November 2026</p>
+<header class="hd">
+<h1>Help</h1>
+<p class="meta">Ludo Teranga · Nioro Resources LLC · Updated 19 November 2026</p>
+<label class="find"><span class="sr">Search help</span><input type="search" id="find" placeholder="Search help, e.g. block, points, invite" autocomplete="off"></label>
+<p class="none" id="find-none" hidden>Nothing found. Try another word, or write to support@niororesources.com.</p>
+</header>
+
+<nav class="toc" aria-label="Topics">
+<a href="#start">Getting started</a>
+<a href="#home">The home screen</a>
+<a href="#new">Start a game</a>
+<a href="#turn">Playing a turn</a>
+<a href="#rules">The rules, drawn</a>
+<a href="#points">Points</a>
+<a href="#online">Play online</a>
+<a href="#friends">Friends and invitations</a>
+<a href="#chat">Chat, block and report</a>
+<a href="#results">Results and statistics</a>
+<a href="#settings">Settings and account</a>
+<a href="#full">Full version</a>
+<a href="#faq">Problems and questions</a>
+<a href="#contact">Contact</a>
+</nav>
+
+<article id="start" class="topic">
+<h2>Getting started</h2>
+<div class="row">
+<figure class="ph"><img src="shots/help/gate.jpg" width="600" height="1298" loading="lazy" alt="First screen with Sign in or create an account and Play the computer as a guest"><figcaption>First screen</figcaption></figure>
+<div class="tx">
+<p>When you open the game you have two choices.</p>
+<ol>
+<li><b>Sign in or create an account.</b> Use an email and a password, or Continue with Apple or Continue with Google. The first time with email, tap <b>Create my login</b>.</li>
+<li><b>Play the computer as a guest.</b> No account needed.</li>
+</ol>
+<h3>Guest or signed in</h3>
+<table class="cmp">
+<thead><tr><th></th><th>Guest</th><th>Signed in</th></tr></thead>
+<tbody>
+<tr><td>Play the computer</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Same phone with friends</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Play online</td><td>No</td><td>Yes</td></tr>
+<tr><td>Points to play</td><td>Friendly or 100 ★</td><td>Friendly to 50,000 ★</td></tr>
+<tr><td>Points kept</td><td>Until you close the game</td><td>On every device</td></tr>
+<tr><td>Picture</td><td>Chosen for you</td><td>Your choice</td></tr>
+<tr><td>Turn timer</td><td>No</td><td>Yes</td></tr>
+<tr><td>Leaderboard and bonuses</td><td>No</td><td>Yes</td></tr>
+</tbody>
+</table>
+<p>After a guest win, the game offers to sign in so you keep the points.</p>
+</div>
+</div>
+<div class="row">
+<figure class="ph"><img src="shots/help/signin.jpg" width="600" height="1023" loading="lazy" alt="Sign-in form with email, password, Sign in, Create my login and Continue with Apple"><figcaption>Sign in</figcaption></figure>
+<div class="tx">
+<h3>Your login</h3>
+<ul>
+<li>One login per person. Use the same one on any phone or computer and your name, points and friends come back.</li>
+<li>Your email is never shown to other players.</li>
+<li>Your name is chosen once you are in, under Settings. It is unique and permanent.</li>
+<li>Forgot your password? Type your email and tap <b>Forgot your password?</b>. A link arrives by email; check your spam folder too.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article id="home" class="topic">
+<h2>The home screen</h2>
+<div class="row">
+<figure class="ph"><img src="shots/help/home.jpg" width="600" height="1298" loading="lazy" alt="Home screen showing points, games, wins, win streak, Play online and New game"><figcaption>Home</figcaption></figure>
+<div class="tx">
+<dl class="keys">
+<dt>★ 4,350</dt><dd>Your points.</dd>
+<dt>Games · Wins · Win streak</dt><dd>Your totals so far. A streak counts wins in a row.</dd>
+<dt>Play online</dt><dd>Private games with people in other places. Needs a login.</dd>
+<dt>New game</dt><dd>Play the computer, or friends on the same phone.</dd>
+<dt>Rules</dt><dd>The rules of the game you are playing.</dd>
+<dt>Scores</dt><dd>Your statistics, the leaderboard and recent games.</dd>
+<dt>♪ On</dt><dd>Sound on or off.</dd>
+<dt>Gear</dt><dd>Settings.</dd>
+</dl>
+<p>If a game is still in progress, the home screen offers <b>Resume game</b>.</p>
+</div>
+</div>
+</article>
+
+<article id="new" class="topic">
+<h2>Start a game</h2>
+<div class="row">
+<figure class="ph"><img src="shots/help/newgame.jpg" width="600" height="1191" loading="lazy" alt="New game screen with Teranga Classic, West African and Friendly"><figcaption>New game</figcaption></figure>
+<div class="tx">
+<p>Tap <b>New game</b>, make four choices, then tap <b>Start game</b>.</p>
+<h3>1. Choose your game</h3>
+<table class="cmp">
+<thead><tr><th></th><th>Teranga Classic</th><th>West African</th><th>Friendly</th></tr></thead>
+<tbody>
+<tr><td>Dice</td><td>1</td><td>2</td><td>1</td></tr>
+<tr><td>A pair blocks the road</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+<tr><td>Caught pieces go to</td><td>Catcher's kër</td><td>Catcher's kër</td><td>Their own yard</td></tr>
+<tr><td>Star squares safe</td><td>No</td><td>No</td><td>Yes</td></tr>
+<tr><td>Extra roll after a capture</td><td>Yes</td><td>No</td><td>Yes</td></tr>
+<tr><td>Extra roll for getting home</td><td>Yes</td><td>Yes</td><td>Yes</td></tr>
+</tbody>
+</table>
+<h3>2. How do you play?</h3>
+<ul>
+<li><b>Against the computer:</b> the computer takes the other seats.</li>
+<li><b>Same phone, friends:</b> up to 4 people share one phone. Each picks a name and a picture. Pass the phone when it is the next player's turn.</li>
+</ul>
+<h3>3. Players</h3>
+<p>2, 3 or 4.</p>
+<h3>4. Points to play</h3>
+<p><b>Friendly</b> costs nothing. Any other amount goes into a pot; see <a href="#points">Points</a>.</p>
+<p>Signed-in players can also set <b>Time per turn</b>: Off, 10, 15 or 30 seconds.</p>
+</div>
+</div>
+<div class="row">
+<figure class="ph"><img src="shots/help/samephone.jpg" width="600" height="1191" loading="lazy" alt="Same phone setup with a name and a picture for each colour"><figcaption>Same phone, friends</figcaption></figure>
+<div class="tx">
+<p>On the same phone, each colour has its own name box, four animal pictures and a <b>Photo</b> button to use a picture from the phone.</p>
+<p>Two players cannot use the same name.</p>
+</div>
+</div>
+</article>
+
+<article id="turn" class="topic">
+<h2>Playing a turn</h2>
+<div class="row">
+<figure class="ph"><img src="shots/help/board.jpg" width="600" height="838" loading="lazy" alt="Board during a game with the current player's kër lit and the message Tap a glowing piece"><figcaption>Your turn</figcaption></figure>
+<div class="tx">
+<ol>
+<li>Your kër lights up and your name shows under the board.</li>
+<li>Tap <b>Roll</b>. The dice show large in the centre of the board for a moment, so everyone round the phone can see.</li>
+<li>Pieces that can move glow. Tap one to move it.</li>
+<li>With two dice, tap a die first, then a piece. You can play both dice on the same piece.</li>
+</ol>
+<p>If no move is possible, the game says so and the turn passes.</p>
+<h3>The turn timer</h3>
+<p>When a timer is set, the seconds left show on the current player's kër on every phone.</p>
+<ul>
+<li>Time runs out before you roll: the turn passes. The game never rolls for you.</li>
+<li>Time runs out after you roll: the game moves a piece for you.</li>
+</ul>
+<h3>What the kër shows</h3>
+<p>Each player's kër shows their name, picture and points. Pieces you catch sit in your kër. The word follows the country in your profile: kër for Senegal, home in most other countries, maison in France.</p>
+</div>
+</div>
+</article>
+
+<article id="rules" class="topic">
+<h2>The rules, drawn</h2>
+<p class="lead">These drawings follow Teranga Classic. The Rules button in the game always shows the rules of the game you are playing.</p>
+<div class="dia">
+<figure><svg viewBox="0 0 320 134" role="img" aria-label="Roll a 6 to bring a piece from the yard onto your door square" xmlns="http://www.w3.org/2000/svg" font-family="Figtree, system-ui, sans-serif"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#f4f0e3" stroke-width="1.5"/></marker></defs><rect x="8" y="16" width="88" height="88" rx="10" fill="#2a66cf"/><rect x="20" y="28" width="64" height="64" rx="8" fill="#f3efe2"/><circle cx="38" cy="46" r="10" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="38" cy="46" r="12" fill="none" stroke="#11163a" stroke-width="1.5"/><circle cx="66" cy="46" r="10" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="66" cy="46" r="12" fill="none" stroke="#11163a" stroke-width="1.5"/><circle cx="38" cy="74" r="10" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="38" cy="74" r="12" fill="none" stroke="#11163a" stroke-width="1.5"/><rect x="118" y="30" width="28" height="28" rx="6" fill="#fff"/><circle cx="125.0" cy="37.0" r="2.5" fill="#11163a"/><circle cx="139.0" cy="37.0" r="2.5" fill="#11163a"/><circle cx="125.0" cy="44.0" r="2.5" fill="#11163a"/><circle cx="139.0" cy="44.0" r="2.5" fill="#11163a"/><circle cx="125.0" cy="51.0" r="2.5" fill="#11163a"/><circle cx="139.0" cy="51.0" r="2.5" fill="#11163a"/><path d="M68 74 C 120 96 150 96 176 78" fill="none" stroke="#f4f0e3" stroke-width="1.5" stroke-linecap="round" marker-end="url(#ah)"/><rect x="176" y="44" width="32" height="32" fill="#2a66cf" stroke="#3a4373" stroke-width="1.5"/><rect x="210" y="44" width="32" height="32" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="244" y="44" width="32" height="32" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="278" y="44" width="32" height="32" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><circle cx="192" cy="60" r="10" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="192" cy="60" r="12" fill="none" stroke="#11163a" stroke-width="1.5"/><text x="52" y="124" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">Yard</text><text x="192" y="124" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">Your door</text><text x="132" y="22" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">Roll a 6</text></svg><figcaption><b>Coming out.</b> A 6 brings a piece out of the yard onto your door. A 6 also gives you another roll.</figcaption></figure>
+<figure><svg viewBox="0 0 320 112" role="img" aria-label="A caught piece goes to the catcher's kër. Its owner needs a 6 to bring it back to their own kër, then another 6 to bring it out" xmlns="http://www.w3.org/2000/svg" font-family="Figtree, system-ui, sans-serif"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#f4f0e3" stroke-width="1.5"/></marker></defs><rect x="8" y="40" width="30" height="30" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="38" y="40" width="30" height="30" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="68" y="40" width="30" height="30" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><circle cx="23" cy="55" r="9" fill="#d7302c" stroke="#fff" stroke-width="2"/><circle cx="23" cy="55" r="11" fill="none" stroke="#11163a" stroke-width="1.5"/><circle cx="83" cy="55" r="9" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="83" cy="55" r="11" fill="none" stroke="#11163a" stroke-width="1.5"/><path d="M23 38 C 35 14 70 14 80 36" fill="none" stroke="#f4f0e3" stroke-width="1.5" stroke-linecap="round" marker-end="url(#ah)"/><text x="53" y="100" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">1  Land on it</text><path d="M104 55 L 122 55" fill="none" stroke="#f4f0e3" stroke-width="1.5" stroke-linecap="round" marker-end="url(#ah)"/><rect x="128" y="22" width="66" height="66" rx="10" fill="#d7302c"/><rect x="138" y="32" width="46" height="46" rx="7" fill="#f3efe2"/><circle cx="161" cy="55" r="8" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="161" cy="55" r="10" fill="none" stroke="#11163a" stroke-width="1.5"/><text x="161" y="100" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">2  Into your kër</text><path d="M202 55 L 220 55" fill="none" stroke="#f4f0e3" stroke-width="1.5" stroke-linecap="round" marker-end="url(#ah)"/><rect x="226" y="22" width="66" height="66" rx="10" fill="#2a66cf"/><rect x="236" y="32" width="46" height="46" rx="7" fill="#f3efe2"/><circle cx="259" cy="55" r="8" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="259" cy="55" r="10" fill="none" stroke="#11163a" stroke-width="1.5"/><rect x="292" y="22" width="22" height="22" rx="6" fill="#fff"/><circle cx="297.5" cy="27.5" r="2.0" fill="#11163a"/><circle cx="308.5" cy="27.5" r="2.0" fill="#11163a"/><circle cx="297.5" cy="33.0" r="2.0" fill="#11163a"/><circle cx="308.5" cy="33.0" r="2.0" fill="#11163a"/><circle cx="297.5" cy="38.5" r="2.0" fill="#11163a"/><circle cx="308.5" cy="38.5" r="2.0" fill="#11163a"/><rect x="292" y="50" width="22" height="22" rx="6" fill="#fff"/><circle cx="297.5" cy="55.5" r="2.0" fill="#11163a"/><circle cx="308.5" cy="55.5" r="2.0" fill="#11163a"/><circle cx="297.5" cy="61.0" r="2.0" fill="#11163a"/><circle cx="308.5" cy="61.0" r="2.0" fill="#11163a"/><circle cx="297.5" cy="66.5" r="2.0" fill="#11163a"/><circle cx="308.5" cy="66.5" r="2.0" fill="#11163a"/><text x="262" y="100" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">3  6 home, 6 out</text></svg><figcaption><b>Catching.</b> Land on a lone opponent to catch it. It goes into your kër. Its owner needs a 6 to bring it back to their own kër, then another 6 to bring it out. The catching piece keeps going; it does not go home.</figcaption></figure>
+<figure><svg viewBox="0 0 320 128" role="img" aria-label="A piece right behind a block hops just past it with as many sixes in a row as the block has pieces" xmlns="http://www.w3.org/2000/svg" font-family="Figtree, system-ui, sans-serif"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#f4f0e3" stroke-width="1.5"/></marker></defs><rect x="16" y="60" width="36" height="36" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="52" y="60" width="36" height="36" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="88" y="60" width="36" height="36" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="124" y="60" width="36" height="36" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="160" y="60" width="36" height="36" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="196" y="60" width="36" height="36" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="232" y="60" width="36" height="36" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="268" y="60" width="36" height="36" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><circle cx="70" cy="78" r="10" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="70" cy="78" r="12" fill="none" stroke="#11163a" stroke-width="1.5"/><circle cx="103" cy="72" r="9" fill="#d7302c" stroke="#fff" stroke-width="2"/><circle cx="103" cy="72" r="11" fill="none" stroke="#11163a" stroke-width="1.5"/><circle cx="111" cy="84" r="9" fill="#d7302c" stroke="#fff" stroke-width="2"/><circle cx="111" cy="84" r="11" fill="none" stroke="#11163a" stroke-width="1.5"/><circle cx="142" cy="78" r="10" fill="none" stroke="#2a66cf" stroke-width="1.5" stroke-dasharray="3 3"/><path d="M70 56 C 82 30 128 30 140 62" fill="none" stroke="#f4f0e3" stroke-width="1.5" stroke-linecap="round" marker-end="url(#ah)"/><rect x="80" y="8" width="22" height="22" rx="6" fill="#fff"/><circle cx="85.5" cy="13.5" r="2.0" fill="#11163a"/><circle cx="96.5" cy="13.5" r="2.0" fill="#11163a"/><circle cx="85.5" cy="19.0" r="2.0" fill="#11163a"/><circle cx="96.5" cy="19.0" r="2.0" fill="#11163a"/><circle cx="85.5" cy="24.5" r="2.0" fill="#11163a"/><circle cx="96.5" cy="24.5" r="2.0" fill="#11163a"/><rect x="106" y="8" width="22" height="22" rx="6" fill="#fff"/><circle cx="111.5" cy="13.5" r="2.0" fill="#11163a"/><circle cx="122.5" cy="13.5" r="2.0" fill="#11163a"/><circle cx="111.5" cy="19.0" r="2.0" fill="#11163a"/><circle cx="122.5" cy="19.0" r="2.0" fill="#11163a"/><circle cx="111.5" cy="24.5" r="2.0" fill="#11163a"/><circle cx="122.5" cy="24.5" r="2.0" fill="#11163a"/><text x="107" y="116" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">Block of 2: hop with a double six</text><text x="250" y="22" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">Block of 3:</text><text x="250" y="38" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">three sixes</text></svg><figcaption><b>Blocks.</b> Two or more of your pieces on one square form a block. Nobody can catch it or pass it, except by hopping: a piece right behind the block jumps just past it with as many sixes in a row, in the same turn, as the block has pieces. The sixes are used up, then that player rolls again.</figcaption></figure>
+<figure><svg viewBox="0 0 320 134" role="img" aria-label="On your own door you cannot be caught. On another player's door anyone can be caught, even two pieces together" xmlns="http://www.w3.org/2000/svg" font-family="Figtree, system-ui, sans-serif"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#f4f0e3" stroke-width="1.5"/></marker></defs><rect x="16" y="28" width="40" height="40" fill="#2a66cf" stroke="#3a4373" stroke-width="1.5"/><rect x="56" y="28" width="40" height="40" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="96" y="28" width="40" height="40" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><circle cx="36" cy="48" r="10" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="36" cy="48" r="12" fill="none" stroke="#11163a" stroke-width="1.5"/><path d="M30 84 l5 5 9-10" fill="none" stroke="#f4f0e3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><text x="76" y="18" text-anchor="middle" fill="#f4f0e3" font-size="12" font-weight="700">Your door</text><text x="76" y="110" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">You can't be</text><text x="76" y="126" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">caught here</text><rect x="184" y="28" width="40" height="40" fill="#0f8a48" stroke="#3a4373" stroke-width="1.5"/><rect x="224" y="28" width="40" height="40" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="264" y="28" width="40" height="40" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><circle cx="198" cy="42" r="8" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="198" cy="42" r="10" fill="none" stroke="#11163a" stroke-width="1.5"/><circle cx="210" cy="54" r="8" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="210" cy="54" r="10" fill="none" stroke="#11163a" stroke-width="1.5"/><circle cx="284" cy="48" r="10" fill="#d7302c" stroke="#fff" stroke-width="2"/><circle cx="284" cy="48" r="12" fill="none" stroke="#11163a" stroke-width="1.5"/><path d="M284 72 C 270 98 222 98 210 76" fill="none" stroke="#f4f0e3" stroke-width="1.5" stroke-linecap="round" marker-end="url(#ah)"/><text x="244" y="18" text-anchor="middle" fill="#f4f0e3" font-size="12" font-weight="700">Another player's door</text><text x="244" y="110" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">Anyone can be caught</text><text x="244" y="126" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">here, even a pair</text></svg><figcaption><b>Doors.</b> The square where your pieces come out is your door. There you cannot be caught. On another player's door, anyone can be caught by anybody, even two pieces together.</figcaption></figure>
+<figure><svg viewBox="0 0 320 146" role="img" aria-label="A piece needs the exact number to reach the centre. Getting home earns another roll" xmlns="http://www.w3.org/2000/svg" font-family="Figtree, system-ui, sans-serif"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#f4f0e3" stroke-width="1.5"/></marker></defs><rect x="16" y="52" width="36" height="36" fill="#f3efe2" stroke="#3a4373" stroke-width="1.5"/><rect x="52" y="52" width="36" height="36" fill="#2a66cf" stroke="#3a4373" stroke-width="1.5"/><rect x="88" y="52" width="36" height="36" fill="#2a66cf" stroke="#3a4373" stroke-width="1.5"/><rect x="124" y="52" width="36" height="36" fill="#2a66cf" stroke="#3a4373" stroke-width="1.5"/><rect x="160" y="52" width="36" height="36" fill="#2a66cf" stroke="#3a4373" stroke-width="1.5"/><path d="M196 40 L 240 70 L 196 100 Z" fill="#2a66cf"/><circle cx="124" cy="70" r="10" fill="#2a66cf" stroke="#fff" stroke-width="2"/><circle cx="124" cy="70" r="12" fill="none" stroke="#11163a" stroke-width="1.5"/><rect x="250" y="20" width="26" height="26" rx="6" fill="#fff"/><circle cx="256.5" cy="26.5" r="2.4" fill="#11163a"/><circle cx="269.5" cy="39.5" r="2.4" fill="#11163a"/><rect x="250" y="76" width="26" height="26" rx="6" fill="#fff" opacity=".45"/><circle cx="256.5" cy="82.5" r="2.4" fill="#11163a" opacity=".45"/><circle cx="269.5" cy="82.5" r="2.4" fill="#11163a" opacity=".45"/><circle cx="256.5" cy="95.5" r="2.4" fill="#11163a" opacity=".45"/><circle cx="269.5" cy="95.5" r="2.4" fill="#11163a" opacity=".45"/><path d="M286 30 l5 5 9-10" fill="none" stroke="#f4f0e3" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M287 84 l10 10 M297 84 l-10 10" stroke="#aab2da" stroke-width="1.5" stroke-linecap="round"/><path d="M124 50 C 140 26 176 26 200 56" fill="none" stroke="#f4f0e3" stroke-width="1.5" stroke-linecap="round" marker-end="url(#ah)"/><text x="130" y="120" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">Exact number to reach the centre.</text><text x="130" y="136" text-anchor="middle" fill="#aab2da" font-size="12" font-weight="400">Getting home earns another roll.</text></svg><figcaption><b>Getting home.</b> A piece wins only by going all the way round. You need the exact number to reach the centre. Getting a piece home earns another roll.</figcaption></figure>
+</div>
+<div class="row">
+<figure class="ph"><img src="shots/help/rules.jpg" width="600" height="1191" loading="lazy" alt="Rules screen listing the rules of Teranga Classic"><figcaption>Rules in the game</figcaption></figure>
+<div class="tx">
+<h3>Winning</h3>
+<p>The first player with all four pieces home wins. With 3 or 4 players the game carries on to decide 2nd, 3rd and 4th.</p>
+<h3>West African, with 2 dice</h3>
+<p>Play each die on any piece, or both on the same piece. A double 6 gives another roll.</p>
+<h3>Friendly</h3>
+<p>Caught pieces go back to their own yard. Pieces on star squares cannot be caught.</p>
+<h3>Fair dice</h3>
+<p>The dice are plain chance, the same for everyone. Points and entries never change the odds.</p>
+</div>
+</div>
+</article>
+
+<article id="points" class="topic">
+<h2>Points</h2>
+<div class="tx wide">
+<p>Points (★) are for fun only. They cannot be bought and have no cash value.</p>
+<div class="stats">
+<div><b>1,000 ★</b><span>to start</span></div>
+<div><b>+200 ★</b><span>once a day</span></div>
+<div><b>+50 to +200 ★</b><span>for wins in a row</span></div>
+</div>
+<h3>Points to play</h3>
+<p>Each player puts in the same amount: 100, 200, 500, 1,000, 5,000, 10,000, 15,000, 20,000 or 50,000 ★. Computer players match it. You need enough points to join.</p>
+<figure class="dia1"><svg viewBox="0 0 320 128" role="img" aria-label="With 3 or 4 players, 1st takes 70 percent of the pot and 2nd 30 percent. With 2 players the winner takes it all" xmlns="http://www.w3.org/2000/svg" font-family="Figtree, system-ui, sans-serif"><defs><marker id="ah" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M1 1 9 5 1 9" fill="none" stroke="#f4f0e3" stroke-width="1.5"/></marker></defs><text x="8" y="22" text-anchor="start" fill="#f4f0e3" font-size="13" font-weight="700">3 or 4 players</text><rect x="8" y="32" width="210" height="24" rx="4" fill="#f0bf00"/><rect x="220" y="32" width="92" height="24" rx="4" fill="#3a4373"/><text x="16" y="49" text-anchor="start" fill="#1a1500" font-size="12" font-weight="700">1st · 70%</text><text x="228" y="49" text-anchor="start" fill="#f4f0e3" font-size="12" font-weight="700">2nd · 30%</text><text x="8" y="84" text-anchor="start" fill="#f4f0e3" font-size="13" font-weight="700">2 players</text><rect x="8" y="94" width="304" height="24" rx="4" fill="#f0bf00"/><text x="16" y="111" text-anchor="start" fill="#1a1500" font-size="12" font-weight="700">Winner takes it all</text></svg><figcaption>How the pot is shared.</figcaption></figure>
+<h3>Points earned during a game</h3>
+<table class="cmp">
+<tbody>
+<tr><td>Capture</td><td>+10 ★</td></tr>
+<tr><td>Each piece home</td><td>+25 ★</td></tr>
+<tr><td>1st place</td><td>+100 ★</td></tr>
+<tr><td>2nd place</td><td>+50 ★</td></tr>
+<tr><td>3rd place</td><td>+25 ★</td></tr>
+</tbody>
+</table>
+<h3>Win streak bonus</h3>
+<p>2 wins in a row +50 ★, 3 in a row +100 ★, 4 in a row +150 ★, 5 or more +200 ★.</p>
+<p>Guests play Friendly or for 100 ★, and get no daily or streak bonus.</p>
+</div>
+</article>
+
+<article id="online" class="topic">
+<h2>Play online</h2>
+<div class="row">
+<figure class="ph"><img src="shots/help/lobby.jpg" width="600" height="1298" loading="lazy" alt="Private game screen with a game code, Invite players and four seats"><figcaption>Your private game</figcaption></figure>
+<div class="tx">
+<h3>Start a private game</h3>
+<ol>
+<li>Tap <b>Play online</b>, then <b>Play with friends</b>.</li>
+<li>Choose the game, players, points and when the game starts:
+<ul><li><b>When I tap Start</b>, or</li><li><b>By itself when full</b>.</li></ul></li>
+<li>Tap <b>Create game</b>. You get a six-character code.</li>
+<li>Tap <b>Invite players</b> to share the link, or tap <b>Invite</b> next to a friend.</li>
+<li>Tap <b>Start game</b>. Empty seats are played by the computer.</li>
+</ol>
+<p>Only people with your link, code or invitation can join. Every new game gets a new code.</p>
+<h3>Join a game</h3>
+<p>Open the link you were sent, or type the code under <b>Join with a code</b>.</p>
+</div>
+</div>
+<div class="row">
+<figure class="ph sm"><img src="shots/help/ask.jpg" width="600" height="223" loading="lazy" alt="Bar reading Ibou wants to join the game with Accept and Decline"><figcaption>Someone asks to join</figcaption></figure>
+<div class="tx">
+<h3>Joining a game already started</h3>
+<p>The host sees a request and taps <b>Accept</b> or <b>Decline</b>. If accepted, the new player takes over a computer seat and pays the entry.</p>
+<h3>When someone goes quiet</h3>
+<p>"away" shows next to their name and the game plays safely for them until they come back.</p>
+<h3>Leaving</h3>
+<p><b>Leave game</b> during a game means you lose that game for good.</p>
+<h3>After the game</h3>
+<p>The room closes 12 seconds after the end. Tap <b>Play again</b> before then and everyone moves to a new room together.</p>
+<p>If your phone drops the connection, the game brings you back to your seat with your pieces as they were.</p>
+</div>
+</div>
+</article>
+
+<article id="friends" class="topic">
+<h2>Friends and invitations</h2>
+<div class="row">
+<figure class="ph sm"><img src="shots/help/invite.jpg" width="600" height="162" loading="lazy" alt="Bar reading Moussa invites you to a game with Join and Not now"><figcaption>An invitation</figcaption></figure>
+<div class="tx">
+<ul>
+<li>Your friend code is under <b>Play online</b> → <b>Play with friends</b>, at the bottom. Tap <b>Share</b> to send it.</li>
+<li>To add a friend, type their friend code or their name and tap <b>Add</b>. You can also tap <b>+ Friend</b> next to someone you play with.</li>
+<li>In your private game, tap <b>Invite</b> next to a friend. They see a bar with <b>Join</b> and <b>Not now</b>.</li>
+<li>Tap <b>Remove</b> to take someone off your list.</li>
+</ul>
+</div>
+</div>
+</article>
+
+<article id="chat" class="topic">
+<h2>Chat, block and report</h2>
+<div class="row">
+<figure class="ph"><img src="shots/help/chat.jpg" width="600" height="1191" loading="lazy" alt="Say something panel with Who sees it, emojis, ready-made phrases and a short message box"><figcaption>Say something</figcaption></figure>
+<div class="tx">
+<p>During an online game, a row of emojis sits under the board.</p>
+<ol>
+<li>Tap <b>→ All</b> to choose who sees it: everyone or one player. A message to one player shows only on their phone and yours.</li>
+<li>Tap an emoji. It flies from your kër to theirs, with its own sound.</li>
+<li>Tap 💬 for ready-made phrases, or type up to 40 characters and tap <b>Send</b>.</li>
+</ol>
+<p>Rude words are hidden automatically.</p>
+</div>
+</div>
+<div class="row">
+<figure class="ph sm"><img src="shots/help/chatplayers.jpg" width="600" height="408" loading="lazy" alt="List of players with Block and Report buttons"><figcaption>Block and Report</figcaption></figure>
+<div class="tx">
+<ul>
+<li><b>Block</b> hides that player's messages, emojis and invitations on your device. Unblock any time in Settings.</li>
+<li><b>Report</b> sends us a report and blocks the player. Reported players can be removed from the game.</li>
+</ul>
+<p>Be respectful. Insults and harassment are not allowed. See the <a href="privacy.html#conduct" data-pl>rules of conduct</a>.</p>
+</div>
+</div>
+</article>
+
+<article id="results" class="topic">
+<h2>Results and statistics</h2>
+<div class="row">
+<figure class="ph"><img src="shots/help/win.jpg" width="600" height="1114" loading="lazy" alt="Results with final places and points won"><figcaption>End of a game</figcaption></figure>
+<div class="tx">
+<p>At the end you see the final places and the points each player won. Then choose <b>Play again</b>, <b>Scores</b> or <b>New game</b>.</p>
+<p>Confetti is for the winner only, on the winner's own phone.</p>
+</div>
+</div>
+<div class="row">
+<figure class="ph"><img src="shots/help/stats.jpg" width="600" height="1191" loading="lazy" alt="My statistics with win rate, games played, games won, streaks and captures, then the leaderboard"><figcaption>Scores</figcaption></figure>
+<div class="tx">
+<p>Tap <b>Scores</b> to see:</p>
+<ul>
+<li><b>My statistics:</b> win rate, games played, won and lost, current and best win streak, pieces captured and captures per game.</li>
+<li><b>Leaderboard:</b> points, wins, games, catches and best run.</li>
+<li><b>Recent games.</b></li>
+</ul>
+<p>Signed in, your statistics are saved with your login. Guests are not on the leaderboard.</p>
+</div>
+</div>
+</article>
+
+<article id="settings" class="topic">
+<h2>Settings and account</h2>
+<div class="row">
+<figure class="ph"><img src="shots/help/settings.jpg" width="600" height="1298" loading="lazy" alt="Settings with name, picture for your kër, country, account, blocked players, sound and language"><figcaption>Settings</figcaption></figure>
+<div class="tx">
+<p>Tap the gear on the home screen.</p>
+<dl class="keys">
+<dt>Your name</dt><dd>Chosen once. Unique and permanent.</dd>
+<dt>Picture for your kër</dt><dd>A background picture for your kër on the board, shown on your device. Full version.</dd>
+<dt>Country</dt><dd>Sets the word for your house and, on Auto, the language.</dd>
+<dt>Your account</dt><dd>Sign out, or Delete my account.</dd>
+<dt>Blocked players</dt><dd>See and unblock players.</dd>
+<dt>Sound</dt><dd>On or Off.</dd>
+<dt>Language</dt><dd>Auto, English, French or Italian. A choice you make always wins.</dd>
+</dl>
+<h3>Delete my account</h3>
+<p>Settings → Your account → <b>Delete my account</b>, then confirm. Your name, picture, points, results and friends are erased for good. If you used Apple, the link with your Apple ID is removed too.</p>
+<h3>Played before with your phone number?</h3>
+<p>Create your login once. On the phone you already used, your points follow by themselves. On another phone, open <b>Played before with your phone number?</b> under your account and type the number once. The number is used only for this and is never shown to anyone.</p>
+</div>
+</div>
+</article>
+
+<article id="full" class="topic">
+<h2>Full version</h2>
+<div class="tx wide">
+<p>Ludo Teranga is free to play. Some extras are marked <b>Full version</b>:</p>
+<ul>
+<li>The turn timer.</li>
+<li>A picture for your kër.</li>
+</ul>
+<p>For now every signed-in player has them at no cost. We will say so in the game before anything changes.</p>
+</div>
+</article>
+
+<article id="faq" class="topic">
+<h2>Problems and questions</h2>
+<div class="tx wide faq">
+<details><summary>My points are missing on a new phone</summary><p>Sign in the same way as before: the same email and password, or the same Apple or Google account. Guest points stay on the device where they were won, and only until the game is closed.</p></details>
+<details><summary>"This email already has a login"</summary><p>Sign in the way you did the first time, for example with email and password instead of Google.</p></details>
+<details><summary>I did not get the password email</summary><p>Check your spam folder. Wait a few minutes, then tap Forgot your password? again.</p></details>
+<details><summary>"No game found with this code"</summary><p>Check the six characters. A finished game's room closes after 12 seconds, and every new game has a new code. Ask the host for the new link.</p></details>
+<details><summary>"This game is full" or "already started"</summary><p>Ask the host to accept you. You will take over a computer seat if there is one.</p></details>
+<details><summary>There is no sound</summary><p>Check the volume and the silent switch, then make sure Sound is On.</p></details>
+<details><summary>The game says it is updating</summary><p>New versions install by themselves. If a message asks you to, close the game completely and open it again.</p></details>
+<details><summary>Someone is being rude</summary><p>Tap 💬 under the board, then Block or Report beside their name.</p></details>
+<details><summary>Can I buy points or cash them out?</summary><p>No. Points are for fun only and have no cash value.</p></details>
+</div>
+</article>
+
+<article id="contact" class="topic">
 <h2>Contact</h2>
-<p>Write to support@niororesources.com. Tell us the phone or computer you use and what happened. Never send us your password for any service; we will not ask for one.</p>
-<h2>Common questions</h2>
-<p><b>How do I get started?</b> Open the game and tap Sign in or create an account. Use your email and password (tap Create my login the first time), or Continue with Apple or Continue with Google. You choose your name and picture afterwards, in Settings. You can also tap Play the computer as a guest to play without an account.</p>
-<p><b>How do I play with people in other places?</b> Tap Play with friends, create a game and share the invite link or the six-character code. You need to be signed in to play online.</p>
-<p><b>My points are missing on a new phone.</b> Sign in the same way as before: the same email and password, or the same Google or Apple account. Your name, points and friends come back. Guest points stay on the device where they were won.</p>
-<p><b>I forgot my password.</b> Type your email under Settings and tap Forgot your password?. A link to choose a new one is sent to you. Check your spam folder too.</p>
-<p><b>How do I change my name, picture or country?</b> Open Settings. Your name, picture and country are under your account once you are signed in.</p>
-<p><b>I used to sign in with my phone number.</b> Create your login once with an email and a password. On the phone you already used, your points follow by themselves. On another phone, open Played before with your phone number? under your account and type the number once.</p>
-<p><b>There is no sound.</b> Check the volume and the silent switch, then tap the sound button in the game.</p>
-<p><b>The game says an update is ready.</b> Tap the yellow bar, or close the game and open it again.</p>
-<p><b>Someone is being rude.</b> During an online game, tap the speech bubble, then Block or Report beside the player's name.</p>
-<p><b>How do I delete my account?</b> Open Settings, find Your account and tap Delete my account. If you used Apple, the link with your Apple ID is removed too.</p>
-<p><b>Can I buy or cash out points?</b> No. Points are for fun only and have no cash value.</p>
+<div class="tx wide">
+<p>Write to <a href="mailto:support@niororesources.com">support@niororesources.com</a>. Tell us the phone or computer you use and what happened. Never send us a password; we will not ask for one.</p>
 <p>See also: <a href="privacy.html" data-pl>privacy and rules of conduct</a>.</p>
+</div>
+</article>
 </section>
+
 <section id="fr" lang="fr">
 <h1>Ludo <span>Teranga</span> : aide</h1>
 <p class="meta">Publié par Nioro Resources LLC · Dernière mise à jour : 18 novembre 2026</p>
@@ -93,13 +494,17 @@ html[data-l=en] a[data-set=en],html[data-l=fr] a[data-set=fr],html[data-l=it] a[
 <p><b>Posso comprare o convertire in denaro i punti?</b> No. I punti servono solo per divertirsi e non hanno valore in denaro.</p>
 <p>Vedi anche: <a href="privacy.html" data-pl>privacy e regole di condotta</a>.</p>
 </section>
-
 <footer>&copy; 2026 Nioro Resources LLC</footer>
 </main>
 <script>
 (function(){var d=document.documentElement;
-Array.prototype.forEach.call(document.querySelectorAll("[data-set]"),function(a){a.addEventListener("click",function(e){e.preventDefault();var l=a.getAttribute("data-set");d.setAttribute("data-l",l);d.lang=l;window.scrollTo(0,0)})});
-var h=location.hash.slice(1),l=d.getAttribute("data-l");if(h&&l!=="en"){var t=document.getElementById(h+"-"+l);if(t)t.scrollIntoView()}})();
+Array.prototype.forEach.call(document.querySelectorAll("[data-set]"),function(a){a.addEventListener("click",function(e){e.preventDefault();var l=a.getAttribute("data-set");d.setAttribute("data-l",l);d.lang=l;try{localStorage.setItem("ludo-lang",l)}catch(x){}window.scrollTo(0,0)})});
+var h=location.hash.slice(1),l=d.getAttribute("data-l");if(h&&l!=="en"){var t=document.getElementById(h+"-"+l);if(t)t.scrollIntoView()}
+var f=document.getElementById("find"),none=document.getElementById("find-none"),toc=document.querySelector("#en .toc"),arts=Array.prototype.slice.call(document.querySelectorAll("#en .topic"));
+if(f)f.addEventListener("input",function(){var q=f.value.trim().toLowerCase(),n=0;
+ arts.forEach(function(a){var hit=!q||a.textContent.toLowerCase().indexOf(q)>=0;a.classList.toggle("hide",!hit);if(hit)n++});
+ toc.classList.toggle("hide",!!q);none.hidden=!q||n>0});
+})();
 </script>
 </body>
 </html>
