@@ -4306,7 +4306,19 @@ window.addEventListener("storage",function(e){
   if((o&&o.uid)!==(pAuth&&pAuth.uid)){clearTimeout(acctT);location.reload()}
 });
 // ---------- Updates: tell the player when a newer version of the game is online ----------
-var BUILD="131";
+var BUILD="132";
+// Tablets: the game is laid out for a phone-sized column. On a large screen the whole
+// interface is scaled up so the board fills the space, upright or sideways.
+function fitScreen(){
+  var w=window.innerWidth,h=window.innerHeight,z=1;
+  if(Math.min(w,h)>=600)z=Math.max(1,Math.min(w/560,h/780,1.7));
+  z=Math.round(z*100)/100;
+  document.documentElement.style.zoom=z>1.02?String(z):"";
+  document.documentElement.classList.toggle("tab",z>1.02);
+}
+fitScreen();
+window.addEventListener("resize",fitScreen);
+window.addEventListener("orientationchange",function(){setTimeout(fitScreen,200)});
 if($("ver"))$("ver").textContent="· v"+BUILD;
 function applyUpdate(){
   var bar=$("update-bar");
